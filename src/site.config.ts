@@ -26,15 +26,6 @@ export const site = {
 		{ group: '设备与协议', items: ['海康 MVS', 'GenICam', 'GigE Vision'] },
 	],
 
-	// 首页顶部的产出数据。每一项都要能在站上或仓库里验证到，
-	// 面试官顺着点进去数得出来的数字才有意义
-	stats: [
-		{ value: '8,840', label: '行 C++ · 相机客户端' },
-		{ value: '1,229', label: '行单元测试' },
-		{ value: '3,604', label: '行 C++ · Agent 框架' },
-		{ value: '10', label: '个 AI 可调用的相机工具' },
-	],
-
 	statusBar: {
 		branch: 'main',
 		stack: 'C++17 · Qt6 · OpenCV',

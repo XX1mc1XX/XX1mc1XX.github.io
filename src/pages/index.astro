@@ -23,15 +23,6 @@ const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
 		</div>
 	</section>
 
-	<div class="stats">
-		{site.stats.map((item) => (
-			<div class="stats__item">
-				<span class="stats__value">{item.value}</span>
-				<span class="stats__label">{item.label}</span>
-			</div>
-		))}
-	</div>
-
 	<h2 class="section-title">项目</h2>
 	{projects.length > 0 ? (
 		<div class="cards">

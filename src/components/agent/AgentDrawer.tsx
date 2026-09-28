@@ -10,6 +10,7 @@ interface Props {
 
 const WIDTH_KEY = 'agent-width';
 const OPEN_KEY = 'agent-open';
+const HINT_KEY = 'agent-hint-seen';
 // 面板最窄也要能放下输入框；往宽不设上限，可以一路拉到满屏
 const MIN_WIDTH = 300;
 
@@ -39,6 +40,8 @@ export default function AgentDrawer({ articles }: Props) {
 	const [showDemo, setShowDemo] = useState(true);
 	const [error, setError] = useState('');
 	const [demoPlaying, setDemoPlaying] = useState(false);
+	// 首次访问时给一次提示，说来它到底能干什么。看过就记下来，不再打扰
+	const [showHint, setShowHint] = useState(false);
 
 	const listRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -71,6 +74,26 @@ export default function AgentDrawer({ articles }: Props) {
 		const node = listRef.current;
 		if (node) node.scrollTop = node.scrollHeight;
 	}, [messages, open, busy]);
+
+	// 首次访问才弹一次提示。等页面稳下来再出现，一进来就冒出来太吵
+	useEffect(() => {
+		try {
+			if (localStorage.getItem(HINT_KEY) === 'seen') return;
+		} catch {
+			return;
+		}
+		const timer = setTimeout(() => setShowHint(true), 2600);
+		return () => clearTimeout(timer);
+	}, []);
+
+	function dismissHint() {
+		setShowHint(false);
+		try {
+			localStorage.setItem(HINT_KEY, 'seen');
+		} catch {
+			// 存不进去也无所谓，无非下次再多提示一遍
+		}
+	}
 
 	// 页面上按 / 直接跳进来提问（ReadingTools 负责派发这个事件）
 	useEffect(() => {
@@ -299,9 +322,30 @@ export default function AgentDrawer({ articles }: Props) {
 
 	return (
 		<>
-			<button class="agent-fab" type="button" title="AI 助手" onClick={() => setOpen(true)}>
-				<AiMark />
+			<button
+				class="agent-fab"
+				type="button"
+				title="问 AI 助手"
+				onClick={() => {
+					dismissHint();
+					setOpen(true);
+				}}
+			>
+				<ChatMark />
+				<span class="agent-fab__label">问 AI</span>
 			</button>
+
+			{showHint && !open && (
+				<div class="agent-hint">
+					<button class="agent-hint__close" type="button" title="知道了" onClick={dismissHint}>
+						×
+					</button>
+					它能读本站的文章，然后回答关于这些内容的问题。
+					<br />
+					<br />
+					点开先看一遍演示，不用填任何东西。
+				</div>
+			)}
 
 			<aside class="agent-panel">
 				<div class="agent-resizer" onPointerDown={(event) => {
@@ -313,7 +357,7 @@ export default function AgentDrawer({ articles }: Props) {
 
 				<header class="agent-head">
 					<span class="agent-head__title">
-						<AiMark />
+						<ChatMark />
 						AI 助手
 					</span>
 					<div class="agent-head__actions">
@@ -489,23 +533,13 @@ export default function AgentDrawer({ articles }: Props) {
 	);
 }
 
-// 自己画的 AI 标记：四角星芒，简洁线条，跟 VS Code 图标同一个视觉语言
-function AiMark() {
+// 对话气泡。之前用的星芒太抽象——访客看到不知道那是什么，自然也不会点
+function ChatMark() {
 	return (
 		<svg class="agent-mark" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
 			<path
 				fill="currentColor"
-				d="M8 1.2c.2 2.6 1.3 4 4.3 4.3-3 .3-4.1 1.7-4.3 4.3-.2-2.6-1.3-4-4.3-4.3C6.7 5.2 7.8 3.8 8 1.2Z"
-			/>
-			<path
-				fill="currentColor"
-				d="M4.1 9.4c.13 1.7.85 2.6 2.8 2.8-1.95.2-2.67 1.1-2.8 2.8-.13-1.7-.85-2.6-2.8-2.8 1.95-.2 2.67-1.1 2.8-2.8Z"
-				opacity="0.75"
-			/>
-			<path
-				fill="currentColor"
-				d="M12.2 10.6c.1 1.3.65 2 2.2 2.15-1.55.15-2.1.85-2.2 2.15-.1-1.3-.65-2-2.2-2.15 1.55-.15 2.1-.85 2.2-2.15Z"
-				opacity="0.6"
+				d="M2.6 2.4h10.8c.8 0 1.4.6 1.4 1.4v6.2c0 .8-.6 1.4-1.4 1.4H7.3l-3.5 2.5c-.3.2-.8 0-.8-.4v-2.1h-.4c-.8 0-1.4-.6-1.4-1.4V3.8c0-.8.6-1.4 1.4-1.4Z"
 			/>
 		</svg>
 	);
