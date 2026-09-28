@@ -19,13 +19,18 @@ export const site = {
 		{ label: '关于', href: '/about' },
 	],
 
-	// 首页技能区块。按干的活分组，比按「语言/框架/工具」那种分法有信息量
+	// 技能区块。按干的活分组而不是按「语言/框架/工具」——
+	// 面试官想知道你能干什么，不是你有什么工具
 	skills: [
-		{ group: '上位机开发', items: ['C++17', 'Qt 6', 'CMake', 'MSVC'] },
-		{ group: '机器视觉', items: ['OpenCV', '2D / 3D 处理', '相机标定'] },
-		{ group: '工业设备', items: ['海康 MVS', 'GenICam', 'GigE Vision'] },
-		{ group: '工业机器人', items: ['ROS2', '机械臂仿真'] },
-		{ group: 'AI 集成', items: ['Agent 框架', 'LLM 工具调用'] },
+		{ group: '编程语言', items: ['C++ 11 / 17', 'Python 3', 'C#'] },
+		{
+			group: '上位机开发',
+			items: ['Qt 5 / 6', '信号槽与多线程', 'Model-View-Delegate', 'QDockWidget 停靠体系', '插件化架构'],
+		},
+		{ group: '机器视觉', items: ['海康 MVS SDK', 'GenICam / GigE Vision', 'OpenCV', 'PCL 点云'] },
+		{ group: '工业机器人', items: ['ROS2', 'Gazebo 仿真'] },
+		{ group: 'AI Agent', items: ['Agent 底层原理', 'LLM 工具调用', '本地知识库检索'] },
+		{ group: '工程实践', items: ['CMake / qmake', 'Windows / Linux', 'Git / CI-CD', 'CTest', 'Docker'] },
 	],
 
 	statusBar: {
