@@ -29,7 +29,7 @@ const articles = await collectArticles();
 ---
 
 <!doctype html>
-<html lang="zh-CN" class={hasSidebar ? undefined : 'sidebar-hidden'}>
+<html lang="zh-CN" class={`activity-hidden${hasSidebar ? '' : ' sidebar-hidden'}`}>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />

@@ -163,6 +163,25 @@ hr {
 	display: none;
 }
 
+.tabbar__toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	padding: 0;
+	background: none;
+	border: 0;
+	border-right: 1px solid var(--border);
+	color: var(--fg-muted);
+	cursor: pointer;
+	transition: color 0.12s ease, background-color 0.12s ease;
+}
+
+.tabbar__toggle:hover {
+	background: var(--bg-tab);
+	color: var(--fg);
+}
+
 .tabbar__brand {
 	display: flex;
 	align-items: center;
@@ -250,6 +269,16 @@ hr {
 	grid-template-columns: var(--activity-w) var(--sidebar-w) minmax(0, 1fr) var(--agent-w);
 	align-items: stretch;
 	min-height: 0;
+}
+
+/* 左侧图标栏收起时不占列。这里直接改宽度变量就行——它不像侧边栏那样
+   存着用户拖出来的自定义宽度，不用怕覆盖丢数据 */
+html.activity-hidden {
+	--activity-w: 0px;
+}
+
+html.activity-hidden .activity {
+	display: none;
 }
 
 /* 侧边栏整体不出现：没有大纲的页面，或用户手动收起。
