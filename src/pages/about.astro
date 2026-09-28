@@ -3,22 +3,42 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { site } from '../site.config';
 ---
 
-<BaseLayout title="关于" description="个人介绍">
+<BaseLayout title="关于" description={`${site.author} — ${site.tagline}`}>
 	<article class="prose">
-		<h1>关于</h1>
-		<p>待补充：一两句话说明你是谁、在学什么、想找哪个方向的机会。</p>
+		<h1>{site.author}</h1>
 
-		<h2>技能</h2>
-		<ul>
-			<li><strong>语言</strong>：C++17、Python</li>
-			<li><strong>框架与库</strong>：Qt 6、OpenCV</li>
-			<li><strong>工具链</strong>：CMake、MSVC、Git</li>
-		</ul>
+		<p>
+			做工业软件方向的上位机开发，平时打交道的就三件事：
+			<strong>把设备接进程序</strong>（工业相机 SDK、GenICam、机器人），
+			<strong>把图像变成能用的数据</strong>（OpenCV、2D / 3D 处理、标定），
+			还有<strong>把重复的判断交给程序</strong>（Agent、LLM 工具调用）。
+		</p>
+
+		<p>
+			站上放的是做过的东西和踩过的坑。比如《为什么我没给这个 Agent 接向量数据库》
+			里那个按字节切块、把中文切成非法 UTF-8 的缺陷，是读代码时发现的真问题——
+			比事后总结的设计原则更值得记下来。
+		</p>
+
+		<h2>在做的方向</h2>
+
+		<div class="skills">
+			{site.skills.map((row) => (
+				<div class="skills__row">
+					<span class="skills__group">{row.group}</span>
+					<div class="card__tags">
+						{row.items.map((item) => <span class="tag">{item}</span>)}
+					</div>
+				</div>
+			))}
+		</div>
 
 		<h2>联系方式</h2>
 		<ul>
 			<li>邮箱：<a href={`mailto:${site.email}`}>{site.email}</a></li>
 			<li>GitHub：<a href={site.github}>{site.github}</a></li>
 		</ul>
+
+		<p class="muted">找实习与校招机会，工业软件、机器视觉、上位机方向都可以聊。</p>
 	</article>
 </BaseLayout>

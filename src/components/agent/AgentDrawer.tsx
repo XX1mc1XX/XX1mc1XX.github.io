@@ -451,7 +451,7 @@ export default function AgentDrawer({ articles }: Props) {
 								onInput={(event) => updateSettings({ apiKey: (event.target as HTMLInputElement).value })}
 							/>
 						</label>
-						<p class="agent-hint">
+						<p class="agent-note">
 							Key 只存在你浏览器的 localStorage，请求直接从你的浏览器发往上面这个地址，
 							不经过本站任何服务器。清除浏览器数据即可删除。
 						</p>
