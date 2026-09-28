@@ -5,8 +5,8 @@ import preact from '@astrojs/preact';
 
 // https://astro.build/config
 export default defineConfig({
-  // 站点地址。RSS、sitemap 里的绝对链接要用它
-  site: 'https://XX1mc1XX.github.io',
+  // 站点地址。RSS、sitemap 里的绝对链接要用它。买了域名后改成自己的
+  site: 'https://xx1mc1xx.pages.dev',
 
   markdown: {
       // dark-plus / light-plus 就是 VS Code 自带的两套主题，
