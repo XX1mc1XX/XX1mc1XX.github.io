@@ -1,9 +1,9 @@
 // 站点信息集中在这里，改这一个文件就能把站改成你自己的
 export const site = {
-	// 顶栏左侧显示的名字
-	name: '徐仁康',
+	// 顶栏左侧显示的名字。公开站点上用拼音，不用中文全名
+	name: 'xurenkang',
 
-	author: '徐仁康',
+	author: 'Xu Renkang',
 	tagline: 'C++ / Qt 上位机 · 工业相机 SDK · 机器视觉 · 工业机器人 · 通用 Agent',
 	email: 'xx1mc1xxx@gmail.com',
 	github: 'https://github.com/XX1mc1XX',
