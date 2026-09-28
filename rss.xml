@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>yourname.dev</title>
+		<description>C++ / Qt 工业软件方向 · 相机客户端与设备接入</description>
+		<link>https://xx1mc1xx.github.io/</link>
+		<atom:link href="https://xx1mc1xx.github.io/rss.xml" rel="self" type="application/rss+xml" />
+		<item>
+			<title>让大模型操作工业相机：工具怎么设计、循环跑在哪个线程</title>
+			<link>https://xx1mc1xx.github.io/blog/camera-ai-integration/</link>
+			<guid>https://xx1mc1xx.github.io/blog/camera-ai-integration/</guid>
+			<description>用一句话控制相机，难点不在接大模型，而在给它的工具粒度和跨线程的归属。</description>
+			<pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
+		</item>
+		<item>
+			<title>换相机品牌只改一行注册：工业相机客户端的分层怎么拆</title>
+			<link>https://xx1mc1xx.github.io/blog/camera-client-architecture/</link>
+			<guid>https://xx1mc1xx.github.io/blog/camera-client-architecture/</guid>
+			<description>把海康 MVS 的差异关进实现层，让门面、参数面板、图像链路对品牌完全无感。</description>
+			<pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
+		</item>
+		<item>
+			<title>为什么我没给这个 Agent 接向量数据库</title>
+			<link>https://xx1mc1xx.github.io/blog/lightweight-rag-keyword-search/</link>
+			<guid>https://xx1mc1xx.github.io/blog/lightweight-rag-keyword-search/</guid>
+			<description>关键词打分省掉了向量库、embedding 服务和网络依赖，代价是中文分词几乎没法用——还有一个把中文字符切成非法 UTF-8 的切块 bug。</description>
+			<pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
+		</item>
+	</channel>
+</rss>

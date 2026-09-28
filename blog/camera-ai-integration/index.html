@@ -1,0 +1,344 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="用一句话控制相机，难点不在接大模型，而在给它的工具粒度和跨线程的归属。"><meta name="generator" content="Astro v7.3.5"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico"><link rel="alternate" type="application/rss+xml" title="yourname.dev" href="/rss.xml"><title>让大模型操作工业相机：工具怎么设计、循环跑在哪个线程 · yourname.dev</title><script>
+			// 这两件都要在首屏渲染前定好，否则会先闪一下再变
+			document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
+			// 用户手动收起过侧边栏就一直收起；切页时左右两栏不会忽有忽无
+			if (localStorage.getItem('sidebar-open') === '0') {
+				document.documentElement.classList.add('sidebar-hidden');
+			}
+			// 上次开着助手就继续开着。宽度要自己补 px，存的是个纯数字
+			if (localStorage.getItem('agent-open') === '1') {
+				const w = Number(localStorage.getItem('agent-width')) || 460;
+				document.documentElement.style.setProperty('--agent-w', w + 'px');
+				document.documentElement.classList.add('agent-open');
+			}
+		</script><link rel="stylesheet" href="/_astro/BaseLayout.3zKD-gR6.css"></head><body><header class="tabbar"><a class="tabbar__brand" href="/"><span class="tabbar__dot"></span><span>yourname.dev</span></a><a class="tab" href="/">首页</a><a class="tab" href="/projects">项目</a><a class="tab" href="/blog" aria-current="page">文章</a><a class="tab" href="/tags">标签</a><a class="tab" href="/about">关于</a><span class="tabbar__spacer"></span><button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换深浅色"><span class="theme-toggle__icon" data-icon="dark">☾</span><span class="theme-toggle__icon" data-icon="light">☀</span></button><script>
+	const toggle = document.getElementById('theme-toggle');
+	toggle.addEventListener('click', () => {
+		const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+		document.documentElement.dataset.theme = next;
+		localStorage.setItem('theme', next);
+	});
+</script></header><div class="workspace"><nav class="activity" aria-label="主导航"><a class="activity__brand" href="/" title="yourname.dev"><span class="activity__dot"></span></a><a class="activity__item" href="/" title="首页" aria-label="首页"><svg viewBox="0 0 16 16" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M2.5 6.2 8 1.6l5.5 4.6V14a.6.6 0 0 1-.6.6h-3.2V9.8H6.3v4.8H3.1a.6.6 0 0 1-.6-.6V6.2Z"></path></svg></a><a class="activity__item" href="/projects" title="项目" aria-label="项目"><svg viewBox="0 0 16 16" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M1.6 3.8a.9.9 0 0 1 .9-.9h3.2l1.2 1.6h6.6a.9.9 0 0 1 .9.9v6a.9.9 0 0 1-.9.9H2.5a.9.9 0 0 1-.9-.9V3.8Z"></path></svg></a><a class="activity__item activity__item--active" href="/blog" title="文章" aria-label="文章" aria-current="page"><svg viewBox="0 0 16 16" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M3.2 1.8h6.4l3.2 3.2v9.2H3.2V1.8Zm6 .9v2.8h2.8L9.2 2.7ZM5 7.6h6v1H5v-1Zm0 2.4h6v1H5v-1Z"></path></svg></a><a class="activity__item" href="/tags" title="标签" aria-label="标签"><svg viewBox="0 0 16 16" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M2 3.2a1.2 1.2 0 0 1 1.2-1.2h4.3l6.3 6.3-5.5 5.5L2 7.5V3.2Zm2.6 1.3a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path></svg></a><a class="activity__item" href="/about" title="关于" aria-label="关于"><svg viewBox="0 0 16 16" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M8 1.6a3 3 0 1 1 0 6 3 3 0 0 1 0-6ZM2.4 14.4c0-2.7 2.5-4.4 5.6-4.4s5.6 1.7 5.6 4.4H2.4Z"></path></svg></a><div class="activity__spacer"></div><button class="activity__item activity__item--btn" type="button" id="sidebar-toggle" title="收起 / 展开侧边栏" aria-label="收起或展开侧边栏"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.3" d="M2.2 2.6h11.6v10.8H2.2zM5.8 2.6v10.8"></path></svg></button></nav><script>
+	// 侧边栏的开合记在本地，跟编辑器一致。
+	// 这段要等 DOM 解析完再跑，否则拿不到活动栏底部那个按钮
+	document.addEventListener('DOMContentLoaded', () => {
+		const toggle = document.getElementById('sidebar-toggle');
+		if (!toggle) return;
+
+		// 首屏的开合状态由 BaseLayout 在服务端定好，这里只管响应点击
+		toggle.addEventListener('click', () => {
+			const hidden = document.documentElement.classList.toggle('sidebar-hidden');
+			localStorage.setItem('sidebar-open', hidden ? '0' : '1');
+		});
+
+		// Ctrl / Cmd + B 开关侧边栏，跟编辑器一致
+		document.addEventListener('keydown', (event) => {
+			if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'b') return;
+			// 这一页压根没有侧边栏（按钮被藏了）就不拦键盘
+			if (toggle.hasAttribute('hidden')) return;
+			event.preventDefault();
+			toggle.click();
+		});
+	});
+</script><aside class="sidebar" aria-label="侧边栏"><div class="sidebar__body"><nav class="toc"><ul class="toc__list"><li class="toc__item toc__item--2"><a href="#一句话原理">一句话原理</a></li><li class="toc__item toc__item--2"><a href="#工具粒度10-个通用工具不是-37-个参数">工具粒度：10 个通用工具，不是 37 个参数</a></li><li class="toc__item toc__item--2"><a href="#模型看不见图像这是最大的坑">模型看不见图像，这是最大的坑</a></li><li class="toc__item toc__item--2"><a href="#线程模型">线程模型</a></li><li class="toc__item toc__item--2"><a href="#api-key-不放代码里">API Key 不放代码里</a></li><li class="toc__item toc__item--2"><a href="#依赖降级照抄海康那一套">依赖降级照抄海康那一套</a></li></ul><a class="toc__back" href="/blog/">← 全部文章</a></nav></div><div class="sidebar__resizer" id="sidebar-resizer"></div></aside><script>
+	// 拖右边缘改宽，跟编辑器里的侧边栏一个手感
+	(() => {
+		const root = document.documentElement;
+		const handle = document.getElementById('sidebar-resizer');
+		const saved = Number(localStorage.getItem('sidebar-width'));
+		if (saved > 0) root.style.setProperty('--sidebar-w', `${saved}px`);
+		if (!handle) return;
+
+		let dragging = false;
+
+		handle.addEventListener('pointerdown', (event) => {
+			event.preventDefault();
+			dragging = true;
+			document.body.style.userSelect = 'none';
+			document.body.style.cursor = 'col-resize';
+		});
+
+		window.addEventListener('pointermove', (event) => {
+			if (!dragging) return;
+			// 活动栏占 48px，减去它才是侧边栏自己的宽度
+			const next = Math.max(160, Math.min(420, event.clientX - 48));
+			root.style.setProperty('--sidebar-w', `${next}px`);
+		});
+
+		window.addEventListener('pointerup', () => {
+			if (!dragging) return;
+			dragging = false;
+			document.body.style.userSelect = '';
+			document.body.style.cursor = '';
+			const value = getComputedStyle(root).getPropertyValue('--sidebar-w').trim();
+			const px = parseInt(value, 10);
+			if (px > 0) localStorage.setItem('sidebar-width', String(px));
+		});
+	})();
+</script><main class="content content--wide"><div class="content__inner"><article class="prose"><header><h1>让大模型操作工业相机：工具怎么设计、循环跑在哪个线程</h1><p class="page-meta">2026-09-28 · C++ · Qt · LLM · 架构设计</p></header><p>给相机客户端加自然语言控制，想法很直接：说一句「画面有点暗」，它自己去查画面指标、改曝光、回读确认。</p>
+<p>真正动手才发现，接大模型本身是最简单的一步——难的是<strong>给它什么工具</strong>、<strong>循环跑在哪个线程</strong>、以及<strong>它看不见图像这件事怎么绕过去</strong>。</p>
+<p>这一层是纯增量的：不碰契约层、实现层和现有交互层。删掉它就是原来的客户端。</p>
+<h2 id="一句话原理">一句话原理</h2>
+<pre class="astro-code astro-code-themes light-plus dark-plus" style="background-color:#FFFFFF;--shiki-dark-bg:#1E1E1E;color:#000000;--shiki-dark:#D4D4D4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>用户：画面有点暗</span></span>
+<span class="line"><span>  → 面板把问题 + 工具清单交给大模型</span></span>
+<span class="line"><span>  → 模型回：先调 get_frame_stats 看看</span></span>
+<span class="line"><span>  → 程序真的用 OpenCV 算了亮度和过曝占比</span></span>
+<span class="line"><span>  → 结果回灌给模型</span></span>
+<span class="line"><span>  → 模型回：调 set_param('ExposureTime', 8000)</span></span>
+<span class="line"><span>  → 程序真的写了相机参数</span></span>
+<span class="line"><span>  → 模型总结成一句人话</span></span></code></pre>
+<p><strong>大模型不执行任何代码</strong>，它只输出「我要调谁、传什么」。真正碰相机的是 <code>CameraContext</code>，和界面点按钮走的是同一条路。</p>
+<p>这一层插在交互层和门面层之间，只允许调 <code>CameraContext</code>，不得出现任何厂商类型。和原有架构的依赖规则保持一致。</p>
+<h2 id="工具粒度10-个通用工具不是-37-个参数">工具粒度：10 个通用工具，不是 37 个参数</h2>
+<p>第一版想得很美：每个参数一个工具，模型想调哪个调哪个。</p>
+<p>问题在于这台相机有 37 个参数。37 个工具塞进 context，模型光看清单就晕了，实测选错率很高。</p>
+<p>改成<strong>通用工具 + 参数名</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>参数</th>
+<th>返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list_cameras</code></td>
+<td>—</td>
+<td>序列号 / 品牌 / 是否连接 / 是否拉流</td>
+</tr>
+<tr>
+<td><code>get_current_camera</code></td>
+<td>—</td>
+<td>当前选中相机的序列号</td>
+</tr>
+<tr>
+<td><code>connect_camera</code> / <code>disconnect_camera</code></td>
+<td><code>serial?</code></td>
+<td>连接结果</td>
+</tr>
+<tr>
+<td><code>list_params</code></td>
+<td><code>group?</code></td>
+<td>参数名 / 当前值 / 可读可写 / 取值范围</td>
+</tr>
+<tr>
+<td><code>get_param</code></td>
+<td><code>name</code></td>
+<td>单个参数的值与范围</td>
+</tr>
+<tr>
+<td><code>set_param</code></td>
+<td><code>name</code>, <code>value</code></td>
+<td>写入结果 + <strong>写后回读的实际值</strong></td>
+</tr>
+<tr>
+<td><code>start_grab</code> / <code>stop_grab</code></td>
+<td><code>serial?</code></td>
+<td>拉流状态</td>
+</tr>
+<tr>
+<td><code>get_frame_stats</code></td>
+<td><code>serial?</code></td>
+<td>亮度 / 过曝占比 / 欠曝占比 / 对比度 / 清晰度 + 语义判定</td>
+</tr>
+</tbody>
+</table>
+<p>10 个工具，参数名作为字符串传进去，模型不用记 37 个函数签名。</p>
+<p><code>set_param</code> 那个「写后回读」是个小设计：设备可能对写入的值做钳位（要 8000 实际只给到 6000），把真实值返回给模型，它下一轮推理才不会建立在错误前提上。</p>
+<h2 id="模型看不见图像这是最大的坑">模型看不见图像，这是最大的坑</h2>
+<p>最开始的设想是让模型判断画面。但它<strong>看不到图像</strong>——你问它「画面暗不暗」，它只能瞎猜，而且会猜得很有自信。</p>
+<p>绕过去的办法是先让程序把图像变成数字：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>算法</th>
+<th>给模型的字段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平均亮度</td>
+<td><code>cv::mean</code></td>
+<td><code>brightness: 0.31</code></td>
+</tr>
+<tr>
+<td>过曝占比</td>
+<td>灰度 &gt; 250 的像素比例</td>
+<td><code>overexposed_ratio: 0.02</code></td>
+</tr>
+<tr>
+<td>欠曝占比</td>
+<td>灰度 &lt; 20 的像素比例</td>
+<td><code>underexposed_ratio: 0.41</code></td>
+</tr>
+<tr>
+<td>对比度</td>
+<td>灰度标准差</td>
+<td><code>contrast: 18.3</code></td>
+</tr>
+<tr>
+<td>清晰度</td>
+<td>Laplacian 方差</td>
+<td><code>sharpness: 12.7</code></td>
+</tr>
+<tr>
+<td><strong>判定</strong></td>
+<td>上述指标合成</td>
+<td><code>assessment: "underexposed"</code></td>
+</tr>
+</tbody>
+</table>
+<p>最后一行是关键。只给数字，模型还得自己判断「brightness 0.31 算不算暗」——不同场景阈值不一样，它猜不准。所以工具直接返回一句语义判定，模型拿到的就是结论。</p>
+<p><strong>把推理前置到确定性的代码里，模型只负责决策下一步做什么。</strong> 这是整个集成里最重要的一条经验。</p>
+<h2 id="线程模型">线程模型</h2>
+<p>工具调用必须切回主线程执行。</p>
+<pre class="astro-code astro-code-themes light-plus dark-plus" style="background-color:#FFFFFF;--shiki-dark-bg:#1E1E1E;color:#000000;--shiki-dark:#D4D4D4; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>主线程（UI）                        后台线程</span></span>
+<span class="line"><span>──────────                        ──────────</span></span>
+<span class="line"><span>点击发送</span></span>
+<span class="line"><span>  └─ ask() ─────────────────→  QtConcurrent::run</span></span>
+<span class="line"><span>                                  Agent::Run() 循环问模型</span></span>
+<span class="line"><span>                                  └─ 调工具 ──┐</span></span>
+<span class="line"><span>                                              │</span></span>
+<span class="line"><span>  ←──── BlockingQueuedConnection ─────────────┘</span></span>
+<span class="line"><span>  真正操作相机（主线程执行）</span></span>
+<span class="line"><span>  └─ 结果返回后台线程</span></span>
+<span class="line"><span>                                  Run() 返回</span></span>
+<span class="line"><span>  ←──── 信号 finished(答复) ──────┘</span></span></code></pre>
+<p>原因很实在：<code>CameraContext</code> 和它背后的 <code>CameraInterface</code> 都不是线程安全的，而且用户可能同时在点界面。把所有相机操作串行到 UI 线程，天然避免了并发冲突，不用给整个相机层加锁。</p>
+<p>代价是 AI 调参数期间界面事件队列被占用。但每次工具调用只有毫秒级，真正耗时的部分（等模型回复）在后台线程，所以界面不会卡。</p>
+<h2 id="api-key-不放代码里">API Key 不放代码里</h2>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Key 存储</td>
+<td><code>QSettings</code> 存本机注册表，绝不进源码和仓库</td>
+</tr>
+<tr>
+<td>传给库</td>
+<td>库只接受<strong>环境变量名</strong>而不是 Key 本身，所以得先 <code>qputenv()</code> 注进去</td>
+</tr>
+<tr>
+<td>换服务商</td>
+<td>Base URL 和模型名做成设置项，默认 DeepSeek，也支持智谱和本地 Ollama</td>
+</tr>
+<tr>
+<td>未配置时</td>
+<td>直接禁用发送按钮并提示先配置，而不是让你对着没反应的按钮发呆</td>
+</tr>
+</tbody>
+</table>
+<h2 id="依赖降级照抄海康那一套">依赖降级照抄海康那一套</h2>
+<p>大模型运行时库是闭源商业授权的，而这个客户端是 MIT 开源项目。两者不能混在一起，所以沿用接海康 SDK 时的同一套策略：</p>
+<ul>
+<li>库的 dll / lib / 头文件<strong>不提交进仓库</strong></li>
+<li><code>find_package(... QUIET)</code> 找不到时，AI 相关的源文件整体不参与编译</li>
+<li>没有它的时候 <code>cmake --build</code> 必须照样成功，程序退化为纯相机客户端</li>
+</ul>
+<p>结果是所有可选依赖走同一条路：<strong>缺任何一个，都能构建出一个能跑的、少了对应功能的版本。</strong> 没有「必须先装齐才能编译」的硬门槛。</p>
+</article><nav class="post-nav"><a class="post-nav__item" href="/blog/camera-client-architecture/"><span class="post-nav__label">← 上一篇</span><span class="post-nav__title">换相机品牌只改一行注册：工业相机客户端的分层怎么拆</span></a></nav><a class="backlink" href="/blog/">← 返回文章列表</a></div></main><style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script><script>(()=>{var g=Object.defineProperty;var w=(a,s,c)=>s in a?g(a,s,{enumerable:!0,configurable:!0,writable:!0,value:c}):a[s]=c;var l=(a,s,c)=>w(a,typeof s!="symbol"?s+"":s,c);var E=new Set(["__proto__","constructor","prototype"]);{let a={0:t=>y(t),1:t=>c(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(c(t)),5:t=>new Set(c(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>Number.POSITIVE_INFINITY*t},s=t=>{let[p,e]=t;return p in a?a[p](e):void 0},c=t=>t.map(s),y=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([p,e])=>[p,s(e)]));class f extends HTMLElement{constructor(){super(...arguments);l(this,"Component");l(this,"hydrator");l(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let r=this.querySelectorAll("astro-slot"),n={},d=this.querySelectorAll("template[data-astro-template]");for(let o of d){let i=o.closest(this.tagName);i!=null&&i.isSameNode(this)&&(n[o.getAttribute("data-astro-template")||"default"]=o.innerHTML,o.remove())}for(let o of r){let i=o.closest(this.tagName);i!=null&&i.isSameNode(this)&&(n[o.getAttribute("name")||"default"]=o.innerHTML)}let u;try{u=this.hasAttribute("props")?y(JSON.parse(this.getAttribute("props"))):{}}catch(o){let i=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(i+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${i}`,this.getAttribute("props"),o),o}let h;await this.hydrator(this)(this.Component,u,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});l(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),r.disconnect(),this.childrenConnectedCallback()},r=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});r.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}getRetryImportUrl(e){let r=new URL(e,document.baseURI);return r.searchParams.set("astro-retry",Date.now().toString()),r.toString()}async importWithRetry(e){try{return await import(e)}catch(r){return await new Promise(n=>setTimeout(n,1e3)),import(this.getRetryImportUrl(e))}}handleHydrationError(e){let r=this.getAttribute("component-url"),n=new CustomEvent("astro:hydration-error",{cancelable:!0,bubbles:!0,composed:!0,detail:{error:e,componentUrl:r}});this.dispatchEvent(n)&&console.error(`[astro-island] Error hydrating ${r}`,e)}async start(){let e=JSON.parse(this.getAttribute("opts")),r=this.getAttribute("client");if(Astro[r]===void 0){window.addEventListener(`astro:${r}`,()=>this.start(),{once:!0});return}try{await Astro[r](async()=>{let n=this.getAttribute("renderer-url");try{let[d,{default:u}]=await Promise.all([this.importWithRetry(this.getAttribute("component-url")),n?this.importWithRetry(n):Promise.resolve({default:()=>()=>{}})]),h=this.getAttribute("component-export")||"default";if(h.includes(".")){this.Component=d;for(let m of h.split(".")){if(E.has(m)||!this.Component||typeof this.Component!="object"&&typeof this.Component!="function"||!Object.hasOwn(this.Component,m))throw new Error(`Invalid component export path: ${h}`);this.Component=this.Component[m]}}else{if(E.has(h))throw new Error(`Invalid component export path: ${h}`);this.Component=d[h]}return this.hydrator=u,this.hydrate}catch(d){return this.handleHydrationError(d),()=>{}}},e,this)}catch(n){this.handleHydrationError(n)}}attributeChangedCallback(){this.hydrate()}}l(f,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",f)}})();</script><astro-island uid="Z2vYrt7" data-preact-island-id="1" component-url="/_astro/AgentDrawer.fyP4duXv.js" component-export="default" renderer-url="/_astro/client.Dpv2UfgG.js" props="{&quot;articles&quot;:[1,[[0,{&quot;kind&quot;:[0,&quot;post&quot;],&quot;id&quot;:[0,&quot;camera-ai-integration&quot;],&quot;title&quot;:[0,&quot;让大模型操作工业相机：工具怎么设计、循环跑在哪个线程&quot;],&quot;description&quot;:[0,&quot;用一句话控制相机，难点不在接大模型，而在给它的工具粒度和跨线程的归属。&quot;],&quot;date&quot;:[0,&quot;2026-09-28&quot;],&quot;tags&quot;:[1,[[0,&quot;C++&quot;],[0,&quot;Qt&quot;],[0,&quot;LLM&quot;],[0,&quot;架构设计&quot;]]],&quot;url&quot;:[0,&quot;/blog/camera-ai-integration/&quot;],&quot;body&quot;:[0,&quot;给相机客户端加自然语言控制，想法很直接：说一句「画面有点暗」，它自己去查画面指标、改曝光、回读确认。\n\n真正动手才发现，接大模型本身是最简单的一步——难的是给它什么工具、循环跑在哪个线程、以及它看不见图像这件事怎么绕过去。\n\n这一层是纯增量的：不碰契约层、实现层和现有交互层。删掉它就是原来的客户端。\n\n一句话原理\n\n[代码块]\n用户：画面有点暗\n  → 面板把问题 + 工具清单交给大模型\n  → 模型回：先调 get_frame_stats 看看\n  → 程序真的用 OpenCV 算了亮度和过曝占比\n  → 结果回灌给模型\n  → 模型回：调 set_param(&#39;ExposureTime&#39;, 8000)\n  → 程序真的写了相机参数\n  → 模型总结成一句人话\n\n大模型不执行任何代码，它只输出「我要调谁、传什么」。真正碰相机的是 CameraContext，和界面点按钮走的是同一条路。\n\n这一层插在交互层和门面层之间，只允许调 CameraContext，不得出现任何厂商类型。和原有架构的依赖规则保持一致。\n\n工具粒度：10 个通用工具，不是 37 个参数\n\n第一版想得很美：每个参数一个工具，模型想调哪个调哪个。\n\n问题在于这台相机有 37 个参数。37 个工具塞进 context，模型光看清单就晕了，实测选错率很高。\n\n改成通用工具 + 参数名：\n\n| 工具 | 参数 | 返回 |\n|---|---|---|\n| list_cameras | — | 序列号 / 品牌 / 是否连接 / 是否拉流 |\n| get_current_camera | — | 当前选中相机的序列号 |\n| connect_camera / disconnect_camera | serial? | 连接结果 |\n| list_params | group? | 参数名 / 当前值 / 可读可写 / 取值范围 |\n| get_param | name | 单个参数的值与范围 |\n| set_param | name, value | 写入结果 + 写后回读的实际值 |\n| start_grab / stop_grab | serial? | 拉流状态 |\n| get_frame_stats | serial? | 亮度 / 过曝占比 / 欠曝占比 / 对比度 / 清晰度 + 语义判定 |\n\n10 个工具，参数名作为字符串传进去，模型不用记 37 个函数签名。\n\nset_param 那个「写后回读」是个小设计：设备可能对写入的值做钳位（要 8000 实际只给到 6000），把真实值返回给模型，它下一轮推理才不会建立在错误前提上。\n\n模型看不见图像，这是最大的坑\n\n最开始的设想是让模型判断画面。但它看不到图像——你问它「画面暗不暗」，它只能瞎猜，而且会猜得很有自信。\n\n绕过去的办法是先让程序把图像变成数字：\n\n| 指标 | 算法 | 给模型的字段 |\n|---|---|---|\n| 平均亮度 | cv::mean | brightness: 0.31 |\n| 过曝占比 | 灰度 &gt; 250 的像素比例 | overexposed_ratio: 0.02 |\n| 欠曝占比 | 灰度 &lt; 20 的像素比例 | underexposed_ratio: 0.41 |\n| 对比度 | 灰度标准差 | contrast: 18.3 |\n| 清晰度 | Laplacian 方差 | sharpness: 12.7 |\n| 判定 | 上述指标合成 | assessment: \&quot;underexposed\&quot; |\n\n最后一行是关键。只给数字，模型还得自己判断「brightness 0.31 算不算暗」——不同场景阈值不一样，它猜不准。所以工具直接返回一句语义判定，模型拿到的就是结论。\n\n把推理前置到确定性的代码里，模型只负责决策下一步做什么。 这是整个集成里最重要的一条经验。\n\n线程模型\n\n工具调用必须切回主线程执行。\n\n[代码块]\n主线程（UI）                        后台线程\n──────────                        ──────────\n点击发送\n  └─ ask() ─────────────────→  QtConcurrent::run\n                                  Agent::Run() 循环问模型\n                                  └─ 调工具 ──┐\n                                              │\n  ←──── BlockingQueuedConnection ─────────────┘\n  真正操作相机（主线程执行）\n  └─ 结果返回后台线程\n                                  Run() 返回\n  ←──── 信号 finished(答复) ──────┘\n\n原因很实在：CameraContext 和它背后的 CameraInterface 都不是线程安全的，而且用户可能同时在点界面。把所有相机操作串行到 UI 线程，天然避免了并发冲突，不用给整个相机层加锁。\n\n代价是 AI 调参数期间界面事件队列被占用。但每次工具调用只有毫秒级，真正耗时的部分（等模型回复）在后台线程，所以界面不会卡。\n\nAPI Key 不放代码里\n\n| 项 | 做法 |\n|---|---|\n| Key 存储 | QSettings 存本机注册表，绝不进源码和仓库 |\n| 传给库 | 库只接受环境变量名而不是 Key 本身，所以得先 qputenv() 注进去 |\n| 换服务商 | Base URL 和模型名做成设置项，默认 DeepSeek，也支持智谱和本地 Ollama |\n| 未配置时 | 直接禁用发送按钮并提示先配置，而不是让你对着没反应的按钮发呆 |\n\n依赖降级照抄海康那一套\n\n大模型运行时库是闭源商业授权的，而这个客户端是 MIT 开源项目。两者不能混在一起，所以沿用接海康 SDK 时的同一套策略：\n· 库的 dll / lib / 头文件不提交进仓库\n· find_package(... QUIET) 找不到时，AI 相关的源文件整体不参与编译\n· 没有它的时候 cmake --build 必须照样成功，程序退化为纯相机客户端\n\n结果是所有可选依赖走同一条路：缺任何一个，都能构建出一个能跑的、少了对应功能的版本。 没有「必须先装齐才能编译」的硬门槛。&quot;]}],[0,{&quot;kind&quot;:[0,&quot;post&quot;],&quot;id&quot;:[0,&quot;camera-client-architecture&quot;],&quot;title&quot;:[0,&quot;换相机品牌只改一行注册：工业相机客户端的分层怎么拆&quot;],&quot;description&quot;:[0,&quot;把海康 MVS 的差异关进实现层，让门面、参数面板、图像链路对品牌完全无感。&quot;],&quot;date&quot;:[0,&quot;2026-09-28&quot;],&quot;tags&quot;:[1,[[0,&quot;C++&quot;],[0,&quot;Qt&quot;],[0,&quot;架构设计&quot;]]],&quot;url&quot;:[0,&quot;/blog/camera-client-architecture/&quot;],&quot;body&quot;:[0,&quot;工业相机客户端有个绕不开的麻烦：每个品牌的 SDK 长得都不一样，但界面要做的事几乎相同——枚举设备、连接、读写参数、拉流显示。\n\n放任不管的话，代码很快会变成「海康的判断写在参数面板里、虚拟相机的判断写在图像显示里」，接第三个品牌时就得满仓库改。这篇文章说的是怎么把这件事收住：把品牌差异关进一个抽屉，抽屉外面的人不知道里面装的是什么。\n\n分层\n\n[代码块]\n资源层   主题样式 / 图标 / 参数 Schema（编译进可执行文件，交互层只按名字引用）\n\n交互层   设备控制栏 │ 参数面板 │ 图像显示\n              │ 仅凭序列号寻址，不出现任何厂商类型\n门面层   CameraContext\n              │ 多机映射 · 生命周期托管 · 当前会话状态\n契约层   CameraInterface（17 个纯虚方法）\n         ZCCameraParam 统一参数模型 │ CameraImageQueue 缓冲队列 │ 统一错误码\n              ▲ 实现契约（依赖倒置）\n实现层   HikCamera（海康 MVS）│ VirtualCamera（仿真）\n         CameraFactory：按厂商名登记「创建器 + 枚举器」\n\n依赖只允许自上而下。唯一的反向关系是实现层对契约层的实现，属于依赖倒置——所以契约层不需要认识任何一个具体相机。\n\n| 层 | 职责 | 不做什么 |\n|---|---|---|\n| 交互层 | 设备列表、参数面板、图像显示 | 不判断厂商、不直接调 SDK |\n| 门面层 | 序列号寻址、生命周期、会话状态 | 不认识具体适配器 |\n| 契约层 | 定义硬件无关的能力边界与数据模型 | 不依赖 Qt Widgets |\n| 实现层 | 各品牌 SDK 适配、图像格式归一化 | 不接触界面 |\n\n三条能被 grep 当场验证的约束\n\n架构文档里写的规则，如果没法验证，三个月后一定会烂掉。所以这里的三条核心约束都写成了可以当场跑的命令（路径是仓库里的）：\n\n[代码块]\n1. 门面与契约层不得依赖任何具体适配器\ngrep -rn \&quot;HikCamera.h\\|VirtualCamera.h\&quot; src/CameraInterface/\n期望：无输出\n\n2. 面板之间不得互相持有引用，联动一律走事件总线和门面\ngrep -rn \&quot;ControlWidget\\*\&quot; src/ParamWidget/ src/ViewWidget/\n期望：无输出\n\n3. 交互层不得出现厂商名判断\ngrep -rniE \&quot;hikrobot|\\\&quot;Hik\\\&quot;|MV_CC_\&quot; src/ControlWidget/ src/ParamWidget/ src/ViewWidget/\n期望：无输出\n\n第 1 条带来两个直接收益：新增品牌不必改门面；门面也得以在没有 SDK 的机器上编译——这点对 CI 很关键，构建服务器上不会装海康的驱动。\n\n图像链路：四段解耦\n\n采集回调、缓冲队列、采集线程、界面渲染分处四段，任何一段变慢都不会阻塞其余部分。\n\n[代码块]\n SDK 回调线程          缓冲队列           采集线程           UI 线程\n   MV_CC 回调\n     │ 像素格式归一化（Mono / Bayer / YUV / BGR → Mono8 / RGB8）\n     ▼\n   HikConvert2Mat\n     │ Put()\n     ├─ 有空闲缓冲 → 原地 copyTo 复用内存\n     └─ 无空闲且队列满 → 丢弃最旧帧，回收其缓冲\n     ▼\n   工作队列 ──→ Take() ─→ cvMat2QImage（深拷贝）\n                            ├─ 信号投递 → 图像显示\n                            └─ Recycle() 归还缓冲 ──┐\n   空闲缓冲池 ◄──────────────────────────────────────┘\n\n四个点值得展开：\n· 保新弃旧：预览只关心最新帧，队列满时丢最旧的而不是最新的。这条如果写反，界面会持续播放几秒前的画面，还查不出原因。\n· 缓冲所有权：归还动作发生在消费者完成深拷贝之后，保证同一时刻一块缓冲只有一个所有者。\n· 稳态零分配：分辨率和像素格式不变时 copyTo 原地写入，堆分配只发生在首帧。跑长时间预览时这条决定了内存曲线是平的还是锯齿。\n· 超时保护：Take 带超时，超时返回明确的错误码，不会把空帧当成有效图像送进渲染。\n\n参数体系：三段各自独立演进\n\n参数在不同型号之间差异极大，所以拆成三段：\n\n[代码块]\n参数 Schema (JSON)  →  解析器  →  统一模型  →  界面\ngroup / params         逐字段校验   元信息+值    按类型挂载控件\nname / type / tips     错误定位到参数 +权限位域\n· Schema 描述有哪些参数、属于哪个分组、什么类型、提示文案\n· 统一模型 CameraParam 把六种参数类型压成一个外观类，上层只认 displayText() 和三个权限标志\n· 权限闭环：设备的 GenICam 访问模式（RO / RW / WO / NI / NA）在适配器内部被翻译成「有效 / 可读 / 可写」三态，界面据此决定单元格能不能编辑。参数面板里没有任何硬编码的权限判断，换个品牌也不用动\n· 界面依据类型在运行时挂载对应的编辑控件，界面层对参数有多少个完全无感知\n\n扩展成本\n\n新增一个品牌：继承 CameraInterface 实现 17 个纯虚方法，然后在工厂里追加一行 registerVendor&lt;YourCamera&gt;(\&quot;厂商名\&quot;)。除此之外，门面、参数面板、图像链路一行都不用改。\n\n新增一个型号：只改 Resource/VirtualCameraParam.json 里增删分组和参数，不编译、不发版。\n\n这两个数字——「1 行」和「0 行」——是这套分层唯一值得炫耀的地方。硬件差异被压在实现层，大概占全部代码的 14%，其余部分对品牌完全无感。\n\n顺带解决的构建问题\n\n海康 SDK 的导入库是第三方二进制，不能随仓库分发。所以 CMakeLists.txt 里做成了可选依赖：找不到 SDK 时不编适配器、工厂也不注册该品牌，程序退化成纯虚拟相机形态依然能构建成功。CI 上没有硬件也能跑通全部测试。\n\n同一套策略后来原封不动复用在接入大模型助手这件事上（另一篇文章写这个）。&quot;]}],[0,{&quot;kind&quot;:[0,&quot;post&quot;],&quot;id&quot;:[0,&quot;lightweight-rag-keyword-search&quot;],&quot;title&quot;:[0,&quot;为什么我没给这个 Agent 接向量数据库&quot;],&quot;description&quot;:[0,&quot;关键词打分省掉了向量库、embedding 服务和网络依赖，代价是中文分词几乎没法用——还有一个把中文字符切成非法 UTF-8 的切块 bug。&quot;],&quot;date&quot;:[0,&quot;2026-09-28&quot;],&quot;tags&quot;:[1,[[0,&quot;C++&quot;],[0,&quot;LLM&quot;],[0,&quot;RAG&quot;],[0,&quot;架构设计&quot;]]],&quot;url&quot;:[0,&quot;/blog/lightweight-rag-keyword-search/&quot;],&quot;body&quot;:[0,&quot;给 Agent 接知识库，行业里的标准答案是向量数据库：把文档切块、每块过一个 embedding 模型变成向量、存进 Milvus 或 FAISS，提问时把问题也变成向量，算余弦相似度取最近的几条。\n\n我没这么做。我用的是关键词匹配——查「曝光」，就找哪段文本里含「曝光」两个字。\n\n先给结论：这个选择对了一半。 关键词法在我的场景里是对的，但代码里有个实现缺陷，把中文文档切成了乱码。下面把两件事都讲清楚。\n\n先厘清一件事：RAG 不是让模型去查资料\n\n很多人以为 RAG 是「模型自己会去知识库里翻」。不是。\n\n实际流程是：提问之前，程序先按关键词去库里翻一遍，把最相关的几段夹在问题里一起递给模型。 模型从头到尾没碰过你的资料柜，它只是收到一个「已经夹好资料的问题包」。\n\n这个区别决定了整个设计的形状——检索是你的代码在干，模型只负责读。\n\n为什么不上向量库\n\n| 维度 | 向量检索（主流做法） | 关键词打分（我的做法） |\n|---|---|---|\n| 依赖 | 必须装向量库，或调云端 embedding API | 零依赖，纯 std::vector + 字符串查找 |\n| 离线部署 | 麻烦，embedding 也得本地跑 | 天生离线 |\n| 可解释性 | 差。「为什么这段排第一？」答：余弦相似度 0.83 | 好。「因为里面有『曝光』这个词」 |\n| 同义词 | 强，「调亮」和「增大曝光」向量距离很近 | 不认，「调整」和「设置」是两个词 |\n| 中文分词 | 不依赖分词 | 致命，中文没空格，整句变一个词 |\n\n决定性的两条是离线和可解释：工业现场经常没网，装不了向量库；出问题时工程师需要知道「为什么检索到了这一段」，而「余弦相似度 0.83」等于没说。\n\n但我敢用「简单但有局限」的方案，真正的原因是换起来不贵：检索层是个纯虚接口 IKnowledgeStore，只有三个方法——塞一条、查一次、看看空不空。将来要换向量库，上层一行不用改。\n\n这是接口设计的价值：允许你选一个不完美但当下够用的方案，因为你知道以后能换。\n\n四个动作\n\n切块：按长度切，带重叠\n\n一篇手册几万字塞不进上下文窗口，得切成小块。两个参数：每块最多多少字符（默认 1200），相邻两块重叠多少（默认 120）。\n\n重叠是为了防止关键句子正好被切在边界上：\n\n[代码块]\n不重叠：  [....关键句子前半][后半....]     ← 两块都匹配不完整\n有重叠：  [....关键句子前半]\n                    [关键句子前半][后半]  ← 后一块完整包含它\n\n切点也不是硬切：先按最大长度划一刀，再回头找最近的换行符改从那儿切，别把一行拦腰截断。\n\n这里有个容易写出死循环的地方：重叠必须小于块大小。如果 overlap &gt;= max_chunk_chars，下一块的起点会跑到这一块起点之前或原地不动，while (start &lt; text.size()) 永远不进步。所以代码里把重叠钳到 max_chunk_chars - 1。\n\n分词：三行，也是死穴\n\n[代码块]\nstd::istringstream input(LowerAscii(text));\nstd::vector&lt;std::string&gt; tokens;\nstd::string token;\nwhile (input &gt;&gt; token) {   // &gt;&gt; 自动按空白切\n\ttokens.push_back(token);\n}\n\n转小写、按空白切、收进数组。英文好用，中文直接废——中文句子没有空格：\n\n[代码块]\n\&quot;Exposure Time\&quot;  →  [exposure] [time]     2 个词\n\&quot;曝光\&quot;           →  [曝光]                 1 个词\n\&quot;图像有点暗\&quot;      →  [图像有点暗]           整句一个词\n\n结果是「图像有点暗」要命中，文档里必须原样出现这五个字。文档写的是「图像偏暗时」，就完全匹配不到。这个是我实测出来的，下面有输出。\n\n打分：命中一个词加一分\n\n[代码块]\nfor (const auto&amp; token : query_tokens) {\n\tif (!token.empty() &amp;&amp; haystack.find(token) != std::string::npos) {\n\t\tscore += 1.0;\n\t}\n}\n\n查询「曝光 trigger」，某块两个词都有就是 2 分，只有「曝光」就 1 分。排序依据就是这个。\n\n粗暴，但对术语固定的工业文档够用。\n\n排序取前 K\n\n查询分词 → 加共享锁遍历打分 → 0 分直接丢 → 按分降序 → 截断到 top_k。\n\n两个细节：\n\n打分时拷贝一份再改分。 原始数据是共享状态，检索不该往里写分数（否则第二次检索会看到上次的分）。这和工具注册表那边「先拷贝再释放锁」是同一个思路——不污染共享状态。\n\n0 分的块直接丢，不是照单全收。 不丢的话，一个词都没命中的块也会进候选，然后被 resize(top_k) 按原本的顺序（不是相关性）截断——返回一堆完全无关的内容，比不返回还糟：模型会拿无关内容一本正经地胡说。\n\n实测：跑一遍\n\n用一段 4 行的假手册，max_chunk_chars=160, overlap=40，切出 5 块：\n\n| 块 | 开头 | 说明 |\n|---|---|---|\n| #0 | 1. Exposure control | 完整 |\n| #1 | icroseconds. Use the... | microseconds 被切断了 |\n| #2 | .9 means underexposed. | 0.9 被切断 |\n| #3 | es extra wiring. | requires 被切断 |\n| #4 | �增大曝光值。 | 乱码 |\n\n检索结果：\n\n[代码块]\n查询 \&quot;曝光\&quot;          → #2, #3, #4 各 1 分    命中 3 块，但只有 #4 真相关\n查询 \&quot;trigger\&quot;       → #1, #2 各 1 分        重叠把 \&quot;2. Trigger mode\&quot; 切进了两块\n查询 \&quot;曝光 trigger\&quot;  → #2 得 2 分排第一       多词加分，排序正确工作\n查询 \&quot;图像有点暗\&quot;    → 一条都没命中            文档写的是「图像偏暗时」\n\n三条结论：重叠会让同一个词重复命中、精度被稀释；多词打分能正确排序；中文口语查询直接废。\n\n然后是真正的 bug\n\n上面那张表最后一行那个 �，我一开始以为是终端显示问题。dump 了原始字节才发现不是：\n\n[代码块]\nb6 e5 a2 9e e5 a4 a7 ...\n\n开头那个孤零零的 b6，是「时」的最后一个字节（「时」= e6 97 b6）。也就是说——「时」这个字被从中间切开了，后半截进了下一块。\n\n原因很直白：\n\n[代码块]\nchunk.text = text.substr(start, end - start);   // start/end 是字节位置\n\nstd::string 本来就是字节序列，substr 按字节切天经地义——只要文档是纯 ASCII，这段代码完全正确。但中文一个字占 3 字节，切在中间就产生非法 UTF-8，模型收到的是乱码。\n\n修法不难：切点确定后向前回退到 UTF-8 字符边界（检查字节高位，不是 10xxxxxx 就说明这个字节是字符首字节）。改动很小，但对中文文档是必须修的。\n\n这件事比前面所有设计取舍都值钱——因为它不是「我读了别人的设计然后复述」，是「我读代码时发现它对中文不成立，然后用 od 验了字节」。前者任何人都能讲，后者只有真动过手的人讲得出来。\n\n检索结果怎么进对话\n\n检索到的片段不会直接拼成 user 消息，而是拼成一条独立的 system 消息，插在用户提问之前：\n\n[代码块]\n[0] system   ← 系统提示词\n[1] system   ← ★ 知识库检索结果（在 user 之前）\n[2] user     ← 用户的问题\n[3] assistant\n\n三个考虑：\n\n位置在 user 之前——检索发生在问模型之前，这是主循环里就定好的顺序。\n\n角色是 system 而不是 user——等于告诉模型「这是背景资料，不是用户跟我说的话」。\n\n末尾加一句 Ignore it if it does not apply——防检索噪声。检索可能给错（上面「曝光」命中 3 块就是），明确告诉模型可以不理会，否则它会拿无关内容硬答。\n\n取舍汇总\n\n| 设计点 | 主流做法 | 我的做法 | 代价 |\n|---|---|---|---|\n| 检索方式 | 向量 + embedding | 关键词打分 | 同义词不认、中文分词废 |\n| 文档处理 | 整篇塞 / 语义切 | 按长度切 + 120 字符重叠 | 存储翻倍、重复命中 |\n| 低相关过滤 | 取前 K 就返回 | 0 分直接丢 | 用词对不上时漏召回 |\n| 并发 | mutex 全包 | shared_mutex 读写分离 | 加锁更慢，只有读远多于写才划算 |\n| 结果注入 | 拼进 user 消息 | 独立 system 消息 + 免责句 | 多占 token |\n| 可替换性 | 写死实现 | 虚接口 | 一层虚函数开销 |\n\n补一句并发那个选择：同一个项目里，Agent 主循环用的是普通 mutex，知识库用的是 shared_mutex。不是随手写的——主循环全程持锁且每轮都写消息列表，「读多写少」根本不成立，用读写锁纯属白付开销。\n\n同一个项目里两个不同选择，理由各自成立，这比统一用一套更难写对。\n\n会怎么改\n\n1. 切点回退到 UTF-8 字符边界——最小改动，收益最大，中文文档不修就是坏的\n2. 中文检索接分词 + BM25 倒排索引，或直接上向量库（接口已经留好口子）\n3. 重叠率做成可配，按文档类型调\n\n第一条是 bug，后两条是取舍。区别在于：bug 不会因为你讲得好就消失。&quot;]}],[0,{&quot;kind&quot;:[0,&quot;project&quot;],&quot;id&quot;:[0,&quot;agent4cpp&quot;],&quot;title&quot;:[0,&quot;agent4cpp&quot;],&quot;description&quot;:[0,&quot;从零手写的 C++ Agent 框架，把工具调用、LLM 抽象和循环拆成可讲的几层。&quot;],&quot;date&quot;:[0,&quot;&quot;],&quot;tags&quot;:[1,[[0,&quot;C++17&quot;],[0,&quot;CMake&quot;],[0,&quot;libcurl&quot;],[0,&quot;LLM 工具调用&quot;]]],&quot;url&quot;:[0,&quot;/projects/agent4cpp/&quot;],&quot;body&quot;:[0,&quot;做了什么\n\n待补充：这个框架能跑通什么、为什么值得自己写一遍。\n\n怎么做的\n\n待补充：Tool 描述层怎么设计、LLM 抽象为什么这么切、Agent 循环的边界条件。\n\n结果\n\n待补充：跑通了什么、踩到哪些坑。&quot;]}],[0,{&quot;kind&quot;:[0,&quot;project&quot;],&quot;id&quot;:[0,&quot;wovra&quot;],&quot;title&quot;:[0,&quot;Wovra&quot;],&quot;description&quot;:[0,&quot;Python AI Agent 与上下文管理实验，含 WebUI 单页交互。&quot;],&quot;date&quot;:[0,&quot;&quot;],&quot;tags&quot;:[1,[[0,&quot;Python 3.13&quot;],[0,&quot;uv&quot;],[0,&quot;Agent 上下文管理&quot;]]],&quot;url&quot;:[0,&quot;/projects/wovra/&quot;],&quot;body&quot;:[0,&quot;做了什么\n\n待补充：解决的是上下文管理里的哪个具体问题。\n\n怎么做的\n\n待补充：与 C++ 版框架的取舍有什么不同。\n\n结果\n\n待补充：实测数据和结论。&quot;]}],[0,{&quot;kind&quot;:[0,&quot;project&quot;],&quot;id&quot;:[0,&quot;zyclear&quot;],&quot;title&quot;:[0,&quot;ZyClear 智澈&quot;],&quot;description&quot;:[0,&quot;跨品牌工业相机客户端。换品牌改 1 处注册，加型号不改一行 C++。&quot;],&quot;date&quot;:[0,&quot;&quot;],&quot;tags&quot;:[1,[[0,&quot;C++17&quot;],[0,&quot;Qt6&quot;],[0,&quot;OpenCV&quot;],[0,&quot;海康 MVS&quot;],[0,&quot;CMake&quot;]]],&quot;url&quot;:[0,&quot;/projects/zyclear/&quot;],&quot;body&quot;:[0,&quot;做了什么\n\n待补充：一句话说清这个软件解决什么问题、给谁用。\n\n怎么做的\n\n待补充：架构分层、为什么这么分、哪条约束是关键的。\n\n结果\n\n待补充：可验证的数字或事实，比如代码量分布、参数数量、测试用例数。&quot;]}]]]}" ssr client="load" opts="{&quot;name&quot;:&quot;AgentDrawer&quot;,&quot;value&quot;:true}" await-children><button class="agent-fab" type="button" title="AI 助手"><svg class="agent-mark" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M8 1.2c.2 2.6 1.3 4 4.3 4.3-3 .3-4.1 1.7-4.3 4.3-.2-2.6-1.3-4-4.3-4.3C6.7 5.2 7.8 3.8 8 1.2Z"></path><path fill="currentColor" d="M4.1 9.4c.13 1.7.85 2.6 2.8 2.8-1.95.2-2.67 1.1-2.8 2.8-.13-1.7-.85-2.6-2.8-2.8 1.95-.2 2.67-1.1 2.8-2.8Z" opacity="0.75"></path><path fill="currentColor" d="M12.2 10.6c.1 1.3.65 2 2.2 2.15-1.55.15-2.1.85-2.2 2.15-.1-1.3-.65-2-2.2-2.15 1.55-.15 2.1-.85 2.2-2.15Z" opacity="0.6"></path></svg></button><aside class="agent-panel"><div class="agent-resizer" title="拖动调整宽度"></div><header class="agent-head"><span class="agent-head__title"><svg class="agent-mark" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M8 1.2c.2 2.6 1.3 4 4.3 4.3-3 .3-4.1 1.7-4.3 4.3-.2-2.6-1.3-4-4.3-4.3C6.7 5.2 7.8 3.8 8 1.2Z"></path><path fill="currentColor" d="M4.1 9.4c.13 1.7.85 2.6 2.8 2.8-1.95.2-2.67 1.1-2.8 2.8-.13-1.7-.85-2.6-2.8-2.8 1.95-.2 2.67-1.1 2.8-2.8Z" opacity="0.75"></path><path fill="currentColor" d="M12.2 10.6c.1 1.3.65 2 2.2 2.15-1.55.15-2.1.85-2.2 2.15-.1-1.3-.65-2-2.2-2.15 1.55-.15 2.1-.85 2.2-2.15Z" opacity="0.6"></path></svg>AI 助手</span><div class="agent-head__actions"><button class="agent-icon-btn" type="button" title="历史记录">⏱</button><button class="agent-icon-btn" type="button" title="设置">⚙</button><button class="agent-icon-btn" type="button" title="新会话">＋</button><button class="agent-icon-btn" type="button" title="收起">×</button></div></header><div class="agent-body"><div class="agent-demo"><p class="agent-demo__lead">这是一个能读本站文章的 AI 助手。它自己决定读哪一篇，再基于原文回答。</p><button class="agent-demo__play" type="button">▶ 看一遍它怎么工作</button><p class="agent-demo__note">下面是录好的回放，不消耗任何 API。想自己提问，先在右上角 ⚙ 里填 Key。</p></div></div><footer class="agent-foot"><div class="agent-gate">先在 ⚙ 里填 API Key 就能提问</div><textarea class="agent-input" rows="2" placeholder="需要先填 Key"></textarea><button class="agent-send" type="button" disabled>发送</button></footer></aside><!--astro:end--></astro-island></div><footer class="statusbar"><div class="statusbar__group"><span class="statusbar__item">⎇ main</span></div><div class="statusbar__group"><span class="statusbar__item">C++17 · Qt6 · OpenCV</span></div></footer><script>
+	(() => {
+		// clipboard API 在非安全上下文或没给权限时用不了，退回老办法
+		async function copyText(text) {
+			try {
+				await navigator.clipboard.writeText(text);
+				return true;
+			} catch {
+				const scratch = document.createElement('textarea');
+				scratch.value = text;
+				scratch.setAttribute('readonly', '');
+				scratch.style.position = 'fixed';
+				scratch.style.top = '-1000px';
+				document.body.appendChild(scratch);
+				scratch.select();
+				let ok = false;
+				try {
+					ok = document.execCommand('copy');
+				} catch {
+					ok = false;
+				}
+				scratch.remove();
+				return ok;
+			}
+		}
+
+		// 代码块右上角补上语言标签和复制按钮
+		for (const pre of document.querySelectorAll('.prose pre')) {
+			const tools = document.createElement('div');
+			tools.className = 'code-tools';
+
+			// 纯文本块（比如 ASCII 图）不标语言，标了反而碍眼
+			const lang = pre.dataset.language;
+			if (lang && !['plaintext', 'text', 'txt'].includes(lang)) {
+				const label = document.createElement('span');
+				label.className = 'code-tools__lang';
+				label.textContent = lang;
+				tools.appendChild(label);
+			}
+
+			const copy = document.createElement('button');
+			copy.className = 'code-tools__copy';
+			copy.type = 'button';
+			copy.textContent = '复制';
+			copy.addEventListener('click', async () => {
+				const text = pre.querySelector('code')?.innerText ?? '';
+				copy.textContent = (await copyText(text)) ? '已复制' : '复制失败';
+				setTimeout(() => {
+					copy.textContent = '复制';
+				}, 1600);
+			});
+			tools.appendChild(copy);
+
+			pre.appendChild(tools);
+		}
+
+		// 大纲跟着滚动高亮。滚动发生在中间那一栏，所以基准线取它的顶边
+		const links = [...document.querySelectorAll('.toc__list a')];
+		const scroller = document.querySelector('.content');
+		if (links.length === 0 || !scroller) return;
+
+		const sections = links
+			.map((link) => {
+				const id = link.getAttribute('href')?.slice(1) ?? '';
+				return id ? document.getElementById(id) : null;
+			})
+			.filter(Boolean);
+		if (sections.length === 0) return;
+
+		const mark = (id) => {
+			for (const link of links) {
+				link.classList.toggle('is-active', link.getAttribute('href') === `#${id}`);
+			}
+		};
+
+		const update = () => {
+			// 已经滚过的那一节里，最靠下的就是当前所在
+			const base = scroller.getBoundingClientRect().top + 100;
+			let current = sections[0];
+			for (const section of sections) {
+				if (section.getBoundingClientRect().top <= base) current = section;
+			}
+			mark(current.id);
+		};
+
+		scroller.addEventListener('scroll', update, { passive: true });
+		update();
+
+		// 按 / 直接去跟助手说话。正在输入或用输入法组词时不抢
+		document.addEventListener('keydown', (event) => {
+			if (event.key !== '/' || event.isComposing) return;
+			if (event.metaKey || event.ctrlKey || event.altKey) return;
+			const active = document.activeElement;
+			if (active && /^(INPUT|TEXTAREA)$/.test(active.tagName)) return;
+			event.preventDefault();
+			document.dispatchEvent(new CustomEvent('agent:focus'));
+		});
+	})();
+</script></body></html>
