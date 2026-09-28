@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<BaseLayout title="文章" description="项目复盘与工程笔记">
+	<h1 class="page-title">文章</h1>
+	<p class="page-meta">项目复盘与工程笔记 · 共 {posts.length} 篇</p>
+
+	{posts.length > 0 ? (
+		<div class="cards">
+			{posts.map((post) => <PostCard post={post} />)}
+		</div>
+	) : (
+		<p class="empty">还没有文章。把 Markdown 放进 src/content/posts/ 就会出现。</p>
+	)}
+</BaseLayout>

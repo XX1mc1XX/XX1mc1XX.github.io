@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../site.config';
+---
+
+<BaseLayout title="关于" description="个人介绍">
+	<article class="prose">
+		<h1>关于</h1>
+		<p>待补充：一两句话说明你是谁、在学什么、想找哪个方向的机会。</p>
+
+		<h2>技能</h2>
+		<ul>
+			<li><strong>语言</strong>：C++17、Python</li>
+			<li><strong>框架与库</strong>：Qt 6、OpenCV</li>
+			<li><strong>工具链</strong>：CMake、MSVC、Git</li>
+		</ul>
+
+		<h2>联系方式</h2>
+		<ul>
+			<li>邮箱：<a href={`mailto:${site.email}`}>{site.email}</a></li>
+			<li>GitHub：<a href={site.github}>{site.github}</a></li>
+		</ul>
+	</article>
+</BaseLayout>

@@ -1,0 +1,20 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="项目" description="做过的东西，以及为什么这么做">
+	<h1 class="page-title">项目</h1>
+	<p class="page-meta">做过的东西，以及为什么这么做 · 共 {projects.length} 个</p>
+
+	{projects.length > 0 ? (
+		<div class="cards">
+			{projects.map((project) => <ProjectCard project={project} />)}
+		</div>
+	) : (
+		<p class="empty">还没有项目。把 Markdown 放进 src/content/projects/ 就会出现。</p>
+	)}
+</BaseLayout>

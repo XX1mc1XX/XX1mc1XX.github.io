@@ -1,0 +1,25 @@
+<button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换深浅色">
+	<span class="theme-toggle__icon" data-icon="dark">☾</span>
+	<span class="theme-toggle__icon" data-icon="light">☀</span>
+</button>
+
+<style is:global>
+	/* 图标显隐交给 CSS，JS 只负责翻 data-theme 和存 localStorage */
+	.theme-toggle__icon[data-icon="dark"],
+	:root[data-theme="dark"] .theme-toggle__icon[data-icon="light"] {
+		display: none;
+	}
+
+	:root[data-theme="dark"] .theme-toggle__icon[data-icon="dark"] {
+		display: inline;
+	}
+</style>
+
+<script is:inline>
+	const toggle = document.getElementById('theme-toggle');
+	toggle.addEventListener('click', () => {
+		const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+		document.documentElement.dataset.theme = next;
+		localStorage.setItem('theme', next);
+	});
+</script>

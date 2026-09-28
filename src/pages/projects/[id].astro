@@ -1,0 +1,51 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+	const projects = await getCollection('projects');
+	return projects.map((project) => ({ params: { id: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { Content, headings } = await render(project);
+const { title, summary, role, period, stack, repo } = project.data;
+
+const toc = headings.filter((heading) => heading.depth <= 3);
+---
+
+<BaseLayout title={title} description={summary} wide>
+	<nav slot="sidebar" class="toc">
+		<ul class="toc__list">
+			{toc.map((heading) => (
+				<li class={`toc__item toc__item--${heading.depth}`}>
+					<a href={`#${heading.slug}`}>{heading.text}</a>
+				</li>
+			))}
+		</ul>
+		<a class="toc__back" href="/projects/">← 全部项目</a>
+	</nav>
+
+	<article class="prose">
+		<header>
+			<h1>{title}</h1>
+			<p class="page-meta">{[role, period].filter(Boolean).join(' · ')}</p>
+			<p>{summary}</p>
+
+			{stack.length > 0 && (
+				<div class="card__tags">
+					{stack.map((item) => <span class="tag">{item}</span>)}
+				</div>
+			)}
+
+			{repo && (
+				<p>
+					源码：<a href={repo}>{repo}</a>
+				</p>
+			)}
+		</header>
+		<Content />
+	</article>
+
+	<a class="backlink" href="/projects/">← 返回项目列表</a>
+</BaseLayout>

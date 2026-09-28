@@ -1,0 +1,506 @@
+/* —— AI 助手：占据工作区最右一栏，正文被挤窄（真分栏，不是浮层）—— */
+
+/* 助手栏宽度，由 AgentDrawer 在打开 / 拖动 / 收起时写入。
+   工作区网格在 global.css 里，这里是它的第四列 */
+:root {
+	--agent-w: 0px;
+}
+
+.agent-fab {
+	position: fixed;
+	top: calc(var(--tab-h) + 0.85rem);
+	right: 1.15rem;
+	z-index: 40;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	padding: 0;
+	background: var(--bg-elev);
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	color: var(--fg-muted);
+	cursor: pointer;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+	transition: color 0.12s ease, border-color 0.12s ease, opacity 0.15s ease;
+}
+
+/* 右侧一栏被面板占住时，浮标让位并淡出，始终贴在正文区右边缘 */
+html.agent-open .agent-fab {
+	right: calc(var(--agent-w) + 1.15rem);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.agent-fab:hover {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+/* 显隐由 html.agent-open 这个 class 控制（BaseLayout 在首屏前就会定好），
+   不靠组件状态切 class，否则水合那一刻会闪 */
+.agent-panel {
+	grid-column: 4;
+	position: relative;
+	display: none;
+	flex-direction: column;
+	min-width: 0;
+	background: var(--bg-elev);
+	border-left: 1px solid var(--border-mid);
+	font-size: 14px;
+	overflow: hidden;
+}
+
+html.agent-open .agent-panel {
+	display: flex;
+}
+
+/* 左边缘拖拽手柄。往宽不设上限，可以一路拉到满屏 */
+.agent-resizer {
+	position: absolute;
+	top: 0;
+	left: -3px;
+	bottom: 0;
+	width: 7px;
+	cursor: col-resize;
+	z-index: 2;
+}
+
+.agent-resizer:hover {
+	background: var(--accent);
+	opacity: 0.5;
+}
+
+.agent-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	flex: 0 0 auto;
+	height: var(--tab-h);
+	padding: 0 0.65rem 0 0.9rem;
+	border-bottom: 1px solid var(--border);
+	font-family: var(--font-mono);
+	font-size: 13px;
+}
+
+.agent-head__title {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	color: var(--fg-strong);
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.agent-mark {
+	flex: 0 0 auto;
+}
+
+.agent-head__title .agent-mark {
+	color: var(--accent);
+}
+
+.agent-head__actions {
+	display: flex;
+	align-items: center;
+	gap: 0.15rem;
+}
+
+.agent-icon-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	background: none;
+	border: 0;
+	border-radius: var(--radius);
+	color: var(--fg-muted);
+	font-size: 14px;
+	font-family: var(--font-mono);
+	cursor: pointer;
+}
+
+.agent-icon-btn:hover {
+	background: var(--bg-tab);
+	color: var(--fg-strong);
+}
+
+/* 会话历史 */
+.agent-history {
+	flex: 0 0 auto;
+	max-height: 45%;
+	overflow-y: auto;
+	border-bottom: 1px solid var(--border);
+	background: var(--bg);
+}
+
+.agent-history__row {
+	display: flex;
+	align-items: stretch;
+	border-bottom: 1px solid var(--border);
+}
+
+.agent-history__row:last-child {
+	border-bottom: 0;
+}
+
+.agent-history__row--active {
+	background: var(--bg-tab);
+	box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.agent-history__open {
+	flex: 1;
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding: 0.55rem 0.5rem 0.55rem 0.8rem;
+	background: none;
+	border: 0;
+	color: var(--fg);
+	font-family: inherit;
+	font-size: 13px;
+	text-align: left;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.agent-history__open:hover {
+	background: var(--bg-hover);
+}
+
+.agent-history__title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.agent-history__time {
+	flex: 0 0 auto;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-dim);
+}
+
+.agent-history__del {
+	align-self: center;
+	margin-right: 0.35rem;
+}
+
+.agent-settings {
+	flex: 0 0 auto;
+	padding: 0.9rem 0.9rem 0.6rem;
+	border-bottom: 1px solid var(--border);
+	background: var(--bg);
+}
+
+.agent-field {
+	display: grid;
+	grid-template-columns: 5.5rem 1fr;
+	gap: 0.6rem;
+	align-items: center;
+	margin-bottom: 0.55rem;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--fg-muted);
+}
+
+.agent-field input {
+	width: 100%;
+	padding: 0.35em 0.55em;
+	background: var(--bg-elev);
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	color: var(--fg);
+	font-family: var(--font-mono);
+	font-size: 12px;
+}
+
+.agent-field input:focus {
+	outline: none;
+	border-color: var(--accent);
+}
+
+.agent-hint {
+	margin: 0.7rem 0 0.2rem;
+	font-size: 12px;
+	line-height: 1.65;
+	color: var(--fg-dim);
+}
+
+.agent-body {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 0.9rem;
+}
+
+.agent-msg {
+	margin-bottom: 1.1rem;
+}
+
+.agent-msg__text {
+	white-space: pre-wrap;
+	word-break: break-word;
+	line-height: 1.75;
+}
+
+.agent-msg__text code {
+	font-family: var(--font-mono);
+	font-size: 0.88em;
+	padding: 0.1em 0.35em;
+	background: var(--bg);
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+}
+
+.agent-msg__text strong {
+	color: var(--fg-strong);
+	font-weight: 600;
+}
+
+.agent-msg--user .agent-msg__text {
+	padding: 0.55rem 0.75rem;
+	background: var(--bg-tab);
+	border-left: 2px solid var(--accent);
+	border-radius: var(--radius);
+	color: var(--fg-strong);
+}
+
+.agent-msg--assistant .agent-msg__text {
+	color: var(--fg);
+}
+
+.agent-tool {
+	display: flex;
+	align-items: baseline;
+	gap: 0.5em;
+	margin-bottom: 0.4rem;
+	padding: 0.32rem 0.6rem;
+	background: var(--bg);
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	font-family: var(--font-mono);
+	font-size: 11.5px;
+	color: var(--fg-dim);
+	overflow: hidden;
+}
+
+.agent-tool__mark {
+	color: var(--fg-dim);
+}
+
+.agent-tool--done .agent-tool__mark {
+	color: var(--comment);
+}
+
+.agent-tool__name {
+	color: var(--fg-muted);
+	white-space: nowrap;
+}
+
+.agent-tool__args {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--fg-dim);
+}
+
+.agent-caret {
+	display: inline-block;
+	width: 7px;
+	height: 1em;
+	margin-left: 2px;
+	background: var(--accent);
+	vertical-align: text-bottom;
+	animation: agent-blink 1s steps(2, start) infinite;
+}
+
+@keyframes agent-blink {
+	to {
+		visibility: hidden;
+	}
+}
+
+.agent-error {
+	padding: 0.6rem 0.75rem;
+	border: 1px solid #a1260d;
+	border-radius: var(--radius);
+	background: rgba(161, 38, 13, 0.12);
+	color: #f48771;
+	font-size: 12.5px;
+	line-height: 1.65;
+}
+
+.agent-demo {
+	padding: 1rem 1.05rem;
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	background: var(--bg);
+}
+
+.agent-demo__lead {
+	margin: 0 0 0.9rem;
+	line-height: 1.7;
+	color: var(--fg);
+}
+
+.agent-demo__play {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.42em 0.95em;
+	background: var(--accent);
+	border: 0;
+	border-radius: var(--radius);
+	color: #ffffff;
+	font-family: var(--font-mono);
+	font-size: 12.5px;
+	cursor: pointer;
+}
+
+.agent-demo__play:hover:not(:disabled) {
+	filter: brightness(1.15);
+}
+
+.agent-demo__play:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.agent-demo__note {
+	margin: 0.85rem 0 0;
+	font-size: 12px;
+	line-height: 1.65;
+	color: var(--fg-dim);
+}
+
+.agent-suggest {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	padding: 0 0.9rem 0.6rem;
+}
+
+.agent-suggest__item {
+	padding: 0.42em 0.7em;
+	background: none;
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	color: var(--fg-muted);
+	font-family: inherit;
+	font-size: 12.5px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.agent-suggest__item:hover {
+	border-color: var(--accent);
+	color: var(--fg-strong);
+}
+
+.agent-foot {
+	flex: 0 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	align-items: flex-end;
+	padding: 0.7rem 0.9rem;
+	border-top: 1px solid var(--border);
+	background: var(--bg);
+}
+
+.agent-gate {
+	flex: 1 0 100%;
+	margin-bottom: 0.1rem;
+	font-family: var(--font-mono);
+	font-size: 11.5px;
+	color: var(--comment);
+}
+
+.agent-input {
+	flex: 1;
+	resize: none;
+	padding: 0.45em 0.6em;
+	background: var(--bg-elev);
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	color: var(--fg);
+	font-family: inherit;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.agent-input:focus {
+	outline: none;
+	border-color: var(--accent);
+}
+
+.agent-send {
+	flex: 0 0 auto;
+	padding: 0.45em 0.9em;
+	background: var(--accent);
+	border: 0;
+	border-radius: var(--radius);
+	color: #ffffff;
+	font-family: var(--font-mono);
+	font-size: 12.5px;
+	cursor: pointer;
+}
+
+.agent-send:hover:not(:disabled) {
+	filter: brightness(1.15);
+}
+
+.agent-send:disabled {
+	background: var(--border-mid);
+	color: var(--fg-dim);
+	cursor: default;
+}
+
+.agent-send--stop {
+	background: #a1260d;
+}
+
+/* 窄屏放不下并排，助手改成盖住正文的浮层 */
+@media (max-width: 48rem) {
+	/* 手机上下不了这么多栏：只留活动栏 + 正文，助手改成全屏浮层。
+	   这里必须绕开网格，否则那个 460px 的助手列会把正文压没 */
+	.workspace,
+	html.sidebar-hidden .workspace {
+		display: flex;
+	}
+
+	.sidebar {
+		display: none;
+	}
+
+	.content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.agent-panel {
+		position: fixed;
+		top: var(--tab-h);
+		right: 0;
+		bottom: var(--status-h);
+		left: 0;
+		width: auto !important;
+		border-left: 0;
+		z-index: 50;
+	}
+
+	.agent-resizer {
+		display: none;
+	}
+
+	html.agent-open .agent-fab {
+		right: 1.15rem;
+	}
+}

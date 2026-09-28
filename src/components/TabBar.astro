@@ -1,0 +1,26 @@
+---
+import { site } from '../site.config';
+import ThemeToggle from './ThemeToggle.astro';
+
+const path = Astro.url.pathname;
+
+function isActive(href: string) {
+	return href === '/' ? path === '/' : path.startsWith(href);
+}
+---
+
+<header class="tabbar">
+	<a class="tabbar__brand" href="/">
+		<span class="tabbar__dot"></span>
+		<span>{site.name}</span>
+	</a>
+
+	{site.nav.map((item) => (
+		<a class="tab" href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+			{item.label}
+		</a>
+	))}
+
+	<span class="tabbar__spacer"></span>
+	<ThemeToggle />
+</header>

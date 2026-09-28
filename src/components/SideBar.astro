@@ -1,0 +1,47 @@
+---
+// 这一栏出不出现由 BaseLayout 在服务端定（有没有 sidebar 槽位），这里不做判断
+---
+
+<aside class="sidebar" aria-label="侧边栏">
+	<div class="sidebar__body">
+		<slot />
+	</div>
+	<div class="sidebar__resizer" id="sidebar-resizer"></div>
+</aside>
+
+<script is:inline>
+	// 拖右边缘改宽，跟编辑器里的侧边栏一个手感
+	(() => {
+		const root = document.documentElement;
+		const handle = document.getElementById('sidebar-resizer');
+		const saved = Number(localStorage.getItem('sidebar-width'));
+		if (saved > 0) root.style.setProperty('--sidebar-w', `${saved}px`);
+		if (!handle) return;
+
+		let dragging = false;
+
+		handle.addEventListener('pointerdown', (event) => {
+			event.preventDefault();
+			dragging = true;
+			document.body.style.userSelect = 'none';
+			document.body.style.cursor = 'col-resize';
+		});
+
+		window.addEventListener('pointermove', (event) => {
+			if (!dragging) return;
+			// 活动栏占 48px，减去它才是侧边栏自己的宽度
+			const next = Math.max(160, Math.min(420, event.clientX - 48));
+			root.style.setProperty('--sidebar-w', `${next}px`);
+		});
+
+		window.addEventListener('pointerup', () => {
+			if (!dragging) return;
+			dragging = false;
+			document.body.style.userSelect = '';
+			document.body.style.cursor = '';
+			const value = getComputedStyle(root).getPropertyValue('--sidebar-w').trim();
+			const px = parseInt(value, 10);
+			if (px > 0) localStorage.setItem('sidebar-width', String(px));
+		});
+	})();
+</script>

@@ -1,0 +1,104 @@
+---
+// 阅读相关的增强脚本：代码块复制、大纲高亮、快捷键。
+// 纯渐进增强，脚本不跑页面也照常看
+---
+
+<script is:inline>
+	(() => {
+		// clipboard API 在非安全上下文或没给权限时用不了，退回老办法
+		async function copyText(text) {
+			try {
+				await navigator.clipboard.writeText(text);
+				return true;
+			} catch {
+				const scratch = document.createElement('textarea');
+				scratch.value = text;
+				scratch.setAttribute('readonly', '');
+				scratch.style.position = 'fixed';
+				scratch.style.top = '-1000px';
+				document.body.appendChild(scratch);
+				scratch.select();
+				let ok = false;
+				try {
+					ok = document.execCommand('copy');
+				} catch {
+					ok = false;
+				}
+				scratch.remove();
+				return ok;
+			}
+		}
+
+		// 代码块右上角补上语言标签和复制按钮
+		for (const pre of document.querySelectorAll('.prose pre')) {
+			const tools = document.createElement('div');
+			tools.className = 'code-tools';
+
+			// 纯文本块（比如 ASCII 图）不标语言，标了反而碍眼
+			const lang = pre.dataset.language;
+			if (lang && !['plaintext', 'text', 'txt'].includes(lang)) {
+				const label = document.createElement('span');
+				label.className = 'code-tools__lang';
+				label.textContent = lang;
+				tools.appendChild(label);
+			}
+
+			const copy = document.createElement('button');
+			copy.className = 'code-tools__copy';
+			copy.type = 'button';
+			copy.textContent = '复制';
+			copy.addEventListener('click', async () => {
+				const text = pre.querySelector('code')?.innerText ?? '';
+				copy.textContent = (await copyText(text)) ? '已复制' : '复制失败';
+				setTimeout(() => {
+					copy.textContent = '复制';
+				}, 1600);
+			});
+			tools.appendChild(copy);
+
+			pre.appendChild(tools);
+		}
+
+		// 大纲跟着滚动高亮。滚动发生在中间那一栏，所以基准线取它的顶边
+		const links = [...document.querySelectorAll('.toc__list a')];
+		const scroller = document.querySelector('.content');
+		if (links.length === 0 || !scroller) return;
+
+		const sections = links
+			.map((link) => {
+				const id = link.getAttribute('href')?.slice(1) ?? '';
+				return id ? document.getElementById(id) : null;
+			})
+			.filter(Boolean);
+		if (sections.length === 0) return;
+
+		const mark = (id) => {
+			for (const link of links) {
+				link.classList.toggle('is-active', link.getAttribute('href') === `#${id}`);
+			}
+		};
+
+		const update = () => {
+			// 已经滚过的那一节里，最靠下的就是当前所在
+			const base = scroller.getBoundingClientRect().top + 100;
+			let current = sections[0];
+			for (const section of sections) {
+				if (section.getBoundingClientRect().top <= base) current = section;
+			}
+			mark(current.id);
+		};
+
+		scroller.addEventListener('scroll', update, { passive: true });
+		update();
+
+		// 按 / 直接去跟助手说话。正在输入或用输入法组词时不抢
+		document.addEventListener('keydown', (event) => {
+			if (event.key !== '/' || event.isComposing) return;
+			if (event.metaKey || event.ctrlKey || event.altKey) return;
+			const active = document.activeElement;
+			if (active && /^(INPUT|TEXTAREA)$/.test(active.tagName)) return;
+			event.preventDefault();
+			document.dispatchEvent(new CustomEvent('agent:focus'));
+		});
+	})();
+</script>

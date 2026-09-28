@@ -1,0 +1,71 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('posts', ({ data }) => !data.draft);
+	return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const { title, description, pubDate, tags } = post.data;
+
+const date = [
+	pubDate.getFullYear(),
+	String(pubDate.getMonth() + 1).padStart(2, '0'),
+	String(pubDate.getDate()).padStart(2, '0'),
+].join('-');
+
+const toc = headings.filter((heading) => heading.depth <= 3);
+
+const all = (await getCollection('posts', ({ data }) => !data.draft)).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const position = all.findIndex((item) => item.id === post.id);
+const newer = position > 0 ? all[position - 1] : undefined;
+const older = position < all.length - 1 ? all[position + 1] : undefined;
+---
+
+<BaseLayout title={title} description={description} wide>
+	<nav slot="sidebar" class="toc">
+		<ul class="toc__list">
+			{toc.map((heading) => (
+				<li class={`toc__item toc__item--${heading.depth}`}>
+					<a href={`#${heading.slug}`}>{heading.text}</a>
+				</li>
+			))}
+		</ul>
+		<a class="toc__back" href="/blog/">← 全部文章</a>
+	</nav>
+
+	<article class="prose">
+		<header>
+			<h1>{title}</h1>
+			<p class="page-meta">
+				{date}
+				{tags.length > 0 && ` · ${tags.join(' · ')}`}
+			</p>
+		</header>
+		<Content />
+	</article>
+
+	{(newer || older) && (
+		<nav class="post-nav">
+			{older && (
+				<a class="post-nav__item" href={`/blog/${older.id}/`}>
+					<span class="post-nav__label">← 上一篇</span>
+					<span class="post-nav__title">{older.data.title}</span>
+				</a>
+			)}
+			{newer && (
+				<a class="post-nav__item post-nav__item--next" href={`/blog/${newer.id}/`}>
+					<span class="post-nav__label">下一篇 →</span>
+					<span class="post-nav__title">{newer.data.title}</span>
+				</a>
+			)}
+		</nav>
+	)}
+
+	<a class="backlink" href="/blog/">← 返回文章列表</a>
+</BaseLayout>

@@ -1,0 +1,907 @@
+/* 配色就是 VS Code 自带的 Dark+ 与 Light+ 那两套原生值 */
+:root {
+	color-scheme: dark;
+
+	/* 背景由深到浅：最外层 → 编辑器 → 侧栏 → 悬停 → 选中 */
+	--bg-deep: #181818;
+	--bg: #1e1e1e;
+	--bg-elev: #252526;
+	--bg-tab: #2d2d2d;
+	--bg-hover: #2a2d2e;
+	--bg-active: #37373d;
+	--bg-status: #007acc;
+
+	/* 分割线压暗，用亮色整页会显脏 */
+	--border: #2b2b2b;
+	--border-mid: #3c3c3c;
+	--border-strong: #4e4e4e;
+
+	/* 文字分四级，次要信息压低存在感 */
+	--fg: #d4d4d4;
+	--fg-muted: #8c8c8c;
+	--fg-dim: #6e6e6e;
+	--fg-strong: #ffffff;
+
+	--accent: #007acc;
+	--accent-soft: #0e639c;
+	--link: #3794ff;
+	--comment: #6a9955;
+
+	/* 等宽只给导航、标题、标签、代码这类结构性元素；
+	   中文正文用等宽会糊成一片，读不下去 */
+	--font-mono: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+	--font-sans: "Inter", system-ui, -apple-system, "Segoe UI", "Microsoft YaHei",
+		"PingFang SC", "Noto Sans SC", sans-serif;
+
+	--maxw: 58rem;
+	--maxw-wide: 68rem;
+	--radius: 3px;
+	--gutter: 1.75rem;
+	--tab-h: 42px;
+	--status-h: 28px;
+	--activity-w: 48px;
+	--sidebar-w: 210px;
+}
+
+:root[data-theme="light"] {
+	color-scheme: light;
+
+	--bg-deep: #ebebeb;
+	--bg: #ffffff;
+	--bg-elev: #f3f3f3;
+	--bg-tab: #ececec;
+	--bg-hover: #f0f0f0;
+	--bg-active: #e7e7e7;
+	--bg-status: #007acc;
+
+	--border: #e5e5e5;
+	--border-mid: #dcdcdc;
+	--border-strong: #c4c4c4;
+
+	--fg: #333333;
+	--fg-muted: #6e6e6e;
+	--fg-dim: #8c8c8c;
+	--fg-strong: #000000;
+
+	--accent: #005fb8;
+	--accent-soft: #005fb8;
+	--link: #005fb8;
+	--comment: #008000;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+[hidden] {
+	display: none !important;
+}
+
+html {
+	height: 100%;
+	background: var(--bg-deep);
+	scrollbar-color: var(--border-strong) transparent;
+}
+
+/* 整页不滚。跟 VS Code 一样，滚动发生在中间内容区，左右两栏原地不动 */
+body {
+	margin: 0;
+	height: 100vh;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	background: var(--bg);
+	color: var(--fg);
+	font-family: var(--font-sans);
+	font-size: 16.5px;
+	line-height: 1.8;
+	-webkit-font-smoothing: antialiased;
+}
+
+a {
+	color: var(--link);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+hr {
+	border: 0;
+	border-top: 1px solid var(--border);
+	margin: 2.75rem 0;
+}
+
+::selection {
+	background: var(--accent-soft);
+	color: #ffffff;
+}
+
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--border-strong);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--fg-dim);
+}
+
+/* 顶部标签栏 */
+.tabbar {
+	flex: 0 0 auto;
+	z-index: 10;
+	display: flex;
+	align-items: stretch;
+	height: var(--tab-h);
+	background: var(--bg-elev);
+	border-bottom: 1px solid var(--border);
+	box-shadow: 0 1px 6px rgba(0, 0, 0, 0.28);
+	font-family: var(--font-mono);
+	font-size: 13px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: none;
+}
+
+.tabbar::-webkit-scrollbar {
+	display: none;
+}
+
+.tabbar__brand {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	padding: 0 1.15em;
+	color: var(--fg-strong);
+	font-weight: 600;
+	white-space: nowrap;
+	border-right: 1px solid var(--border);
+}
+
+.tabbar__brand:hover {
+	background: var(--bg-tab);
+	text-decoration: none;
+}
+
+.tabbar__dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 1px;
+	background: var(--accent);
+}
+
+.tab {
+	position: relative;
+	display: flex;
+	align-items: center;
+	padding: 0 1.2em;
+	color: var(--fg-muted);
+	white-space: nowrap;
+	border-right: 1px solid var(--border);
+	transition: color 0.12s ease, background-color 0.12s ease;
+}
+
+.tab:hover {
+	background: var(--bg-tab);
+	color: var(--fg);
+	text-decoration: none;
+}
+
+.tab[aria-current="page"] {
+	background: var(--bg);
+	color: var(--fg-strong);
+}
+
+/* 激活标签底部一条 accent 线 */
+.tab[aria-current="page"]::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -1px;
+	height: 2px;
+	background: var(--accent);
+}
+
+.tabbar__spacer {
+	flex: 1;
+}
+
+.theme-toggle {
+	display: flex;
+	align-items: center;
+	padding: 0 1em;
+	background: none;
+	border: 0;
+	border-left: 1px solid var(--border);
+	color: var(--fg-muted);
+	font-family: inherit;
+	font-size: 14px;
+	cursor: pointer;
+	transition: color 0.12s ease, background-color 0.12s ease;
+}
+
+.theme-toggle:hover {
+	background: var(--bg-tab);
+	color: var(--fg);
+}
+
+/* 工作区：活动栏 | 侧边栏 | 正文 | 助手，四栏并排。
+   跟 VS Code 一样，标题栏和状态栏横跨整个窗口，只有中间这排分栏 */
+.workspace {
+	flex: 1;
+	display: grid;
+	grid-template-columns: var(--activity-w) var(--sidebar-w) minmax(0, 1fr) var(--agent-w);
+	align-items: stretch;
+	min-height: 0;
+}
+
+/* 侧边栏整体不出现：没有大纲的页面，或用户手动收起。
+   用写死的 0px 重排列，而不是覆盖 --sidebar-w —— 那个变量存着用户拖出来的宽度，下次展开还要用 */
+html.sidebar-hidden .workspace {
+	grid-template-columns: var(--activity-w) minmax(0, 1fr) var(--agent-w);
+}
+
+html.sidebar-hidden .sidebar,
+html.sidebar-hidden #sidebar-toggle {
+	display: none;
+}
+
+html.sidebar-hidden .content {
+	grid-column: 2;
+}
+
+html.sidebar-hidden .agent-panel {
+	grid-column: 3;
+}
+
+/* 主内容区：这一栏自己滚，左边的活动栏/侧边栏和右边的助手栏都不跟着动 */
+.content {
+	grid-column: 3;
+	min-width: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.content__inner {
+	max-width: var(--maxw);
+	margin: 0 auto;
+	padding: 3rem var(--gutter) 5rem;
+	min-width: 0;
+	overflow-wrap: break-word;
+}
+
+.content--wide .content__inner {
+	max-width: var(--maxw-wide);
+}
+
+/* 正文里带侧边栏的页面：目录已经在侧边栏那一栏，这里只管正文 */
+.post-layout {
+	display: block;
+}
+
+/* 底部状态栏 */
+.statusbar {
+	flex: 0 0 auto;
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: var(--status-h);
+	background: var(--bg-status);
+	color: #ffffff;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	white-space: nowrap;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.statusbar::-webkit-scrollbar {
+	display: none;
+}
+
+.statusbar__group {
+	display: flex;
+	align-items: center;
+	height: 100%;
+}
+
+.statusbar__item {
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding: 0 0.8em;
+}
+
+.statusbar__item + .statusbar__item {
+	border-left: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+/* 首页 Hero */
+.hero {
+	margin: 0 0 3.5rem;
+	padding-bottom: 2.75rem;
+	border-bottom: 1px solid var(--border);
+}
+
+.hero__name {
+	margin: 0 0 0.65rem;
+	font-family: var(--font-mono);
+	font-size: 2.05rem;
+	font-weight: 600;
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+	color: var(--fg-strong);
+}
+
+.hero__tagline {
+	margin: 0 0 1.85rem;
+	max-width: 34em;
+	color: var(--fg-muted);
+}
+
+.hero__links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+	font-family: var(--font-mono);
+	font-size: 0.85rem;
+}
+
+.hero__link {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.35em 0.9em;
+	background: var(--bg);
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	color: var(--fg-muted);
+	transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.hero__link:hover {
+	border-color: var(--accent);
+	color: var(--fg-strong);
+	text-decoration: none;
+}
+
+/* 首页产出数据。数字要能顺着链接验证，不写没影的 */
+.stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+	gap: 1px;
+	margin-bottom: 3rem;
+	background: var(--border);
+	border: 1px solid var(--border);
+}
+
+.stats__item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	padding: 1.1rem 1.2rem;
+	background: var(--bg);
+}
+
+.stats__value {
+	font-family: var(--font-mono);
+	font-size: 1.5rem;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--fg-strong);
+}
+
+.stats__label {
+	font-size: 0.82rem;
+	color: var(--fg-dim);
+}
+
+/* 段落小标题，两侧用延伸线撑满 */
+.section-title {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin: 3.5rem 0 1.5rem;
+	font-family: var(--font-mono);
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--fg-strong);
+}
+
+.section-title::before {
+	content: "//";
+	color: var(--comment);
+	font-weight: 400;
+}
+
+.section-title::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: var(--border);
+}
+
+/* 卡片 */
+.cards {
+	display: grid;
+	gap: 1px;
+	background: var(--border);
+	border: 1px solid var(--border);
+}
+
+.card {
+	position: relative;
+	background: var(--bg);
+	color: inherit;
+	overflow: hidden;
+}
+
+/* 悬停时左侧滑出一条 accent 竖线 */
+.card::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	background: var(--accent);
+	transform: scaleY(0);
+	transition: transform 0.15s ease;
+}
+
+.card:hover {
+	text-decoration: none;
+}
+
+.card:hover::after {
+	transform: scaleY(1);
+}
+
+.card__body {
+	padding: 1.4rem 1.45rem;
+	transition: background-color 0.12s ease;
+}
+
+.card:hover .card__body {
+	background: var(--bg-hover);
+}
+
+.card__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 0.5rem;
+}
+
+.card__title {
+	font-family: var(--font-mono);
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: var(--fg-strong);
+}
+
+.card__meta {
+	font-family: var(--font-mono);
+	font-size: 0.76rem;
+	color: var(--fg-dim);
+	white-space: nowrap;
+}
+
+.card__desc {
+	margin: 0;
+	font-size: 0.95rem;
+	line-height: 1.7;
+	color: var(--fg-muted);
+}
+
+.card__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin-top: 0.85rem;
+}
+
+.tag {
+	padding: 0.1em 0.5em;
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	font-family: var(--font-mono);
+	font-size: 0.74rem;
+	color: var(--fg-dim);
+}
+
+.empty {
+	padding: 1.5rem 1.4rem;
+	border: 1px dashed var(--border-mid);
+	color: var(--fg-dim);
+	font-family: var(--font-mono);
+	font-size: 0.9rem;
+}
+
+/* 首页技能区块 */
+.skills {
+	display: grid;
+	gap: 0.9rem;
+	padding: 1.4rem 1.45rem;
+	border: 1px solid var(--border);
+}
+
+.skills__row {
+	display: grid;
+	grid-template-columns: 7.5rem 1fr;
+	gap: 1rem;
+	align-items: baseline;
+}
+
+.skills__group {
+	font-family: var(--font-mono);
+	font-size: 0.84rem;
+	color: var(--fg-muted);
+}
+
+/* 标签云，首尾两个元素对齐 */
+.tag-cloud {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.55rem;
+}
+
+.tag-cloud__item {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+	padding: 0.3em 0.8em;
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	font-family: var(--font-mono);
+	font-size: 0.85rem;
+	color: var(--fg-muted);
+	transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.tag-cloud__item:hover {
+	border-color: var(--accent);
+	color: var(--fg-strong);
+	text-decoration: none;
+}
+
+.tag-cloud__count {
+	font-size: 0.75rem;
+	color: var(--fg-dim);
+}
+
+/* 文章底部的上一篇 / 下一篇 */
+.post-nav {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+	gap: 1px;
+	margin-top: 3.5rem;
+	background: var(--border);
+	border: 1px solid var(--border);
+}
+
+.post-nav__item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	padding: 1rem 1.15rem;
+	background: var(--bg);
+	transition: background-color 0.12s ease;
+}
+
+.post-nav__item:hover {
+	background: var(--bg-hover);
+	text-decoration: none;
+}
+
+.post-nav__item--next {
+	text-align: right;
+}
+
+.post-nav__label {
+	font-family: var(--font-mono);
+	font-size: 0.76rem;
+	color: var(--fg-dim);
+}
+
+.post-nav__title {
+	font-size: 0.95rem;
+	line-height: 1.5;
+	color: var(--fg);
+}
+
+/* 列表页与详情页的标题 */
+.page-title {
+	margin: 0 0 0.5rem;
+	font-family: var(--font-mono);
+	font-size: 1.7rem;
+	font-weight: 600;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+	color: var(--fg-strong);
+}
+
+.page-meta {
+	margin: 0 0 2.25rem;
+	font-family: var(--font-mono);
+	font-size: 0.83rem;
+	color: var(--fg-muted);
+}
+
+.backlink {
+	display: inline-flex;
+	align-items: center;
+	margin-top: 3.5rem;
+	padding: 0.35em 0.9em;
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	font-family: var(--font-mono);
+	font-size: 0.85rem;
+	color: var(--fg-muted);
+	transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.backlink:hover {
+	border-color: var(--accent);
+	color: var(--fg-strong);
+	text-decoration: none;
+}
+
+/* 正文排版 */
+.prose > *:first-child {
+	margin-top: 0;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+	font-family: var(--font-mono);
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--fg-strong);
+	margin: 2.4em 0 0.75em;
+}
+
+.prose h1 {
+	font-size: 1.75rem;
+	letter-spacing: -0.01em;
+	margin-top: 0;
+}
+
+.prose h2 {
+	font-size: 1.28rem;
+	padding-bottom: 0.4em;
+	border-bottom: 1px solid var(--border);
+}
+
+.prose h3 {
+	font-size: 1.05rem;
+}
+
+.prose h4 {
+	font-size: 0.95rem;
+	color: var(--fg);
+}
+
+.prose p {
+	margin: 1.15em 0;
+}
+
+.prose ul,
+.prose ol {
+	margin: 1.15em 0;
+	padding-left: 1.5em;
+}
+
+.prose li {
+	margin: 0.4em 0;
+}
+
+.prose li::marker {
+	color: var(--fg-dim);
+}
+
+.prose strong {
+	color: var(--fg-strong);
+	font-weight: 600;
+}
+
+/* 行内代码 */
+.prose :not(pre) > code {
+	font-family: var(--font-mono);
+	font-size: 0.86em;
+	padding: 0.12em 0.4em;
+	background: var(--bg-elev);
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+}
+
+/* 代码块，右上角标出语言 */
+.prose pre {
+	position: relative;
+	margin: 1.7em 0;
+	padding: 1.15rem 1.25rem;
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	overflow-x: auto;
+	font-size: 13.5px;
+	line-height: 1.65;
+}
+
+/* 代码块右上角：语言标签 + 复制按钮。
+   原来是纯 CSS 角标，换成真实元素才塞得下按钮 */
+.code-tools {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: flex;
+	align-items: stretch;
+	background: var(--bg-elev);
+	border-left: 1px solid var(--border-mid);
+	border-bottom: 1px solid var(--border-mid);
+	border-bottom-left-radius: var(--radius);
+	overflow: hidden;
+}
+
+.code-tools__lang {
+	padding: 0.12em 0.65em;
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--fg-dim);
+}
+
+.code-tools__copy {
+	padding: 0.12em 0.65em;
+	background: none;
+	border: 0;
+	border-left: 1px solid var(--border-mid);
+	color: var(--fg-dim);
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	cursor: pointer;
+	transition: color 0.12s ease, background-color 0.12s ease;
+}
+
+.code-tools__copy:hover {
+	background: var(--bg-tab);
+	color: var(--fg-strong);
+}
+
+/* 语言标签和复制按钮都改由脚本生成，纯文本块不标语言 —— 见 ReadingTools.astro */
+
+.prose pre code {
+	font-family: var(--font-mono);
+	background: none;
+	border: 0;
+	padding: 0;
+}
+
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+:root[data-theme="light"] .astro-code,
+:root[data-theme="light"] .astro-code span {
+	color: var(--shiki-light) !important;
+	background-color: var(--shiki-light-bg) !important;
+	font-style: var(--shiki-light-font-style) !important;
+	font-weight: var(--shiki-light-font-weight) !important;
+	text-decoration: var(--shiki-light-text-decoration) !important;
+}
+
+.prose table {
+	width: 100%;
+	margin: 1.7em 0;
+	border-collapse: collapse;
+	font-size: 0.93em;
+}
+
+.prose th,
+.prose td {
+	padding: 0.5em 0.8em;
+	border: 1px solid var(--border-mid);
+	text-align: left;
+	vertical-align: top;
+}
+
+.prose th {
+	background: var(--bg-elev);
+	font-family: var(--font-mono);
+	font-weight: 600;
+	color: var(--fg-strong);
+}
+
+.prose blockquote {
+	margin: 1.7em 0;
+	padding: 0.1em 1.15em;
+	border-left: 3px solid var(--border-mid);
+	color: var(--fg-muted);
+}
+
+.prose blockquote > *:first-child {
+	margin-top: 0.85em;
+}
+
+.prose blockquote > *:last-child {
+	margin-bottom: 0.85em;
+}
+
+.mono {
+	font-family: var(--font-mono);
+}
+
+.muted {
+	color: var(--fg-muted);
+}
+
+/* 切换深浅色时统一过渡，避免整页硬闪一下 */
+@media (prefers-reduced-motion: no-preference) {
+	body,
+	.tabbar,
+	.statusbar,
+	.card,
+	.card::before,
+	.tag,
+	.empty,
+	.hero,
+	.prose pre,
+	.prose th,
+	.prose td,
+	.prose :not(pre) > code {
+		transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+	}
+}
+
+@media (max-width: 40rem) {
+	:root {
+		--gutter: 1.15rem;
+		--tab-h: 38px;
+	}
+
+	.content {
+		padding: 2.25rem var(--gutter) 3.75rem;
+	}
+
+	.tabbar__brand span:last-child {
+		display: none;
+	}
+
+	.hero {
+		margin-bottom: 2.75rem;
+		padding-bottom: 2rem;
+	}
+
+	.hero__name {
+		font-size: 1.55rem;
+	}
+
+	.card__body {
+		padding: 1.15rem 1.05rem;
+	}
+}
