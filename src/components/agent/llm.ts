@@ -128,14 +128,23 @@ export async function runAgent(options: RunOptions): Promise<{ answer: string; t
 	const tools: ToolCall[] = [];
 	let answer = '';
 
-	// 最多让模型连续调 5 轮工具，防止它绕不出来
-	for (let round = 0; round < 5; round += 1) {
+	// 轮数放宽到 15，正常问题根本用不到这么多。
+	// 只留最后一道闸：最后一轮不再给工具——否则遇到「读遍全站再总结」这种问题，
+	// 轮次全花在调工具上，一句答案都产不出来，界面上看就是一片空白
+	const MAX_ROUNDS = 15;
+
+	for (let round = 0; round < MAX_ROUNDS; round += 1) {
+		const isLastRound = round === MAX_ROUNDS - 1;
+
 		// 打自己的中转端点。Key 在服务端，浏览器这里压根不知道它存在
 		const response = await fetch('/api/chat', {
 			method: 'POST',
 			signal,
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ messages, tools: toolDefinitions }),
+			body: JSON.stringify({
+				messages,
+				tools: isLastRound ? undefined : toolDefinitions,
+			}),
 		});
 
 		if (!response.ok) {
@@ -210,6 +219,11 @@ export async function runAgent(options: RunOptions): Promise<{ answer: string; t
 
 			messages.push({ role: 'tool', tool_call_id: slot.id, content: result });
 		}
+	}
+
+	// 兜底：万一模型到最后也没吐出文字，给一句人话，别让界面停在一片空白上
+	if (!answer.trim() && tools.length > 0) {
+		answer = `（这次调用了 ${tools.length} 次工具但没给出结论。问题问得太宽时容易这样，可以换个更具体的问法，比如直接问某个项目的某个设计。）`;
 	}
 
 	return { answer, tools };
