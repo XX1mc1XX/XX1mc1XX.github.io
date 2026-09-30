@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import type { Article, Message, Session, Settings, ToolCall } from './types';
-import { DEFAULTS, loadSettings, saveSettings, loadSessions, saveSessions, newSession } from './types';
+import type { Article, Message, Session, ToolCall } from './types';
+import { loadSessions, saveSessions, newSession } from './types';
 import { runAgent, ApiError } from './llm';
 import { demoScript } from './demo';
 
@@ -34,8 +34,6 @@ export default function AgentDrawer({ articles }: Props) {
 	const [activeId, setActiveId] = useState('');
 	const [input, setInput] = useState('');
 	const [busy, setBusy] = useState(false);
-	const [settings, setSettings] = useState<Settings>(DEFAULTS);
-	const [showSettings, setShowSettings] = useState(false);
 	const [showHistory, setShowHistory] = useState(false);
 	const [showDemo, setShowDemo] = useState(true);
 	const [error, setError] = useState('');
@@ -50,13 +48,10 @@ export default function AgentDrawer({ articles }: Props) {
 	// 标记这次展开是不是由 / 快捷键触发的，是的话展开后要把光标送进输入框
 	const focusOnOpenRef = useRef(false);
 
-	const ready = settings.apiKey.trim().length > 0;
 	const active = sessions.find((item) => item.id === activeId);
 	const messages = active?.messages ?? [];
 
 	useEffect(() => {
-		setSettings(loadSettings());
-
 		const stored = loadSessions();
 		if (stored.length > 0) {
 			setSessions(stored);
@@ -157,12 +152,6 @@ export default function AgentDrawer({ articles }: Props) {
 		});
 	}
 
-	function updateSettings(patch: Partial<Settings>) {
-		const next = { ...settings, ...patch };
-		setSettings(next);
-		saveSettings(next);
-	}
-
 	function startNewSession() {
 		const fresh = newSession();
 		persist([fresh, ...sessions]);
@@ -186,10 +175,6 @@ export default function AgentDrawer({ articles }: Props) {
 
 	async function send(question: string) {
 		if (!question.trim() || busy) return;
-		if (!ready) {
-			setShowSettings(true);
-			return;
-		}
 
 		setError('');
 		setShowDemo(false);
@@ -218,9 +203,6 @@ export default function AgentDrawer({ articles }: Props) {
 
 		try {
 			const result = await runAgent({
-				baseUrl: settings.baseUrl,
-				model: settings.model,
-				apiKey: settings.apiKey,
 				question,
 				articles,
 				history,
@@ -365,23 +347,9 @@ export default function AgentDrawer({ articles }: Props) {
 							class="agent-icon-btn"
 							type="button"
 							title="历史记录"
-							onClick={() => {
-								setShowHistory((value) => !value);
-								setShowSettings(false);
-							}}
+							onClick={() => setShowHistory((value) => !value)}
 						>
 							⏱
-						</button>
-						<button
-							class="agent-icon-btn"
-							type="button"
-							title="设置"
-							onClick={() => {
-								setShowSettings((value) => !value);
-								setShowHistory(false);
-							}}
-						>
-							⚙
 						</button>
 						<button class="agent-icon-btn" type="button" title="新会话" onClick={startNewSession}>
 							＋
@@ -422,42 +390,6 @@ export default function AgentDrawer({ articles }: Props) {
 					</div>
 				)}
 
-				{showSettings && (
-					<div class="agent-settings">
-						<label class="agent-field">
-							<span>Base URL</span>
-							<input
-								type="text"
-								value={settings.baseUrl}
-								placeholder={DEFAULTS.baseUrl}
-								onInput={(event) => updateSettings({ baseUrl: (event.target as HTMLInputElement).value })}
-							/>
-						</label>
-						<label class="agent-field">
-							<span>模型</span>
-							<input
-								type="text"
-								value={settings.model}
-								placeholder={DEFAULTS.model}
-								onInput={(event) => updateSettings({ model: (event.target as HTMLInputElement).value })}
-							/>
-						</label>
-						<label class="agent-field">
-							<span>API Key</span>
-							<input
-								type="password"
-								value={settings.apiKey}
-								placeholder="sk-..."
-								onInput={(event) => updateSettings({ apiKey: (event.target as HTMLInputElement).value })}
-							/>
-						</label>
-						<p class="agent-note">
-							Key 只存在你浏览器的 localStorage，请求直接从你的浏览器发往上面这个地址，
-							不经过本站任何服务器。清除浏览器数据即可删除。
-						</p>
-					</div>
-				)}
-
 				<div class="agent-body" ref={listRef}>
 					{showDemo && messages.length === 0 && (
 						<div class="agent-demo">
@@ -468,7 +400,7 @@ export default function AgentDrawer({ articles }: Props) {
 								{demoPlaying ? '播放中…' : '▶ 看一遍它怎么工作'}
 							</button>
 							<p class="agent-demo__note">
-								下面是录好的回放，不消耗任何 API。想自己提问，先在右上角 ⚙ 里填 Key。
+								下面是录好的回放。想自己提问，直接在下面的输入框里打字，不用填任何东西。
 							</p>
 						</div>
 					)}
@@ -503,13 +435,12 @@ export default function AgentDrawer({ articles }: Props) {
 				)}
 
 				<footer class="agent-foot">
-					{!ready && <div class="agent-gate">先在 ⚙ 里填 API Key 就能提问</div>}
 					<textarea
 						ref={inputRef}
 						class="agent-input"
 						rows={2}
 						value={input}
-						placeholder={ready ? '问点关于这个站点的事…' : '需要先填 Key'}
+						placeholder="问点关于这个站点的事…"
 						onInput={(event) => setInput((event.target as HTMLTextAreaElement).value)}
 						onKeyDown={(event) => {
 							if (event.key === 'Enter' && !event.shiftKey) {

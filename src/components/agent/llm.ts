@@ -105,9 +105,6 @@ async function* streamDeltas(response: Response) {
 }
 
 export interface RunOptions {
-	baseUrl: string;
-	model: string;
-	apiKey: string;
 	question: string;
 	articles: Article[];
 	history?: ChatMessage[];
@@ -119,7 +116,7 @@ export interface RunOptions {
 
 // agent 主循环：问模型 → 它要调工具就调 → 结果回灌 → 再问，直到它不再调工具
 export async function runAgent(options: RunOptions): Promise<{ answer: string; tools: ToolCall[] }> {
-	const { baseUrl, model, apiKey, question, articles, history = [], signal } = options;
+	const { question, articles, history = [], signal } = options;
 	const runner = createToolRunner(articles);
 
 	const messages: ChatMessage[] = [
@@ -133,19 +130,12 @@ export async function runAgent(options: RunOptions): Promise<{ answer: string; t
 
 	// 最多让模型连续调 5 轮工具，防止它绕不出来
 	for (let round = 0; round < 5; round += 1) {
-		const response = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
+		// 打自己的中转端点。Key 在服务端，浏览器这里压根不知道它存在
+		const response = await fetch('/api/chat', {
 			method: 'POST',
 			signal,
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${apiKey}`,
-			},
-			body: JSON.stringify({
-				model,
-				messages,
-				tools: toolDefinitions,
-				stream: true,
-			}),
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ messages, tools: toolDefinitions }),
 		});
 
 		if (!response.ok) {
