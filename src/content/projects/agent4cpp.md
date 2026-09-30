@@ -4,7 +4,6 @@ summary: 工业设备 Agent 能力框架。把设备函数封装成大模型可�
 role: 参与开发
 period: 2026
 stack: [C++17, OpenAI Function Calling, libcurl, spdlog, CMake]
-repo: https://github.com/XX1mc1XX/agent4cpp
 order: 2
 ---
 
