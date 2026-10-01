@@ -91,48 +91,67 @@
 		scroller.addEventListener('scroll', update, { passive: true });
 		update();
 
-		// 大纲折叠：每组的箭头单独收放，顶部另有「全部展开 / 全部收起」。
-		// 状态记在本地，翻页回来还是你上次收成的样子
+		// 大纲折叠：每组箭头单独收放，顶部一个按钮在「全展开 / 全收起」之间切。
+		// 状态记在本地；没有记录时按内容量自动决定——一屏放得下就全展开，放不下就全收起
 		const tocEl = document.querySelector('.toc');
 		if (tocEl) {
 			const groups = [...tocEl.querySelectorAll('.toc__group')];
 			const keyOf = (group) => group.querySelector('.toc__row a')?.getAttribute('href') ?? '';
+			const toggleBtn = tocEl.querySelector('[data-toc="toggle"]');
 
-			let collapsed = [];
-			try {
-				collapsed = JSON.parse(localStorage.getItem('toc-collapsed') ?? '[]');
-			} catch {
-				collapsed = [];
-			}
+			const setCollapsed = (keys) => {
+				for (const group of groups) {
+					group.classList.toggle('is-collapsed', keys.includes(keyOf(group)));
+				}
+				// 有任何一组收着，按钮就当「展开」用
+				toggleBtn?.classList.toggle('toc__tool--collapsed', keys.length > 0);
+			};
 
 			const persist = () => {
 				try {
-					localStorage.setItem(
-						'toc-collapsed',
-						JSON.stringify(groups.filter((g) => g.classList.contains('is-collapsed')).map(keyOf).filter(Boolean)),
-					);
+					const keys = groups.filter((g) => g.classList.contains('is-collapsed')).map(keyOf).filter(Boolean);
+					localStorage.setItem('toc-collapsed', JSON.stringify(keys));
 				} catch {
-					// 存不进去无非下次记不住折叠状态
+					// 存不进去无非下次记不住
 				}
 			};
 
-			for (const group of groups) {
-				if (collapsed.includes(keyOf(group))) group.classList.add('is-collapsed');
+			let initial = null;
+			try {
+				const raw = localStorage.getItem('toc-collapsed');
+				if (raw !== null) initial = JSON.parse(raw);
+			} catch {
+				initial = null;
+			}
 
+			if (Array.isArray(initial)) {
+				setCollapsed(initial);
+			} else {
+				// 没有任何历史记录：先全展开量一下高度，装不下就默认收起来
+				setCollapsed([]);
+				const body = document.querySelector('.sidebar__body');
+				const list = tocEl.querySelector('.toc__list');
+				if (body && list && list.scrollHeight > body.clientHeight) {
+					setCollapsed(groups.map(keyOf).filter(Boolean));
+				}
+			}
+
+			for (const group of groups) {
 				group.querySelector('.toc__caret')?.addEventListener('click', (event) => {
 					event.preventDefault();
 					group.classList.toggle('is-collapsed');
 					persist();
+					toggleBtn?.classList.toggle(
+						'toc__tool--collapsed',
+						groups.some((g) => g.classList.contains('is-collapsed')),
+					);
 				});
 			}
 
-			tocEl.querySelector('[data-toc="collapse"]')?.addEventListener('click', () => {
-				for (const group of groups) group.classList.add('is-collapsed');
-				persist();
-			});
-
-			tocEl.querySelector('[data-toc="expand"]')?.addEventListener('click', () => {
-				for (const group of groups) group.classList.remove('is-collapsed');
+			toggleBtn?.addEventListener('click', () => {
+				// 只要还有没收起的，就全部收起；否则全部展开
+				const allCollapsed = groups.every((g) => g.classList.contains('is-collapsed'));
+				setCollapsed(allCollapsed ? [] : groups.map(keyOf).filter(Boolean));
 				persist();
 			});
 		}

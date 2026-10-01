@@ -30,8 +30,19 @@ for (const heading of toc) {
 	<nav slot="sidebar" class="toc">
 		<div class="toc__tools">
 			<span class="toc__tools-label">大纲</span>
-			<button type="button" class="toc__tool" data-toc="expand" title="全部展开">全部展开</button>
-			<button type="button" class="toc__tool" data-toc="collapse" title="全部收起">全部收起</button>
+			<button
+				type="button"
+				class="toc__tool toc__tool--toggle"
+				data-toc="toggle"
+				title="全部展开 / 全部收起"
+				aria-label="全部展开或全部收起"
+			>
+				<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+					<rect x="2.6" y="2.6" width="10.8" height="10.8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.2" />
+					<path d="M5.6 8h4.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+					<path class="toc__tool-plus" d="M8 5.6v4.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+				</svg>
+			</button>
 		</div>
 		<ul class="toc__list">
 			{tocTree.map((node) => (

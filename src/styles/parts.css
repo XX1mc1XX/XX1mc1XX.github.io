@@ -152,6 +152,27 @@
 	color: var(--fg);
 }
 
+/* 一个按钮两种状态：全展开时显示减号（点它收起），
+   全收起时把竖线藏掉变成加号（点它展开） */
+.toc__tool--toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.2em;
+}
+
+.toc__tool-plus {
+	transition: opacity 0.12s ease;
+}
+
+.toc__tool--collapsed .toc__tool-plus {
+	opacity: 0;
+}
+
+.toc__tool--collapsed {
+	color: var(--fg-muted);
+}
+
 .toc__list {
 	margin: 0;
 	padding: 0;
