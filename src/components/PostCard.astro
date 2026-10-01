@@ -6,26 +6,15 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, description, pubDate, tags } = post.data;
-
-const date = [
-	pubDate.getFullYear(),
-	String(pubDate.getMonth() + 1).padStart(2, '0'),
-	String(pubDate.getDate()).padStart(2, '0'),
-].join('-');
+const { title, description, tags } = post.data;
 ---
 
 <a class="card" href={`/blog/${post.id}/`}>
 	<div class="card__body">
 		<div class="card__head">
 			<span class="card__title">{title}</span>
-			<span class="card__meta">{date}</span>
+			{tags.length > 0 && <span class="card__meta">{tags.join(' · ')}</span>}
 		</div>
 		<p class="card__desc">{description}</p>
-		{tags.length > 0 && (
-			<div class="card__tags">
-				{tags.map((tag) => <span class="tag">{tag}</span>)}
-			</div>
-		)}
 	</div>
 </a>

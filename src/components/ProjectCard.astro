@@ -6,14 +6,13 @@ interface Props {
 }
 
 const { project } = Astro.props;
-const { title, summary, stack, period } = project.data;
+const { title, summary, stack } = project.data;
 ---
 
 <a class="card" href={`/projects/${project.id}/`}>
 	<div class="card__body">
 		<div class="card__head">
 			<span class="card__title">{title}</span>
-			{period && <span class="card__meta">{period}</span>}
 		</div>
 		<p class="card__desc">{summary}</p>
 		{stack.length > 0 && (
