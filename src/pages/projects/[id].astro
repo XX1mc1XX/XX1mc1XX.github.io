@@ -9,7 +9,7 @@ export async function getStaticPaths() {
 
 const { project } = Astro.props;
 const { Content, headings } = await render(project);
-const { title, summary, role, stack, repo } = project.data;
+const { title, summary, role, period, stack, repo } = project.data;
 
 const toc = headings.filter((heading) => heading.depth <= 3);
 ---
@@ -29,7 +29,7 @@ const toc = headings.filter((heading) => heading.depth <= 3);
 	<article class="prose">
 		<header>
 			<h1>{title}</h1>
-			{role && <p class="page-meta">{role}</p>}
+			<p class="page-meta">{[role, period].filter(Boolean).join(' · ')}</p>
 			<p>{summary}</p>
 
 			{stack.length > 0 && (
