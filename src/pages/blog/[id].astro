@@ -13,6 +13,18 @@ const { title, description, tags } = post.data;
 
 const toc = headings.filter((heading) => heading.depth <= 3);
 
+// 把扁平的大纲折成两层树：二级标题当组，三级标题收在它下面。
+// 全部平铺的话，长文的大纲会变成一长条，没法折叠也没法一眼看出层次
+type TocNode = { text: string; slug: string; children: { text: string; slug: string }[] };
+const tocTree: TocNode[] = [];
+for (const heading of toc) {
+	if (heading.depth <= 2 || tocTree.length === 0) {
+		tocTree.push({ text: heading.text, slug: heading.slug, children: [] });
+	} else {
+		tocTree[tocTree.length - 1].children.push({ text: heading.text, slug: heading.slug });
+	}
+}
+
 const all = (await getCollection('posts', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
@@ -23,10 +35,33 @@ const older = position < all.length - 1 ? all[position + 1] : undefined;
 
 <BaseLayout title={title} description={description} wide>
 	<nav slot="sidebar" class="toc">
+		<div class="toc__tools">
+			<span class="toc__tools-label">大纲</span>
+			<button type="button" class="toc__tool" data-toc="expand" title="全部展开">全部展开</button>
+			<button type="button" class="toc__tool" data-toc="collapse" title="全部收起">全部收起</button>
+		</div>
 		<ul class="toc__list">
-			{toc.map((heading) => (
-				<li class={`toc__item toc__item--${heading.depth}`}>
-					<a href={`#${heading.slug}`}>{heading.text}</a>
+			{tocTree.map((node) => (
+				<li class="toc__group">
+					<div class="toc__row">
+						{node.children.length > 0 ? (
+							<button type="button" class="toc__caret" aria-label="展开或收起">
+								▾
+							</button>
+						) : (
+							<span class="toc__caret toc__caret--blank" />
+						)}
+						<a href={`#${node.slug}`}>{node.text}</a>
+					</div>
+					{node.children.length > 0 && (
+						<ul class="toc__children">
+							{node.children.map((child) => (
+								<li>
+									<a href={`#${child.slug}`}>{child.text}</a>
+								</li>
+							))}
+						</ul>
+					)}
 				</li>
 			))}
 		</ul>

@@ -38,8 +38,8 @@ function isActive(href: string) {
 </header>
 
 <script is:inline>
-	// 左侧那排图标栏默认收起——顶部这些标签已经是同一份导航，重复占地方。
-	// 想用的人点这个按钮展开，选择记在本地
+	// 左边整条（图标栏 + 大纲）由这一个按钮统一收放。
+	// 分成两个开关的话，点一下只收一半，剩下半条更难看
 	document.addEventListener('DOMContentLoaded', () => {
 		const toggle = document.getElementById('activity-toggle');
 		if (!toggle) return;
@@ -50,7 +50,9 @@ function isActive(href: string) {
 
 		toggle.addEventListener('click', () => {
 			const hidden = document.documentElement.classList.toggle('activity-hidden');
+			document.documentElement.classList.toggle('sidebar-hidden', hidden);
 			localStorage.setItem('activity-open', hidden ? '0' : '1');
+			localStorage.setItem('sidebar-open', hidden ? '0' : '1');
 		});
 	});
 </script>

@@ -91,6 +91,52 @@
 		scroller.addEventListener('scroll', update, { passive: true });
 		update();
 
+		// 大纲折叠：每组的箭头单独收放，顶部另有「全部展开 / 全部收起」。
+		// 状态记在本地，翻页回来还是你上次收成的样子
+		const tocEl = document.querySelector('.toc');
+		if (tocEl) {
+			const groups = [...tocEl.querySelectorAll('.toc__group')];
+			const keyOf = (group) => group.querySelector('.toc__row a')?.getAttribute('href') ?? '';
+
+			let collapsed = [];
+			try {
+				collapsed = JSON.parse(localStorage.getItem('toc-collapsed') ?? '[]');
+			} catch {
+				collapsed = [];
+			}
+
+			const persist = () => {
+				try {
+					localStorage.setItem(
+						'toc-collapsed',
+						JSON.stringify(groups.filter((g) => g.classList.contains('is-collapsed')).map(keyOf).filter(Boolean)),
+					);
+				} catch {
+					// 存不进去无非下次记不住折叠状态
+				}
+			};
+
+			for (const group of groups) {
+				if (collapsed.includes(keyOf(group))) group.classList.add('is-collapsed');
+
+				group.querySelector('.toc__caret')?.addEventListener('click', (event) => {
+					event.preventDefault();
+					group.classList.toggle('is-collapsed');
+					persist();
+				});
+			}
+
+			tocEl.querySelector('[data-toc="collapse"]')?.addEventListener('click', () => {
+				for (const group of groups) group.classList.add('is-collapsed');
+				persist();
+			});
+
+			tocEl.querySelector('[data-toc="expand"]')?.addEventListener('click', () => {
+				for (const group of groups) group.classList.remove('is-collapsed');
+				persist();
+			});
+		}
+
 		// 按 / 直接去跟助手说话。正在输入或用输入法组词时不抢
 		document.addEventListener('keydown', (event) => {
 			if (event.key !== '/' || event.isComposing) return;
