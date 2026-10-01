@@ -2,7 +2,7 @@
 title: Wovra
 summary: 面向长时运行 AI 任务的开源运行时。把任务当作持久的工作空间，而不是一段不断累积的对话。
 role: 贡献者
-period: 2026
+period: 2026.09 - 至今
 stack: [Python, uv, Agent 编排, 上下文管理]
 repo: https://github.com/qinglong404/Wovra-archive
 order: 3
