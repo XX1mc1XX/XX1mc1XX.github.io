@@ -43,29 +43,35 @@ export function createToolRunner(articles: Article[]) {
 		return head + item.body.slice(0, 12000);
 	}
 
-	function search_articles(args: Record<string, unknown>) {
+	// 语义检索：交给服务端做向量检索。
+	// 好处是「画面有点暗」能命中「亮度偏低」这类字面不重叠的表述——
+	// 原来在浏览器里做关键词匹配做不到这一点
+	async function search_articles(args: Record<string, unknown>) {
 		const query = String(args.query ?? '').trim();
 		if (!query) return '搜索关键词为空。';
 
-		const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-		const hits: string[] = [];
+		try {
+			const response = await fetch('/api/search', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ query, topK: 4 }),
+			});
+			const data = await response.json();
+			if (data?.error) return `检索失败：${data.error.message}`;
 
-		for (const item of articles) {
-			const haystack = `${item.title}\n${item.description}\n${item.body}`.toLowerCase();
-			const first = terms.find((term) => haystack.includes(term));
-			if (!first) continue;
-
-			const at = haystack.indexOf(first);
-			const start = Math.max(0, at - 300);
-			const snippet = item.body.slice(start, start + 700).replace(/\s+/g, ' ');
-			hits.push(`### ${item.title}（${item.id}）\n…${snippet}…`);
-			if (hits.length >= 4) break;
+			const matches: { score: number; title: string; url: string; text: string }[] = data?.matches ?? [];
+			if (matches.length === 0) {
+				return `没有找到与「${query}」相关的内容。`;
+			}
+			return matches
+				.map((m) => `### ${m.title}（相关度 ${m.score}）\n路径：${m.url}\n${m.text}`)
+				.join('\n\n');
+		} catch (cause) {
+			return `检索失败：${cause instanceof Error ? cause.message : String(cause)}`;
 		}
-
-		return hits.length > 0 ? hits.join('\n\n') : `没有找到与「${query}」相关的内容。`;
 	}
 
-	const impl: Record<string, (args: Record<string, unknown>) => string> = {
+	const impl: Record<string, (args: Record<string, unknown>) => string | Promise<string>> = {
 		list_articles,
 		read_article,
 		search_articles,
@@ -212,7 +218,8 @@ export async function runAgent(options: RunOptions): Promise<{ answer: string; t
 
 			options.onToolStart(slot.name, args);
 			const handler = runner.impl[slot.name];
-			const result = handler ? handler(args) : `没有名为「${slot.name}」的工具。`;
+			// 语义检索那个工具要走网络，所以这里必须 await
+			const result = handler ? await handler(args) : `没有名为「${slot.name}」的工具。`;
 			options.onToolEnd(slot.name, result);
 
 			tools.push({ name: slot.name, args, result });

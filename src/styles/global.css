@@ -916,7 +916,31 @@ html.sidebar-hidden .agent-panel {
 		font-size: 1.55rem;
 	}
 
+	/* 手机上卡片标题和右侧的标签挤一行会被压成一字一行，改成上下排 */
+	.card__head {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.35rem;
+	}
+
+	.card__meta {
+		white-space: normal;
+	}
+
 	.card__body {
 		padding: 1.15rem 1.05rem;
+	}
+
+	/* 表格比屏幕宽时横向滚动，而不是把每格压成一列字 */
+	.prose table {
+		display: block;
+		width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.prose table th,
+	.prose table td {
+		white-space: nowrap;
 	}
 }
