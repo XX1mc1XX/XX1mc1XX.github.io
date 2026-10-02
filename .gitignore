@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # cloudflare 构建缓存
 .wrangler/
+
+# 本地草稿：教学原稿与改稿，只在本地，不进仓库
+drafts/
