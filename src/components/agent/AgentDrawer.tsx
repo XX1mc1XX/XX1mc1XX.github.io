@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import type { Article, Message, Session, ToolCall } from './types';
 import { loadSessions, saveSessions, newSession } from './types';
 import { runAgent, ApiError } from './llm';
@@ -411,12 +413,15 @@ export default function AgentDrawer({ articles }: Props) {
 								<ToolLine tool={tool} key={`${tool.name}-${tool.args.id ?? ''}`} />
 							))}
 							{message.content && (
-								<div class="agent-msg__text">
-									{renderInline(message.content)}
+								<>
+									<div
+										class="agent-msg__text"
+										dangerouslySetInnerHTML={{ __html: markdownToHtml(message.content) }}
+									/>
 									{busy && message === messages[messages.length - 1] && message.role === 'assistant' && (
 										<span class="agent-caret" />
 									)}
-								</div>
+								</>
 							)}
 						</div>
 					))}
@@ -494,12 +499,22 @@ function formatTime(stamp: number) {
 	return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-// 只认粗体和行内代码，够用且不用引 markdown 解析器
-function renderInline(text: string) {
-	const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-	return parts.map((part) => {
-		if (part.startsWith('**') && part.endsWith('**')) return <strong>{part.slice(2, -2)}</strong>;
-		if (part.startsWith('`') && part.endsWith('`')) return <code>{part.slice(1, -1)}</code>;
-		return part;
-	});
+// 模型吐的是 markdown，交给 marked 解析。手写渲染器试过，坑太多：
+// 正则跨行会把相隔很远的两对星号配成一对，代码块也没法正确切块
+marked.setOptions({ gfm: true, breaks: true });
+
+// 解析结果过一遍 DOMPurify —— 模型输出的内容不能当可信 HTML 直接塞进页面。
+// SSR 阶段没有 window，这时返回空串，等客户端 hydrate 后再渲染
+let markedWarned = false;
+function markdownToHtml(text: string) {
+	if (typeof window === 'undefined') return '';
+	try {
+		return DOMPurify.sanitize(marked.parse(text, { async: false }));
+	} catch (cause) {
+		if (!markedWarned) {
+			markedWarned = true;
+			console.error('[agent] markdown 渲染失败', cause);
+		}
+		return '';
+	}
 }

@@ -19,7 +19,27 @@ export class ApiError extends Error {
 export function createToolRunner(articles: Article[]) {
 	const byId = new Map(articles.map((item) => [item.id, item]));
 
+	// 次数闸门。模型（尤其轻量档）不太遵守「搜两次就够了」这类口头约束，
+	// 实测问一个站上没有的东西它会连搜十次。与其反复调提示词，不如用代码兜住——
+	// 每次调用都告诉它「已经用掉几次」，超了就直接把结论推给它
+	const budget: Record<string, number> = { search_articles: 0, read_article: 0, list_articles: 0 };
+	const LIMIT: Record<string, number> = { search_articles: 3, read_article: 2, list_articles: 1 };
+
+	function overBudget(name: string): string | null {
+		budget[name] = (budget[name] ?? 0) + 1;
+		const limit = LIMIT[name] ?? 1;
+		if (budget[name] <= limit) return null;
+		return [
+			`【${name} 已调用 ${budget[name]} 次，超出上限 ${limit} 次，这次不再执行。】`,
+			'现在必须基于已经拿到的内容给出回答。',
+			'如果确实找不到对应信息，就直接说明「站点的文章里没有写这个」，不要继续搜。',
+		].join('');
+	}
+
 	function list_articles() {
+		const gate = overBudget('list_articles');
+		if (gate) return gate;
+
 		const posts = articles.filter((item) => item.kind === 'post');
 		const projects = articles.filter((item) => item.kind === 'project');
 		const line = (item: Article) =>
@@ -34,6 +54,9 @@ export function createToolRunner(articles: Article[]) {
 	}
 
 	function read_article(args: Record<string, unknown>) {
+		const gate = overBudget('read_article');
+		if (gate) return gate;
+
 		const id = String(args.id ?? '');
 		const item = byId.get(id);
 		if (!item) {
@@ -47,6 +70,9 @@ export function createToolRunner(articles: Article[]) {
 	// 好处是「画面有点暗」能命中「亮度偏低」这类字面不重叠的表述——
 	// 原来在浏览器里做关键词匹配做不到这一点
 	async function search_articles(args: Record<string, unknown>) {
+		const gate = overBudget('search_articles');
+		if (gate) return gate;
+
 		const query = String(args.query ?? '').trim();
 		if (!query) return '搜索关键词为空。';
 
@@ -77,7 +103,21 @@ export function createToolRunner(articles: Article[]) {
 		search_articles,
 	};
 
-	return { impl, write: (args: Record<string, unknown>) => String(args.query ?? args.id ?? '') };
+	// 用掉额度的工具直接从清单里摘掉——只靠「调用后返回超限提示」不够，
+	// 模型照样会一调再调；不给它这个选项，它才会去写答案
+	function remainingTools() {
+		const available = toolDefinitions.filter((def) => {
+			const name = def.function.name;
+			return (budget[name] ?? 0) < (LIMIT[name] ?? 1);
+		});
+		return available.length > 0 ? available : undefined;
+	}
+
+	return {
+		impl,
+		remainingTools,
+		write: (args: Record<string, unknown>) => String(args.query ?? args.id ?? ''),
+	};
 }
 
 // 从 SSE 流里逐块取 delta
@@ -149,7 +189,9 @@ export async function runAgent(options: RunOptions): Promise<{ answer: string; t
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				messages,
-				tools: isLastRound ? undefined : toolDefinitions,
+				// 每一轮都重新算一遍可用工具：用掉额度的会被摘掉，
+				// 模型看不到也就不会再调，只能去写答案
+				tools: isLastRound ? undefined : runner.remainingTools(),
 			}),
 		});
 

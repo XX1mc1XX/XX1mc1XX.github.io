@@ -316,9 +316,110 @@ html.agent-open .agent-panel {
 }
 
 .agent-msg__text {
-	white-space: pre-wrap;
-	word-break: break-word;
+	/* marked 输出的是标准 HTML，按标签给样式 */
 	line-height: 1.75;
+	word-break: break-word;
+}
+
+.agent-msg__text > *:first-child {
+	margin-top: 0;
+}
+
+.agent-msg__text > *:last-child {
+	margin-bottom: 0;
+}
+
+.agent-msg__text p {
+	margin: 0 0 0.7em;
+}
+
+.agent-msg__text h1,
+.agent-msg__text h2,
+.agent-msg__text h3,
+.agent-msg__text h4,
+.agent-msg__text h5,
+.agent-msg__text h6 {
+	margin: 1.1em 0 0.5em;
+	font-family: var(--font-mono);
+	font-size: 0.98em;
+	font-weight: 600;
+	color: var(--fg-strong);
+}
+
+.agent-msg__text ul,
+.agent-msg__text ol {
+	margin: 0.4em 0 0.8em;
+	padding-left: 1.35em;
+}
+
+.agent-msg__text li {
+	margin: 0.3em 0;
+}
+
+.agent-msg__text li::marker {
+	color: var(--accent);
+}
+
+.agent-msg__text strong {
+	color: var(--fg-strong);
+	font-weight: 600;
+}
+
+.agent-msg__text a {
+	color: var(--link);
+	word-break: break-all;
+}
+
+.agent-msg__text pre {
+	margin: 0.85em 0;
+	padding: 0.8rem 0.9rem;
+	background: var(--bg);
+	border: 1px solid var(--border-mid);
+	border-radius: var(--radius);
+	overflow-x: auto;
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.agent-msg__text pre code {
+	font-family: var(--font-mono);
+	white-space: pre;
+	background: none;
+	border: 0;
+	padding: 0;
+}
+
+.agent-msg__text blockquote {
+	margin: 0.8em 0;
+	padding-left: 0.85em;
+	border-left: 2px solid var(--accent);
+	color: var(--fg-muted);
+}
+
+.agent-msg__text table {
+	width: 100%;
+	margin: 0.8em 0;
+	border-collapse: collapse;
+	font-size: 0.88em;
+}
+
+.agent-msg__text th,
+.agent-msg__text td {
+	padding: 0.3em 0.55em;
+	border: 1px solid var(--border-mid);
+	text-align: left;
+}
+
+.agent-msg__text th {
+	background: var(--bg-tab);
+	font-family: var(--font-mono);
+	color: var(--fg-strong);
+}
+
+.agent-msg__text hr {
+	margin: 1em 0;
+	border: 0;
+	border-top: 1px solid var(--border);
 }
 
 .agent-msg__text code {
