@@ -847,6 +847,12 @@ html.sidebar-hidden .agent-panel {
 	color: var(--fg);
 }
 
+/* 表格最后一列当「收益」列：绿色，跟简历里那一列是同一个语义，
+   但深色主题下不用红底白字，免得整页重心被它抢走 */
+.prose td:last-child strong {
+	color: var(--comment);
+}
+
 .prose tbody tr:hover {
 	background: var(--bg-elev);
 }
