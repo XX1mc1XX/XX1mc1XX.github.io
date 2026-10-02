@@ -49,6 +49,41 @@ export const toolDefinitions = [
 			parameters: { type: 'object', properties: {}, required: [] },
 		},
 	},
+	{
+		type: 'function',
+		function: {
+			name: 'search_web',
+			description:
+				'联网搜索公开网页，返回标题、链接和摘要。用于回答站点文章之外的问题，比如某项技术的一般做法、某个库的现状。站内问题不要用它，用 search_articles。',
+			parameters: {
+				type: 'object',
+				properties: {
+					query: { type: 'string', description: '搜索词，用自然语言写一整句效果更好' },
+				},
+				required: ['query'],
+			},
+		},
+	},
+	{
+		type: 'function',
+		function: {
+			name: 'search_github',
+			description:
+				'搜索 GitHub 上的仓库、代码或用户，返回链接和简介。查开源项目、看某个库有多少人用时用它；注意它搜的是 GitHub，不是全网。',
+			parameters: {
+				type: 'object',
+				properties: {
+					query: { type: 'string', description: '搜索词，例如「qt industrial camera」' },
+					kind: {
+						type: 'string',
+						enum: ['repositories', 'code', 'users'],
+						description: '搜什么，默认 repositories',
+					},
+				},
+				required: ['query'],
+			},
+		},
+	},
 ];
 
 export const systemPrompt = `你是这个个人博客站点上的 AI 助手，代表站主回答访客提问。

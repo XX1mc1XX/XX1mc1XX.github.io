@@ -22,8 +22,20 @@ export function createToolRunner(articles: Article[]) {
 	// 次数闸门。模型（尤其轻量档）不太遵守「搜两次就够了」这类口头约束，
 	// 实测问一个站上没有的东西它会连搜十次。与其反复调提示词，不如用代码兜住——
 	// 每次调用都告诉它「已经用掉几次」，超了就直接把结论推给它
-	const budget: Record<string, number> = { search_articles: 0, read_article: 0, list_articles: 0 };
-	const LIMIT: Record<string, number> = { search_articles: 3, read_article: 2, list_articles: 1 };
+	const budget: Record<string, number> = {
+		search_articles: 0,
+		read_article: 0,
+		list_articles: 0,
+		search_web: 0,
+		search_github: 0,
+	};
+	const LIMIT: Record<string, number> = {
+		search_articles: 3,
+		read_article: 2,
+		list_articles: 1,
+		search_web: 2,
+		search_github: 2,
+	};
 
 	function overBudget(name: string): string | null {
 		budget[name] = (budget[name] ?? 0) + 1;
@@ -97,10 +109,57 @@ export function createToolRunner(articles: Article[]) {
 		}
 	}
 
+	// 联网搜索。请求发到自家 Worker，由它去抓 DuckDuckGo ——
+	// 浏览器直接抓会被 CORS 挡住，而且本机在国内还得挂梯子
+	async function search_web(args: Record<string, unknown>) {
+		const query = String(args.query ?? '').trim();
+		if (!query) return '搜索词为空。';
+
+		try {
+			const response = await fetch('/api/web-search', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json; charset=utf-8' },
+				body: JSON.stringify({ query, limit: 5 }),
+			});
+			const data = await response.json();
+			if (data?.error) return `联网搜索失败：${data.error.message}`;
+
+			const results: { title: string; url: string; snippet: string }[] = data?.results ?? [];
+			if (results.length === 0) return `联网没搜到「${query}」的结果。`;
+			return results.map((r) => `### ${r.title}\n${r.url}\n${r.snippet}`).join('\n\n');
+		} catch (cause) {
+			return `联网搜索失败：${cause instanceof Error ? cause.message : String(cause)}`;
+		}
+	}
+
+	// GitHub 搜索，同样走自家 Worker 转发
+	async function search_github(args: Record<string, unknown>) {
+		const query = String(args.query ?? '').trim();
+		if (!query) return '搜索词为空。';
+
+		try {
+			const response = await fetch('/api/gh-search', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json; charset=utf-8' },
+				body: JSON.stringify({ query, kind: args.kind, limit: 5 }),
+			});
+			const data = await response.json();
+			if (data?.error) return `GitHub 搜索失败：${data.error.message}`;
+
+			const results: { title: string; url: string; snippet: string }[] = data?.results ?? [];
+			if (results.length === 0) return `GitHub 上没搜到「${query}」。`;
+			return results.map((r) => `### ${r.title}\n${r.url}\n${r.snippet}`).join('\n\n');
+		} catch (cause) {
+			return `GitHub 搜索失败：${cause instanceof Error ? cause.message : String(cause)}`;
+		}
+	}
+
 	const impl: Record<string, (args: Record<string, unknown>) => string | Promise<string>> = {
 		list_articles,
 		read_article,
 		search_articles,
+		search_web,
+		search_github,
 	};
 
 	// 用掉额度的工具直接从清单里摘掉——只靠「调用后返回超限提示」不够，

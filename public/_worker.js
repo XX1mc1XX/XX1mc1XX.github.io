@@ -41,6 +41,19 @@ export default {
 			return handleSearch(request, env);
 		}
 
+		// 联网搜索。Worker 在海外边缘节点，直连这些源不用任何代理——
+		// 而本机（国内）访问 DuckDuckGo、维基是要挂梯子的
+		if (url.pathname === '/api/web-search') {
+			if (request.method !== 'POST') return json({ error: { message: '只接受 POST。' } }, 405);
+			return handleWebSearch(request, env);
+		}
+
+		// GitHub 搜索：仓库、代码、用户。官方 API，无 Key 可用（有速率限制）
+		if (url.pathname === '/api/gh-search') {
+			if (request.method !== 'POST') return json({ error: { message: '只接受 POST。' } }, 405);
+			return handleGithubSearch(request, env);
+		}
+
 		if (url.pathname === '/api/ingest') {
 			if (request.method !== 'POST') return json({ error: { message: '只接受 POST。' } }, 405);
 			return handleIngest(request, env);
@@ -228,6 +241,192 @@ async function handleIngest(request, env) {
 		return json({ ok: true, received: chunks.length, upserted: vectors.length });
 	} catch (cause) {
 		return json({ error: { message: `灌数据失败：${cause.message}` } }, 502);
+	}
+}
+
+// 联网搜索。
+//
+// 先说结论：抓搜索引擎页面这条路**不可靠**，实测过四家——
+//   DuckDuckGo（lite / html 两个入口）→ 返回空页或验证页
+//   Mojeek、searx.be → 直接给验证码页
+//   Bing → 能拿到结果，但多词查询会被截成第一个词（「工业相机 SDK」只搜「工业」）
+//
+// 所以优先走搜索 API：配了 TAVILY_API_KEY 就用它（每月 1000 次免费，专为 AI 设计）；
+// 没配就退回 Bing 抓取，能用但中文长查询效果差
+async function handleWebSearch(request, env) {
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		return json({ error: { message: '请求体不是合法 JSON。' } }, 400);
+	}
+
+	const query = String(body?.query ?? '').trim();
+	if (!query) return json({ error: { message: '缺少 query。' } }, 400);
+	if (query.length > 200) return json({ error: { message: '查询太长。' } }, 400);
+
+	const limit = Math.min(Math.max(Number(body?.limit) || 5, 1), 8);
+
+	if (env.TAVILY_API_KEY) {
+		return searchViaTavily(query, limit, env.TAVILY_API_KEY);
+	}
+	return searchViaBing(query, limit);
+}
+
+async function searchViaTavily(query, limit, apiKey) {
+	try {
+		const res = await fetch('https://api.tavily.com/search', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json; charset=utf-8' },
+			body: JSON.stringify({
+				api_key: apiKey,
+				query,
+				max_results: limit,
+				search_depth: 'basic',
+			}),
+		});
+		if (!res.ok) {
+			const detail = await res.text();
+			return json({ error: { message: `Tavily 返回 ${res.status}：${detail.slice(0, 200)}` } }, 502);
+		}
+		const data = await res.json();
+		const results = (data.results ?? []).map((r) => ({
+			title: r.title ?? r.url,
+			url: r.url,
+			snippet: (r.content ?? '').slice(0, 400),
+		}));
+		return json({ query, engine: 'tavily', count: results.length, results });
+	} catch (cause) {
+		return json({ error: { message: `Tavily 搜索失败：${cause.message}` } }, 502);
+	}
+}
+
+async function searchViaBing(query, limit) {
+	try {
+		const res = await fetch(`https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=zh-CN`, {
+			headers: {
+				'User-Agent':
+					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+				Accept: 'text/html,application/xhtml+xml',
+				'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+			},
+		});
+		if (!res.ok) {
+			return json({ error: { message: `搜索源返回 ${res.status}` } }, 502);
+		}
+		const html = await res.text();
+
+		const strip = (s) =>
+			s
+				.replace(/<[^>]+>/g, '')
+				.replace(/&amp;/g, '&')
+				.replace(/&quot;/g, '"')
+				.replace(/&#x27;|&#39;/g, "'")
+				.replace(/&lt;/g, '<')
+				.replace(/&gt;/g, '>')
+				.replace(/&nbsp;/g, ' ')
+				.replace(/\s+/g, ' ')
+				.trim();
+
+		const results = [];
+		for (const match of html.matchAll(/<li class="b_algo"[\s\S]*?(?=<li class="b_algo"|<\/ol>)/g)) {
+			if (results.length >= limit) break;
+			const block = match[0];
+
+			const link = block.match(/<h2[^>]*>\s*<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+			if (!link) continue;
+
+			const url = decodeBingLink(link[1]);
+			if (!/^https?:\/\//.test(url)) continue;
+
+			const snippet = block.match(/<p[^>]*>([\s\S]*?)<\/p>/);
+			results.push({
+				title: strip(link[2]) || url,
+				url,
+				snippet: snippet ? strip(snippet[1]).slice(0, 300) : '',
+			});
+		}
+
+		return json({ query, engine: 'bing', count: results.length, results });
+	} catch (cause) {
+		return json({ error: { message: `联网搜索失败：${cause.message}` } }, 502);
+	}
+}
+
+// Bing 给的跳转地址形如 /ck/a?...&amp;u=a1<base64>&amp;ntb=1，
+// 真实 URL 藏在 u= 参数里（a1 后面是 base64url）。
+// 注意 href 里的 & 是 HTML 转义过的（&amp;），不先还原就匹配不到 u= 参数
+function decodeBingLink(url) {
+	const normalized = url.replace(/&amp;/g, '&');
+	const match = normalized.match(/[?&]u=a1([^&]+)/);
+	if (!match) return normalized;
+	try {
+		const base64 = match[1].replace(/-/g, '+').replace(/_/g, '/');
+		const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+		const binary = atob(padded);
+		const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+		return new TextDecoder('utf-8').decode(bytes);
+	} catch {
+		return normalized;
+	}
+}
+
+// GitHub 搜索：走官方 API，无 Key 也能用（每小时 60 次）
+async function handleGithubSearch(request, env) {
+	let body;
+	try {
+		body = await request.json();
+	} catch {
+		return json({ error: { message: '请求体不是合法 JSON。' } }, 400);
+	}
+
+	const query = String(body?.query ?? '').trim();
+	if (!query) return json({ error: { message: '缺少 query。' } }, 400);
+
+	const kind = ['repositories', 'code', 'users'].includes(body?.kind) ? body.kind : 'repositories';
+	const limit = Math.min(Math.max(Number(body?.limit) || 5, 1), 10);
+
+	const headers = {
+		Accept: 'application/vnd.github+json',
+		'User-Agent': 'blog-agent',
+		'X-GitHub-Api-Version': '2022-11-28',
+	};
+	// 配了 token 就用，速率限制从 60/小时 提到 5000/小时
+	if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
+
+	try {
+		const res = await fetch(
+			`https://api.github.com/search/${kind}?q=${encodeURIComponent(query)}&per_page=${limit}`,
+			{ headers },
+		);
+		if (!res.ok) {
+			const detail = await res.text();
+			return json({ error: { message: `GitHub 返回 ${res.status}：${detail.slice(0, 200)}` } }, 502);
+		}
+		const data = await res.json();
+
+		const results = (data.items ?? []).map((item) => {
+			if (kind === 'users') {
+				return { title: item.login, url: item.html_url, snippet: item.bio ?? '' };
+			}
+			if (kind === 'code') {
+				return {
+					title: item.name,
+					url: item.html_url,
+					snippet: `${item.repository?.full_name ?? ''} — ${item.path ?? ''}`,
+				};
+			}
+			const topics = (item.topics ?? []).slice(0, 5).join(' ');
+			return {
+				title: item.full_name,
+				url: item.html_url,
+				snippet: `${item.description ?? ''}${item.language ? ` [${item.language}]` : ''} ⭐${item.stargazers_count ?? 0} ${topics}`.trim(),
+			};
+		});
+
+		return json({ query, kind, count: results.length, results });
+	} catch (cause) {
+		return json({ error: { message: `GitHub 搜索失败：${cause.message}` } }, 502);
 	}
 }
 
