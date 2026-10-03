@@ -274,80 +274,24 @@ AGENT4CPP_REGISTER_METHOD(registry, camera, setExposure, "设置相机曝光时�
 
 // ① 定义一个工具函数。
 //    展开成：static ::agent4cpp::ToolResult 工具名(const std::string& arguments_json)
-//    两个细节：
+//    三个细节：
 //      - 宏体末尾没有分号，用户使用时紧跟 { ... }，拼起来正好是完整函数定义
 //      - 参数 description 在这里用不上，它只在下面的注册宏里用到
-//      - ::agent4cpp 前面那个 :: 表示"从全局命名空间开始找"，
+//      - ::agent4cpp 前面那个 :: 表示「从全局命名空间开始找」，
 //        因为宏展开在用户的代码里，用户可能身处任意命名空间
 #define AGENT4CPP_TOOL(tool_name, description) \
   static ::agent4cpp::ToolResult tool_name(    \
       const std::string& arguments_json)
 
-// ② 声明一个 number 参数（旧的通用写法，等价于 double）。
-//    展开成：::agent4cpp::NumberParam((name), (description))
-//    参数外面套 ( ) 是防御性写法：万一用户传进来的是带逗号的表达式，
-//    不加括号会被宏的参数拆分逻辑拆错。
+// ② 声明一个参数。参数外面套 ( ) 是防御性写法：
+//    万一用户传进来的是带逗号的表达式，不加括号会被宏的参数拆分逻辑拆错。
 #define AGENT4CPP_NUMBER_ARG(name, description) \
   ::agent4cpp::NumberParam((name), (description))
 
-// ③ 声明一个 int 参数。结构和 ② 完全一样，只是换了工厂函数。
-#define AGENT4CPP_INT_ARG(name, description) \
-  ::agent4cpp::IntParam((name), (description))
-
-// ④ 声明一个 double 参数。同上。
-#define AGENT4CPP_DOUBLE_ARG(name, description) \
-  ::agent4cpp::DoubleParam((name), (description))
-
-// ⑤ 声明一个 string 参数。同上。
-#define AGENT4CPP_STRING_ARG(name, description) \
-  ::agent4cpp::StringParam((name), (description))
-
-// ⑥ 声明一个枚举参数 —— 唯一需要可变参数的宏。
-//    展开成：::agent4cpp::EnumParam((name), (description), {"software", "hardware"})
-//    ... 和 __VA_ARGS__ 是 C++11 的可变参数宏：
-//      用户传多少个候选值都行，全部塞进 { } 里，
-//      正好对上 EnumParam 第三个参数 std::vector<std::string>
-#define AGENT4CPP_ENUM_ARG(name, description, ...) \
-  ::agent4cpp::EnumParam((name), (description), {__VA_ARGS__})
-
-// ⑦ 声明一个 bool 参数。同上。
-#define AGENT4CPP_BOOL_ARG(name, description) \
-  ::agent4cpp::BooleanParam((name), (description))
-
-// ⑧ 把一个普通函数注册进 registry。
-//    展开成：
-//      (registry).Register(::agent4cpp::ToolDefinition{
-//          "set_exposure", (description), {参数们}, (set_exposure)});
-//    四个位置正好对上 ToolDefinition 的四个成员：name / description / parameters / invoker
-//    关键在 #tool_name —— 这是字符串化运算符，
-//      把标识符 set_exposure 原样变成字符串 "set_exposure"
-//      所以函数名和工具名自动保持一致，不可能拼错
-//    最后一个 (tool_name) 是裸写函数名，它会自动退化成函数指针，存进 std::function
-#define AGENT4CPP_REGISTER_FUNCTION(registry, tool_name, description, ...) \
-  (registry).Register(::agent4cpp::ToolDefinition{                         \
-      #tool_name, (description), {__VA_ARGS__}, (tool_name)})
-
-// ⑨ 把一个对象的方法注册进 registry。
-//    展开式和 ⑧ 一样，只有 invoker 那一格不同 —— 换成 lambda：
-//      [&](const std::string& arguments_json) -> ::agent4cpp::ToolResult {
-//        return (camera).setExposure(arguments_json);
-//      }
-//    为什么必须用 lambda？
-//      std::function 装不了"对象 + 成员函数指针"这种组合，
-//      但可以装 lambda。于是用 lambda 把对象捕获进来，转发调用。
-//    语法拆解：
-//      [&]                        按引用捕获外部变量（这里就是那个对象）
-//      (const std::string& ...)   参数列表，和普通函数一样
-//      -> ::agent4cpp::ToolResult 显式写返回类型，让 std::function 能推导
-//      { return (object).方法(参数); }  函数体，转发调用
-#define AGENT4CPP_REGISTER_METHOD(registry, object, method_name, description, \
-                                  ...)                                       \
-  (registry).Register(::agent4cpp::ToolDefinition{                           \
-      #method_name, (description), {__VA_ARGS__},                            \
-      [&](const std::string& arguments_json) -> ::agent4cpp::ToolResult {    \
-        return (object).method_name(arguments_json);                         \
-      }})
+// ③④⑤⑥⑦ 另外五个参数宏（int / double / string / bool / enum）
+//    与 ② 逐字相同，只是换了工厂函数：IntParam、DoubleParam、StringParam……
 ```
+
 
 写这种多行宏有三条铁律：除最后一行外每行末尾都要有 `\`；`\` 后面**不能有空格**，否则续行失败、报一堆莫名其妙的错；`\` 尽量对齐在同一列。
 
@@ -678,84 +622,6 @@ Status GetRequiredNumber(const std::string& arguments_json,
   }
   *value = iter->get<double>();
   return Status::Ok();
-}
-
-Status GetRequiredInt(const std::string& arguments_json,
-                      const std::string& name,
-                      int* value) {
-  nlohmann::json arguments;
-  Status status = ParseArgumentsObject(arguments_json, &arguments);
-  if (!status.ok()) {
-    return status;
-  }
-  const auto iter = arguments.find(name);
-  if (iter == arguments.end()) {
-    return Status::InvalidArgument("missing required argument: " + name);
-  }
-  if (!iter->is_number_integer()) {
-    return Status::InvalidArgument("argument is not an integer: " + name);
-  }
-  *value = iter->get<int>();
-  return Status::Ok();
-}
-
-Status GetRequiredDouble(const std::string& arguments_json,
-                         const std::string& name,
-                         double* value) {
-  return GetRequiredNumber(arguments_json, name, value);
-}
-
-Status GetRequiredString(const std::string& arguments_json,
-                         const std::string& name,
-                         std::string* value) {
-  nlohmann::json arguments;
-  Status status = ParseArgumentsObject(arguments_json, &arguments);
-  if (!status.ok()) {
-    return status;
-  }
-  const auto iter = arguments.find(name);
-  if (iter == arguments.end()) {
-    return Status::InvalidArgument("missing required argument: " + name);
-  }
-  if (!iter->is_string()) {
-    return Status::InvalidArgument("argument is not a string: " + name);
-  }
-  *value = iter->get<std::string>();
-  return Status::Ok();
-}
-
-Status GetRequiredEnum(const std::string& arguments_json,
-                       const std::string& name,
-                       const std::vector<std::string>& values,
-                       std::string* value) {
-  Status status = GetRequiredString(arguments_json, name, value);
-  if (!status.ok()) {
-    return status;
-  }
-  if (!ContainsEnumValue(values, *value)) {
-    return Status::InvalidArgument("argument has invalid enum value: " + name);
-  }
-  return Status::Ok();
-}
-
-Status GetRequiredBool(const std::string& arguments_json,
-                       const std::string& name,
-                       bool* value) {
-  nlohmann::json arguments;
-  Status status = ParseArgumentsObject(arguments_json, &arguments);
-  if (!status.ok()) {
-    return status;
-  }
-  const auto iter = arguments.find(name);
-  if (iter == arguments.end()) {
-    return Status::InvalidArgument("missing required argument: " + name);
-  }
-  if (!iter->is_boolean()) {
-    return Status::InvalidArgument("argument is not a bool: " + name);
-  }
-  *value = iter->get<bool>();
-  return Status::Ok();
-}
 ```
 
 六个函数活法完全一样，就四步：把文本变成盒子 → 按名字找，找不到退回 → 看是不是要的类型 → 抄进调用方给的变量。其中两个是"偷懒"的：`GetRequiredDouble` 直接转手给 `GetRequiredNumber`（要的东西完全一样），`GetRequiredEnum` 先转手给 `GetRequiredString`（枚举在 JSON 里就是文字，先按文字抄出来，再核对名单）。
@@ -981,17 +847,13 @@ const auto [_, inserted] = tools_.emplace(tool.name, std::move(tool));
 头文件本身很简单，两个私有成员——仓库 + 门禁：
 
 ```cpp
-#ifndef AGENT4CPP_TOOL_REGISTRY_H_
-#define AGENT4CPP_TOOL_REGISTRY_H_
-
-#include <map>            // std::map：抽屉柜
-#include <shared_mutex>   // std::shared_mutex：两种卡的门禁
-#include <optional>       // std::optional：可能没有的盒子
+#include <map>
+#include <shared_mutex>
+#include <optional>
 #include <string>
 #include <vector>
-
-#include "agent4cpp/export.h"   // AGENT4CPP_API
-#include "agent4cpp/tool.h"     // ToolDefinition / ToolResult / Status
+#include "agent4cpp/export.h"
+#include "agent4cpp/tool.h"
 
 namespace agent4cpp {
 
@@ -1002,19 +864,13 @@ class AGENT4CPP_API ToolRegistry {
   [[nodiscard]] std::vector<ToolDefinition> ListTools() const;
   [[nodiscard]] std::optional<ToolDefinition> Find(const std::string& name) const;
   [[nodiscard]] std::string ListOpenAIToolSchemas() const;
-  [[nodiscard]] std::string ListToolSchemas() const;
 
   ToolResult Call(const std::string& name, const std::string& arguments_json) const;
-
  private:
-  std::map<std::string, ToolDefinition> tools_;   // 仓库
-  mutable std::shared_mutex mutex_;               // 门禁
+  // 一把读写锁 + 一个 map，下一节讲
 };
-
-}  // namespace agent4cpp
-
-#endif  // AGENT4CPP_TOOL_REGISTRY_H_
 ```
+
 
 注意 `include` 的顺序：`<map> <shared_mutex> <optional> <string> <vector>` —— 这**不是**纯字母序（`shared_mutex` 跑到了 `optional` 前面）。原项目就是这么排的，照写。
 
