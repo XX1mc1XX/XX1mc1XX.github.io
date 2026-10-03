@@ -1,7 +1,7 @@
 ---
 title: 接上模型，记下它干了什么
 description: "一个插口两种助手：Mock 和真实模型走同一个接口。还有 libcurl 那七步，以及思考模型的推理内容为什么必须原样回传。"
-pubDate: 2026-09-26
+pubDate: 2026-09-28
 tags: [C++, LLM, libcurl, 可观测性]
 ---
 

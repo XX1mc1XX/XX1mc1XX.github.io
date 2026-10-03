@@ -1,7 +1,7 @@
----
+﻿---
 title: 怎么把一个真实设备接进这套框架
 description: "把设备接进来，难的不是包一层，而是给设备函数补上说明、边界、回执和语义化观测值这四样它原来没有的东西。"
-pubDate: 2026-09-30
+pubDate: 2026-09-24
 tags: [C++, 工业相机, LLM, Agent]
 ---
 
@@ -43,7 +43,7 @@ tags: [C++, 工业相机, LLM, Agent]
 ```text
 ① MockCamera           假相机：只有一个曝光值，亮度 = 曝光 / 10000
 ② 两个 C++ 工具
-     get_camera_status 查状态 —— ★ 返回语义化观测值 ★
+     get_camera_status 查状态 —— 返回语义化观测值 
      set_exposure      改曝光 —— 带范围校验
 ③ CameraDemoLLMClient  假模型：一摞写好的台词，演三步闭环
    main()               组装：注册工具 → 选模型 → 建 Agent + CLI → 跑

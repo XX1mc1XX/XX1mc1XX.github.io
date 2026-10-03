@@ -1,7 +1,7 @@
 ---
 title: Agent 框架的骨架与错误码
 description: "整套框架的零件图，以及为什么错误码值得单独设计一套——选错错误码，调用方就分不清该重试还是该修 bug。"
-pubDate: 2026-09-22
+pubDate: 2026-10-01
 tags: [C++, LLM, Agent, 架构设计]
 ---
 

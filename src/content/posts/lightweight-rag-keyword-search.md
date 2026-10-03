@@ -1,4 +1,4 @@
----
+﻿---
 title: 为什么我没给这个 Agent 接向量数据库
 description: 关键词打分省掉了向量库、embedding 服务和网络依赖，代价是中文分词几乎没法用——还有一个把中文字符切成非法 UTF-8 的切块 bug。
 pubDate: 2026-09-28
@@ -149,7 +149,7 @@ chunk.text = text.substr(start, end - start);   // start/end 是字节位置
 
 ```
 [0] system   ← 系统提示词
-[1] system   ← ★ 知识库检索结果（在 user 之前）
+[1] system   ← 知识库检索结果（在 user 之前）
 [2] user     ← 用户的问题
 [3] assistant
 ```

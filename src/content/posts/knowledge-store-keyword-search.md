@@ -1,7 +1,7 @@
----
+﻿---
 title: 给 Agent 配一个资料柜
 description: "用关键词打分而不是向量检索做本地资料柜：为什么工业现场要这样选，以及一个把中文切成乱码的真实缺陷。"
-pubDate: 2026-09-28
+pubDate: 2026-09-26
 tags: [C++, RAG, 检索, 架构设计]
 ---
 
@@ -80,7 +80,7 @@ std::vector<DocumentChunk> InMemoryKnowledgeStore::Search(
   std::vector<DocumentChunk> ranked;
   std::shared_lock lock(mutex_);                        // ② 共享锁（读）
   for (const auto& chunk : chunks_) {
-    DocumentChunk scored = chunk;                       //    ★ 拷一份再改分
+    DocumentChunk scored = chunk;                       //    拷一份再改分
     scored.score = ScoreChunk(scored, query_tokens);
     if (scored.score > 0.0) {                           // ③ 0 分直接丢
       ranked.push_back(std::move(scored));
