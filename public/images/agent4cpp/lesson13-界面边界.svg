@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 540" width="980" height="540" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="aL" markerWidth="11" markerHeight="11" refX="3" refY="3.5" orient="auto">
+      <path d="M10,0 L10,7 L0,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="540" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">界面层与内核层的边界</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">CLI 只是左边这一栏的一个实现 —— 换成 Qt 窗口，动的是整栏，右栏一行不改</text>
+
+  <!-- 左：界面层 -->
+  <rect x="50" y="92" width="360" height="330" rx="12" fill="#fff3e0" stroke="#f9a825" stroke-width="2.8"/>
+  <text x="230" y="122" text-anchor="middle" font-size="15" font-weight="bold" fill="#e65100">界面层（壳）</text>
+  <text x="230" y="144" text-anchor="middle" font-size="11.5" fill="#a1887f">随环境换掉 —— 终端、Qt、甚至 Web</text>
+
+  <rect x="74" y="166" width="312" height="44" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.6"/>
+  <text x="88" y="188" font-size="11.5" font-family="Consolas, monospace" fill="#37474f">输入　getline　/　QLineEdit</text>
+  <text x="88" y="204" font-size="10.5" fill="#a1887f">谁去拿用户那句话</text>
+
+  <rect x="74" y="218" width="312" height="44" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.6"/>
+  <text x="88" y="240" font-size="11.5" font-family="Consolas, monospace" fill="#37474f">输出　cout　/　QTextEdit</text>
+  <text x="88" y="256" font-size="10.5" fill="#a1887f">答复往哪儿贴</text>
+
+  <rect x="74" y="270" width="312" height="44" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.6"/>
+  <text x="88" y="292" font-size="11.5" font-family="Consolas, monospace" fill="#37474f">编码　GBK→UTF-8　/　UTF-16</text>
+  <text x="88" y="308" font-size="10.5" fill="#a1887f">控制台和 Qt 是两套</text>
+
+  <rect x="74" y="322" width="312" height="44" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.6"/>
+  <text x="88" y="344" font-size="11.5" font-family="Consolas, monospace" fill="#37474f">颜色　ANSI 转义　/　QSS</text>
+  <text x="88" y="360" font-size="10.5" fill="#a1887f">终端才认 ANSI</text>
+
+  <rect x="74" y="374" width="312" height="36" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.6"/>
+  <text x="88" y="397" font-size="11.5" font-family="Consolas, monospace" fill="#37474f">命令词　/help /clear /exit</text>
+
+  <!-- 右：内核层 -->
+  <rect x="570" y="92" width="360" height="330" rx="12" fill="#e3f2fd" stroke="#1565c0" stroke-width="2.8"/>
+  <text x="750" y="122" text-anchor="middle" font-size="15" font-weight="bold" fill="#0d47a1">内核层</text>
+  <text x="750" y="144" text-anchor="middle" font-size="11.5" fill="#64b5f6">永不动 —— 界面换几次都不关它的事</text>
+
+  <rect x="594" y="166" width="312" height="52" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="608" y="188" font-size="12" font-family="Consolas, monospace" fill="#0d47a1">Agent::Run(text)</text>
+  <text x="608" y="206" font-size="10.5" fill="#64b5f6">同步跑（命令行场景）</text>
+
+  <rect x="594" y="228" width="312" height="52" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="608" y="250" font-size="12" font-family="Consolas, monospace" fill="#0d47a1">Agent::RunAsync(text)</text>
+  <text x="608" y="268" font-size="10.5" fill="#64b5f6">异步跑（界面必须用这个）</text>
+
+  <rect x="594" y="290" width="312" height="52" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="608" y="312" font-size="12" font-family="Consolas, monospace" fill="#0d47a1">AgentResponse{status, content}</text>
+  <text x="608" y="330" font-size="10.5" fill="#64b5f6">纯数据，不含任何界面类型</text>
+
+  <rect x="594" y="352" width="312" height="52" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="608" y="374" font-size="12" font-family="Consolas, monospace" fill="#0d47a1">ToolRegistry</text>
+  <text x="608" y="392" font-size="10.5" fill="#64b5f6">工具登记处，界面不碰</text>
+
+  <!-- 中间边界 -->
+  <line x1="490" y1="92" x2="490" y2="422" stroke="#90a4ae" stroke-width="2.5" stroke-dasharray="8 6"/>
+  <text x="490" y="85" text-anchor="middle" font-size="12" font-weight="bold" fill="#546e7a">接口边界</text>
+
+  <!-- 跨界箭头 -->
+  <line x1="440" y1="238" x2="540" y2="238" stroke="#546e7a" stroke-width="2.5" marker-end="url(#aR)"/>
+  <line x1="540" y1="272" x2="440" y2="272" stroke="#546e7a" stroke-width="2.5" marker-end="url(#aL)"/>
+  <text x="490" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#37474f">std::string</text>
+  <text x="490" y="292" text-anchor="middle" font-size="11" font-weight="bold" fill="#37474f">AgentResponse</text>
+
+  <rect x="404" y="316" width="172" height="90" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+  <text x="490" y="340" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#37474f">边界上只交换</text>
+  <text x="490" y="360" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#37474f">这两个纯数据</text>
+  <text x="490" y="384" text-anchor="middle" font-size="10.5" fill="#78909c">不含 QWidget、不含</text>
+  <text x="490" y="398" text-anchor="middle" font-size="10.5" fill="#78909c">iostream、不含颜色码</text>
+
+  <!-- 底部注脚 -->
+  <rect x="50" y="446" width="880" height="54" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+  <text x="490" y="470" text-anchor="middle" font-size="13" font-weight="bold" fill="#37474f">左栏整个换掉 = 写一个新的壳　·　右栏一行不动</text>
+  <text x="490" y="490" text-anchor="middle" font-size="11.5" fill="#78909c">这就是为什么这个终端界面值得留着 —— 它是那道边界的参考实现</text>
+</svg>

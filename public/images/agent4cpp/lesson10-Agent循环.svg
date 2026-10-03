@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 640" width="940" height="640" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aG" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#388e3c"/>
+    </marker>
+    <marker id="aR" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="940" height="640" fill="#fafafa"/>
+
+  <text x="470" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">Agent 循环：整个项目的心脏</text>
+  <text x="470" y="56" text-anchor="middle" font-size="12.5" fill="#666">就这一个圈，转几圈由模型决定，不是代码写死的</text>
+
+  <!-- 起点 -->
+  <rect x="330" y="82" width="280" height="46" rx="9" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="470" y="111" text-anchor="middle" font-size="14" font-weight="bold" fill="#37474f">用户说："图像有点暗"</text>
+  <line x1="470" y1="128" x2="470" y2="158" stroke="#546e7a" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- 问模型 -->
+  <rect x="290" y="162" width="360" height="70" rx="9" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="470" y="188" text-anchor="middle" font-size="15" font-weight="bold" fill="#0d47a1">① 问模型</text>
+  <text x="470" y="208" text-anchor="middle" font-size="12" fill="#1565c0">把当前全部对话记录 + 全部工具清单发过去</text>
+  <text x="470" y="224" text-anchor="middle" font-size="11" fill="#64b5f6">（每圈都全量发，因为模型不记事儿）</text>
+  <line x1="470" y1="232" x2="470" y2="262" stroke="#546e7a" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- 判断 -->
+  <path d="M 470 266 L 620 316 L 470 366 L 320 316 Z" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="470" y="310" text-anchor="middle" font-size="14" font-weight="bold" fill="#e65100">② 它还要工具吗？</text>
+  <text x="470" y="330" text-anchor="middle" font-size="11" fill="#a1887f">看返回里有没有 tool_call</text>
+
+  <!-- 不要工具 → 结束 -->
+  <line x1="620" y1="316" x2="728" y2="316" stroke="#388e3c" stroke-width="2.5" marker-end="url(#aG)"/>
+  <text x="672" y="306" text-anchor="middle" font-size="12" font-weight="bold" fill="#388e3c">不要</text>
+  <rect x="732" y="286" width="180" height="62" rx="9" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="822" y="310" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#1b5e20">结束</text>
+  <text x="822" y="330" text-anchor="middle" font-size="11.5" fill="#2e7d32">它的答复就是最终答案</text>
+
+  <!-- 要工具 → 执行 -->
+  <line x1="470" y1="366" x2="470" y2="398" stroke="#546e7a" stroke-width="2" marker-end="url(#a)"/>
+  <text x="492" y="386" font-size="12" font-weight="bold" fill="#546e7a">要</text>
+  <rect x="290" y="402" width="360" height="66" rx="9" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="470" y="426" text-anchor="middle" font-size="15" font-weight="bold" fill="#1b5e20">③ 执行工具</text>
+  <text x="470" y="446" text-anchor="middle" font-size="12" fill="#2e7d32">registry-&gt;Call(工具名, 参数)</text>
+  <text x="470" y="462" text-anchor="middle" font-size="11" font-weight="bold" fill="#c62828">真正碰设备的是这一步</text>
+  <line x1="470" y1="468" x2="470" y2="500" stroke="#546e7a" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- 塞回去 -->
+  <rect x="290" y="504" width="360" height="62" rx="9" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="470" y="528" text-anchor="middle" font-size="15" font-weight="bold" fill="#e65100">④ 把结果塞回对话记录</text>
+  <text x="470" y="548" text-anchor="middle" font-size="11.5" fill="#8d6e63">失败也照样塞 —— 模型看到原因才能自己改</text>
+
+  <!-- 回到① -->
+  <path d="M 290 535 L 150 535 L 150 197 L 286 197" fill="none" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+  <text x="140" y="370" font-size="12.5" font-weight="bold" fill="#546e7a" transform="rotate(-90 140 370)" text-anchor="middle">回到 ① 再问一次</text>
+
+  <!-- 兜底 -->
+  <rect x="40" y="586" width="860" height="42" rx="9" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="60" y="613" font-size="13" font-weight="bold" fill="#b71c1c">兜底：转满 max_steps（默认 8 圈）还没结束 → 报错返回，防止模型反复调工具卡死</text>
+</svg>

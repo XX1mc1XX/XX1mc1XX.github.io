@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 620" width="940" height="620" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="940" height="620" fill="#fafafa"/>
+
+  <text x="470" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">Call 执行一个工具：锁只持有开头一小段</text>
+  <text x="470" y="56" text-anchor="middle" font-size="12.5" fill="#666">这是面试 Q3「为什么先拷贝、释放锁、再执行」的答案</text>
+
+  <!-- ===== 正确做法 ===== -->
+  <rect x="30" y="76" width="880" height="250" rx="10" fill="#f1f8e9" stroke="#7cb342" stroke-width="2"/>
+  <text x="50" y="100" font-size="15" font-weight="bold" fill="#33691e">✓ 本项目的做法</text>
+
+  <!-- 时间轴 -->
+  <line x1="70" y1="200" x2="880" y2="200" stroke="#90a4ae" stroke-width="2" marker-end="url(#a)"/>
+  <text x="884" y="204" font-size="11" fill="#90a4ae">时间</text>
+
+  <!-- 持锁段 -->
+  <rect x="70" y="130" width="200" height="54" rx="7" fill="#ffe0b2" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="170" y="152" text-anchor="middle" font-size="13" font-weight="bold" fill="#e65100">① 加锁</text>
+  <text x="170" y="172" text-anchor="middle" font-size="12" fill="#8d6e63">② 找工具 ③ 拷贝一份</text>
+
+  <!-- 释放点 -->
+  <line x1="270" y1="120" x2="270" y2="215" stroke="#f9a825" stroke-width="3" stroke-dasharray="6 4"/>
+  <text x="278" y="240" font-size="12" font-weight="bold" fill="#e65100">④ 释放锁</text>
+
+  <!-- 无锁段 -->
+  <rect x="290" y="130" width="580" height="54" rx="7" fill="#c8e6c9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="580" y="152" text-anchor="middle" font-size="13" font-weight="bold" fill="#1b5e20">⑤ 检查参数　⑥ 执行用户代码　⑦ 造回执</text>
+  <text x="580" y="172" text-anchor="middle" font-size="12" fill="#2e7d32">全程不持锁 —— 别人该干嘛干嘛</text>
+
+  <!-- 时长标注 -->
+  <text x="170" y="118" text-anchor="middle" font-size="11.5" fill="#e65100">微秒级</text>
+  <text x="580" y="118" text-anchor="middle" font-size="11.5" fill="#2e7d32">可能几百毫秒（调设备、发网络请求）</text>
+
+  <!-- 下方：其他线程 -->
+  <text x="70" y="272" font-size="13" font-weight="bold" fill="#33691e">这段时间里，其他线程在做什么：</text>
+  <rect x="70" y="282" width="200" height="34" rx="6" fill="#ffcdd2" stroke="#e57373" stroke-width="1.5"/>
+  <text x="170" y="304" text-anchor="middle" font-size="12" fill="#b71c1c">被挡住（等锁）</text>
+  <rect x="290" y="282" width="580" height="34" rx="6" fill="#dcedc8" stroke="#aed581" stroke-width="1.5"/>
+  <text x="580" y="304" text-anchor="middle" font-size="12" fill="#33691e">畅通 —— 可以 ListTools、Find、甚至再 Call 别的工具</text>
+
+  <!-- ===== 错误做法 ===== -->
+  <rect x="30" y="344" width="880" height="240" rx="10" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="50" y="368" font-size="15" font-weight="bold" fill="#b71c1c">✗ 如果持着锁执行用户代码</text>
+
+  <line x1="70" y1="468" x2="880" y2="468" stroke="#90a4ae" stroke-width="2" marker-end="url(#a)"/>
+  <text x="884" y="472" font-size="11" fill="#90a4ae">时间</text>
+
+  <rect x="70" y="398" width="800" height="54" rx="7" fill="#ffcdd2" stroke="#e53935" stroke-width="2.5"/>
+  <text x="470" y="420" text-anchor="middle" font-size="13" font-weight="bold" fill="#b71c1c">全程持锁：加锁 → 找工具 → 检查参数 → 执行用户代码 → 造回执 → 释放</text>
+  <text x="470" y="440" text-anchor="middle" font-size="12" fill="#c62828">别人要等几百毫秒</text>
+
+  <text x="70" y="500" font-size="13" font-weight="bold" fill="#b71c1c">两个后果：</text>
+  <text x="90" y="522" font-size="12.5" fill="#c62828">① 阻塞 —— 整个 Agent 卡住，其他线程全在等锁</text>
+  <text x="90" y="544" font-size="12.5" fill="#c62828">② 死锁 —— 用户代码里如果又调 registry.Call(...)，同一把锁重入不了，永久卡死</text>
+
+  <line x1="470" y1="558" x2="470" y2="576" stroke="#c62828" stroke-width="0" marker-end="url(#aR)"/>
+  <text x="90" y="570" font-size="12.5" font-weight="bold" fill="#b71c1c">所以：拷一份出来（微秒级），释放锁，再在锁外执行。</text>
+</svg>

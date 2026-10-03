@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 640" width="940" height="640" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="ok" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#388e3c"/>
+    </marker>
+    <marker id="back" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#f9a825"/>
+    </marker>
+  </defs>
+
+  <rect width="940" height="640" fill="#fafafa"/>
+
+  <text x="470" y="32" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">status 和 status_code 是两件事</text>
+  <text x="470" y="54" text-anchor="middle" font-size="12.5" fill="#666">搞混这两个，排查问题时就会找错方向</text>
+
+  <!-- 情况 A -->
+  <rect x="40" y="76" width="860" height="190" rx="10" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="60" y="102" font-size="15" font-weight="bold" fill="#b71c1c">情况 A：信根本没寄到</text>
+
+  <rect x="90" y="124" width="180" height="52" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="180" y="155" text-anchor="middle" font-size="13" fill="#37474f">你的程序</text>
+
+  <line x1="274" y1="150" x2="400" y2="150" stroke="#c62828" stroke-width="3" stroke-dasharray="8 5"/>
+  <text x="337" y="142" text-anchor="middle" font-size="18" font-weight="bold" fill="#c62828">✗</text>
+
+  <rect x="404" y="124" width="180" height="52" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="494" y="155" text-anchor="middle" font-size="13" fill="#37474f">模型服务</text>
+
+  <text x="610" y="140" font-size="12.5" fill="#c62828">原因：DNS 解析不了 / 网络断了 /</text>
+  <text x="610" y="160" font-size="12.5" fill="#c62828">证书不对 / 超时</text>
+
+  <text x="90" y="206" font-size="13" font-weight="bold" fill="#b71c1c">结果：</text>
+  <text x="150" y="206" font-size="12.5" font-family="Consolas, monospace" fill="#c62828">status      = UNAVAILABLE: Could not resolve hostname</text>
+  <text x="150" y="230" font-size="12.5" font-family="Consolas, monospace" fill="#c62828">status_code = 0      ← 压根没拿到回信</text>
+
+  <!-- 情况 B -->
+  <rect x="40" y="286" width="860" height="228" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2"/>
+  <text x="60" y="312" font-size="15" font-weight="bold" fill="#e65100">情况 B：信寄到了，对方明确拒收</text>
+
+  <rect x="90" y="334" width="180" height="52" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="180" y="365" text-anchor="middle" font-size="13" fill="#1b5e20">你的程序</text>
+
+  <line x1="274" y1="358" x2="400" y2="358" stroke="#388e3c" stroke-width="2.5" marker-end="url(#ok)"/>
+  <text x="337" y="350" text-anchor="middle" font-size="11.5" fill="#388e3c">寄出去</text>
+
+  <rect x="404" y="334" width="180" height="52" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="494" y="365" text-anchor="middle" font-size="13" fill="#37474f">模型服务</text>
+
+  <path d="M 494 390 L 494 416 L 180 416 L 180 390" fill="none" stroke="#f9a825" stroke-width="2.5" marker-end="url(#back)"/>
+  <text x="337" y="434" text-anchor="middle" font-size="11.5" fill="#e65100">回信：401 Unauthorized（Key 不对）</text>
+
+  <text x="610" y="352" font-size="12.5" fill="#e65100">原因：API Key 不对 / 限流 /</text>
+  <text x="610" y="372" font-size="12.5" fill="#e65100">余额不足 / 模型名写错</text>
+
+  <text x="90" y="466" font-size="13" font-weight="bold" fill="#e65100">结果：</text>
+  <text x="150" y="466" font-size="12.5" font-family="Consolas, monospace" fill="#c62828">status      = UNAVAILABLE: HTTP request failed</text>
+  <text x="150" y="490" font-size="12.5" font-family="Consolas, monospace" fill="#c62828">status_code = 401    ← 回信拿到了，对方明确拒绝</text>
+
+  <!-- 对照表 -->
+  <rect x="40" y="534" width="860" height="86" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="60" y="560" font-size="13.5" font-weight="bold" fill="#0d47a1">排查时怎么用这两个字段：</text>
+  <text x="60" y="584" font-size="12.5" fill="#1565c0">status_code == 0　　→　问题在网络或证书，跟模型服务无关。查 DNS、代理、防火墙</text>
+  <text x="60" y="606" font-size="12.5" fill="#1565c0">status_code 是 4xx/5xx　→　网络是通的，问题在请求本身或对方服务。看 body 里的错误详情</text>
+</svg>

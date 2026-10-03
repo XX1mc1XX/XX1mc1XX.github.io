@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 560" width="980" height="560" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="12" markerHeight="12" refX="10" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L11,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aO" markerWidth="12" markerHeight="12" refX="10" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L11,3.5 z" fill="#f9a825"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="560" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">设备函数怎么变成模型能调的</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">中间那三个动作是唯一的桥 —— 缺一个，模型就用不了你的函数</text>
+
+  <!-- 左：你的设备代码 -->
+  <rect x="40" y="92" width="250" height="330" rx="12" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="165" y="122" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#37474f">你的设备代码</text>
+  <text x="165" y="144" text-anchor="middle" font-size="11.5" fill="#78909c">已经写好了，不动它</text>
+
+  <rect x="62" y="164" width="206" height="66" rx="7" fill="#ffffff" stroke="#b0bec5" stroke-width="1.8"/>
+  <text x="76" y="188" font-size="12" font-family="Consolas, monospace" fill="#37474f">double setExposure(</text>
+  <text x="76" y="206" font-size="12" font-family="Consolas, monospace" fill="#37474f">    double us);</text>
+  <text x="76" y="224" font-size="11" fill="#90a4ae">返回值：裸数字</text>
+
+  <text x="165" y="262" text-anchor="middle" font-size="12" fill="#78909c">调用现场长这样</text>
+  <rect x="62" y="274" width="206" height="42" rx="6" fill="#ffffff" stroke="#b0bec5" stroke-width="1.5"/>
+  <text x="76" y="300" font-size="11.5" font-family="Consolas, monospace" fill="#546e7a">camera.setExposure(8000);</text>
+
+  <rect x="62" y="344" width="206" height="58" rx="7" fill="#ffebee" stroke="#e53935" stroke-width="1.6"/>
+  <text x="76" y="366" font-size="11.5" font-weight="bold" fill="#b71c1c">模型完全看不见它</text>
+  <text x="76" y="386" font-size="11" fill="#c62828">C++ 签名对模型毫无意义</text>
+
+  <!-- 中间：三个动作 -->
+  <rect x="322" y="92" width="336" height="330" rx="12" fill="#fff8e1" stroke="#f9a825" stroke-width="3"/>
+  <text x="490" y="122" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#e65100">要补的三个动作</text>
+  <text x="490" y="144" text-anchor="middle" font-size="11.5" fill="#8d6e63">三个缺一不可 —— 我只做第二个的时候，模型压根挑不中这个工具</text>
+
+  <rect x="346" y="166" width="288" height="70" rx="8" fill="#ffffff" stroke="#f9a825" stroke-width="2"/>
+  <text x="362" y="190" font-size="13" font-weight="bold" fill="#e65100">① 写 description</text>
+  <text x="362" y="211" font-size="11.5" fill="#8d6e63">一句人话：这工具干什么、单位是什么、</text>
+  <text x="362" y="228" font-size="11.5" fill="#8d6e63">范围多少、什么时候该用</text>
+
+  <rect x="346" y="248" width="288" height="70" rx="8" fill="#ffffff" stroke="#f9a825" stroke-width="2"/>
+  <text x="362" y="272" font-size="13" font-weight="bold" fill="#e65100">② 生成 JSON Schema</text>
+  <text x="362" y="293" font-size="11.5" fill="#8d6e63">参数名、类型、必填性 —— 由宏自动生成，</text>
+  <text x="362" y="310" font-size="11.5" fill="#8d6e63">手写量是零</text>
+
+  <rect x="346" y="330" width="288" height="72" rx="8" fill="#ffffff" stroke="#f9a825" stroke-width="2"/>
+  <text x="362" y="354" font-size="13" font-weight="bold" fill="#e65100">③ 包一层边界与回执</text>
+  <text x="362" y="375" font-size="11.5" fill="#8d6e63">参数越界要拦住、设备连不上要回一句</text>
+  <text x="362" y="392" font-size="11.5" fill="#8d6e63">话，而不是抛异常</text>
+
+  <!-- 右：模型看到的 -->
+  <rect x="700" y="92" width="240" height="330" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="820" y="122" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1b5e20">模型这一侧看到的</text>
+  <text x="820" y="144" text-anchor="middle" font-size="11.5" fill="#66bb6a">只有名字、说明、参数</text>
+
+  <rect x="720" y="164" width="200" height="88" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="734" y="188" font-size="12" font-family="Consolas, monospace" fill="#1b5e20">name: set_exposure</text>
+  <text x="734" y="210" font-size="11" fill="#2e7d32">description:</text>
+  <text x="734" y="227" font-size="11" fill="#2e7d32">  设置相机曝光时间…</text>
+  <text x="734" y="244" font-size="11" fill="#2e7d32">  exposure_us: number</text>
+
+  <text x="820" y="278" text-anchor="middle" font-size="12" fill="#66bb6a">↓ 模型据此决定调它</text>
+
+  <rect x="720" y="292" width="200" height="72" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="734" y="314" font-size="11" font-family="Consolas, monospace" fill="#37474f">{"name":"set_exposure",</text>
+  <text x="734" y="332" font-size="11" font-family="Consolas, monospace" fill="#37474f"> "arguments":</text>
+  <text x="734" y="350" font-size="11" font-family="Consolas, monospace" fill="#37474f">   "{\"exposure_us\":8000}"}</text>
+
+  <rect x="720" y="376" width="200" height="30" rx="6" fill="#c8e6c9" stroke="#388e3c" stroke-width="1.5"/>
+  <text x="820" y="396" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1b5e20">文本而已，不能执行代码</text>
+
+  <!-- 箭头 -->
+  <line x1="292" y1="256" x2="318" y2="256" stroke="#f9a825" stroke-width="3.5" marker-end="url(#aO)"/>
+  <line x1="660" y1="256" x2="696" y2="256" stroke="#f9a825" stroke-width="3.5" marker-end="url(#aO)"/>
+
+  <text x="490" y="462" text-anchor="middle" font-size="12.5" fill="#546e7a">左边是你本来有的，右边是模型需要的 —— 中间这三个动作就是「接入」的全部内容</text>
+  <text x="490" y="492" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#c62828">设备函数一行没改。改的全是「怎么向模型描述它」</text>
+
+  <rect x="200" y="512" width="580" height="34" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.8"/>
+  <text x="490" y="534" text-anchor="middle" font-size="12" fill="#0d47a1">这也是为什么新增一项能力只要「声明函数 + 一行注册」</text>
+</svg>

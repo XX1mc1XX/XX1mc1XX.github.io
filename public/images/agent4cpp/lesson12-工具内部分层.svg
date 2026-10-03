@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 600" width="980" height="600" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="600" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">真设备和 mock 的差别，全在工具函数里面</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">外壳一个字不变，换掉的只是里面那一段</text>
+
+  <!-- 外壳 -->
+  <rect x="40" y="82" width="900" height="470" rx="14" fill="none" stroke="#37474f" stroke-width="3.5"/>
+  <rect x="40" y="82" width="340" height="30" rx="10" fill="#37474f"/>
+  <text x="56" y="103" font-size="13" font-weight="bold" fill="#ffffff">工具对外接口：名字 / 参数 / 返回结构 —— 三层都不变</text>
+
+  <!-- 上半：Mock -->
+  <rect x="70" y="132" width="840" height="180" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.2"/>
+  <text x="90" y="160" font-size="14.5" font-weight="bold" fill="#0d47a1">Mock 实现</text>
+  <text x="90" y="180" font-size="11.5" fill="#1565c0">没有相机也能跑，用来写测试</text>
+
+  <rect x="90" y="196" width="380" height="96" rx="8" fill="#ffffff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="106" y="222" font-size="12" font-family="Consolas, monospace" fill="#0d47a1">ToolResult SetExposure(double us) {</text>
+  <text x="106" y="244" font-size="12" font-family="Consolas, monospace" fill="#0d47a1">  exposure_us_ = us;   // 就这么一行</text>
+  <text x="106" y="266" font-size="12" font-family="Consolas, monospace" fill="#0d47a1">  return OkResult("曝光已更新");</text>
+  <text x="106" y="284" font-size="12" font-family="Consolas, monospace" fill="#0d47a1">}</text>
+
+  <rect x="510" y="196" width="380" height="96" rx="8" fill="#ffffff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="526" y="222" font-size="12" font-weight="bold" fill="#1565c0">没有失败分支</text>
+  <text x="526" y="246" font-size="11.5" fill="#1976d2">Mock 不会断连、不会超时、不会越界，</text>
+  <text x="526" y="266" font-size="11.5" fill="#1976d2">所以这一层永远返回 Ok。</text>
+  <text x="526" y="286" font-size="11.5" font-weight="bold" fill="#c62828">测试全绿 ≠ 真机没问题</text>
+
+  <!-- 下半：真实设备 -->
+  <rect x="70" y="334" width="840" height="196" rx="10" fill="#fff3e0" stroke="#f9a825" stroke-width="2.2"/>
+  <text x="90" y="362" font-size="14.5" font-weight="bold" fill="#e65100">真实设备实现</text>
+  <text x="90" y="382" font-size="11.5" fill="#8d6e63">同一层，但每一句都要考虑「万一不成」</text>
+
+  <rect x="90" y="400" width="150" height="52" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="165" y="422" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">句柄检查</text>
+  <text x="165" y="440" text-anchor="middle" font-size="10.5" fill="#a1887f">设备开了没</text>
+  <line x1="240" y1="426" x2="266" y2="426" stroke="#546e7a" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="270" y="400" width="150" height="52" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="345" y="422" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">调 SDK</text>
+  <text x="345" y="440" text-anchor="middle" font-size="10.5" fill="#a1887f">真正碰硬件</text>
+  <line x1="420" y1="426" x2="446" y2="426" stroke="#546e7a" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="450" y="400" width="150" height="52" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="525" y="422" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">判断返回</text>
+  <text x="525" y="440" text-anchor="middle" font-size="10.5" fill="#a1887f">超时 / 断连 / 越界</text>
+  <line x1="600" y1="426" x2="626" y2="426" stroke="#546e7a" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="630" y="400" width="160" height="52" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="710" y="422" text-anchor="middle" font-size="12" font-weight="bold" fill="#e65100">构造 Status</text>
+  <text x="710" y="440" text-anchor="middle" font-size="10.5" fill="#a1887f">成功也给说明</text>
+
+  <!-- 失败分支 -->
+  <line x1="525" y1="452" x2="525" y2="472" stroke="#c62828" stroke-width="2" marker-end="url(#aR)"/>
+  <rect x="230" y="476" width="560" height="42" rx="7" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="246" y="502" font-size="12" font-family="Consolas, monospace" fill="#b71c1c">ErrorToolResult(Unavailable("camera disconnected"))</text>
+
+  <!-- 关键对比 -->
+  <rect x="810" y="400" width="86" height="118" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+  <text x="853" y="428" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#37474f">差别</text>
+  <text x="853" y="452" text-anchor="middle" font-size="11" fill="#546e7a">只在</text>
+  <text x="853" y="472" text-anchor="middle" font-size="11" fill="#546e7a">函数</text>
+  <text x="853" y="492" text-anchor="middle" font-size="11" fill="#546e7a">里面</text>
+
+  <text x="490" y="580" text-anchor="middle" font-size="12.5" fill="#546e7a">所以开发期能全程用 Mock 跑通链路，上线换真实实现时，上层调用与工具注册零改动</text>
+</svg>

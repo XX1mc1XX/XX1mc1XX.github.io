@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 520" width="980" height="520" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <rect width="980" height="520" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">耗时一样，差别只在主线程有没有被占住</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">两条泳道总长度完全相同 —— 都是模型思考的那 16 秒</text>
+
+  <!-- 时间轴刻度 -->
+  <g font-family="Consolas, monospace" font-size="11" fill="#90a4ae">
+    <text x="130" y="92" text-anchor="middle">0s</text>
+    <text x="330" y="92" text-anchor="middle">4s</text>
+    <text x="530" y="92" text-anchor="middle">8s</text>
+    <text x="730" y="92" text-anchor="middle">12s</text>
+    <text x="930" y="92" text-anchor="middle">16s</text>
+  </g>
+
+  <!-- ============ 上泳道：同步 Run ============ -->
+  <text x="50" y="126" font-size="14.5" font-weight="bold" fill="#b71c1c">同步 Run</text>
+  <text x="50" y="146" font-size="11.5" fill="#c62828">主线程从头等到尾</text>
+
+  <rect x="50" y="158" width="880" height="106" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+
+  <rect x="70" y="182" width="86" height="40" rx="6" fill="#ffffff" stroke="#e53935" stroke-width="1.8"/>
+  <text x="113" y="207" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#b71c1c">用户回车</text>
+
+  <!-- 红色实心长条 -->
+  <rect x="170" y="180" width="740" height="44" rx="6" fill="#ef5350" stroke="#c62828" stroke-width="2"/>
+  <g opacity="0.30">
+    <line x1="190" y1="180" x2="210" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="240" y1="180" x2="260" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="290" y1="180" x2="310" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="340" y1="180" x2="360" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="390" y1="180" x2="410" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="440" y1="180" x2="460" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="490" y1="180" x2="510" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="540" y1="180" x2="560" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="590" y1="180" x2="610" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="640" y1="180" x2="660" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="690" y1="180" x2="710" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="740" y1="180" x2="760" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="790" y1="180" x2="810" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="840" y1="180" x2="860" y2="224" stroke="#ffffff" stroke-width="7"/>
+    <line x1="890" y1="180" x2="910" y2="224" stroke="#ffffff" stroke-width="7"/>
+  </g>
+  <text x="540" y="208" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">主线程卡在 agent-&gt;Run() 里出不来</text>
+
+  <rect x="918" y="180" width="0" height="0"/>
+  <text x="500" y="250" text-anchor="middle" font-size="11.5" fill="#c62828">这 16 秒里：窗口不重绘 · 按钮点了没反应 · 标题栏挂着「未响应」</text>
+
+  <!-- ============ 下泳道：异步 RunAsync ============ -->
+  <text x="50" y="316" font-size="14.5" font-weight="bold" fill="#1b5e20">异步 RunAsync</text>
+  <text x="50" y="336" font-size="11.5" fill="#2e7d32">主线程全程空闲，只是隔一会儿问一句「好了没」</text>
+
+  <rect x="50" y="348" width="880" height="106" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+
+  <rect x="70" y="372" width="86" height="40" rx="6" fill="#ffffff" stroke="#388e3c" stroke-width="1.8"/>
+  <text x="113" y="397" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1b5e20">用户回车</text>
+
+  <rect x="170" y="370" width="150" height="44" rx="6" fill="#66bb6a" stroke="#388e3c" stroke-width="2"/>
+  <text x="245" y="390" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#ffffff">RunAsync 立刻返回</text>
+  <text x="245" y="406" text-anchor="middle" font-size="11" fill="#ffffff">拿到一个 future</text>
+
+  <rect x="330" y="370" width="126" height="44" rx="6" fill="#ffffff" stroke="#388e3c" stroke-width="1.8"/>
+  <text x="393" y="397" text-anchor="middle" font-size="11.5" fill="#1b5e20">界面贴「思考中…」</text>
+
+  <!-- tick 小绿点 -->
+  <g fill="#66bb6a">
+    <circle cx="486" cy="392" r="6"/>
+    <circle cx="536" cy="392" r="6"/>
+    <circle cx="586" cy="392" r="6"/>
+    <circle cx="636" cy="392" r="6"/>
+    <circle cx="686" cy="392" r="6"/>
+    <circle cx="736" cy="392" r="6"/>
+    <circle cx="786" cy="392" r="6"/>
+  </g>
+  <text x="630" y="370" text-anchor="middle" font-size="11" fill="#66bb6a">每 100ms 的定时器：wait_for(0ms) 没好 → 回主循环，下次再问</text>
+
+  <rect x="822" y="370" width="114" height="44" rx="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="2"/>
+  <text x="879" y="389" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#ffffff">future ready</text>
+  <text x="879" y="405" text-anchor="middle" font-size="9.5" fill="#c8e6c9">get() 取回，贴进面板</text>
+
+  <text x="500" y="440" text-anchor="middle" font-size="11.5" fill="#2e7d32">同一段时间里：窗口能拖能缩放 · 取消按钮可点 · 标题栏不闪</text>
+
+  <!-- 对齐线 -->
+  <line x1="930" y1="158" x2="930" y2="454" stroke="#546e7a" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="958" y="306" font-size="11" font-weight="bold" fill="#37474f" transform="rotate(90 958 306)" text-anchor="middle">总耗时相同</text>
+
+  <text x="490" y="496" text-anchor="middle" font-size="12.5" fill="#546e7a">换异步不减少等待时间 —— 它只是把「等待」从主线程挪走，让界面还能喘气</text>
+</svg>

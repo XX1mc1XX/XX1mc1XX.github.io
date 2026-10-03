@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 700" width="940" height="700" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="dn" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+  </defs>
+
+  <rect width="940" height="700" fill="#fafafa"/>
+
+  <text x="470" y="32" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">一次真实的往返（下面是实测数据）</text>
+  <text x="470" y="54" text-anchor="middle" font-size="12.5" fill="#666">C++ 结构 → JSON → 网络 → JSON → C++ 结构</text>
+
+  <!-- 出：C++ -->
+  <rect x="150" y="76" width="640" height="86" rx="10" fill="#e8eaf6" stroke="#5c6bc0" stroke-width="2.5"/>
+  <text x="470" y="100" text-anchor="middle" font-size="15" font-weight="bold" fill="#283593">你程序里的 ChatRequest</text>
+  <text x="180" y="124" font-size="12.5" fill="#3949ab">messages: 2 条　（system 提示 + user 说"the image looks a bit dark"）</text>
+  <text x="180" y="148" font-size="12.5" fill="#3949ab">tools: 2 个　（get_camera_status + set_exposure）</text>
+
+  <line x1="470" y1="166" x2="470" y2="192" stroke="#546e7a" stroke-width="2" marker-end="url(#dn)"/>
+  <text x="484" y="184" font-size="12" fill="#546e7a">BuildChatRequestBody()</text>
+
+  <!-- JSON 请求 -->
+  <rect x="90" y="196" width="760" height="76" rx="8" fill="#fffbeb" stroke="#f9a825" stroke-width="2"/>
+  <text x="470" y="218" text-anchor="middle" font-size="13" font-weight="bold" fill="#e65100">发出去的 JSON（约 3 KB）</text>
+  <text x="110" y="242" font-size="11.5" font-family="Consolas, monospace" fill="#8d6e63">{"model":"deepseek-v4-flash", "messages":[{...},{...}],</text>
+  <text x="110" y="260" font-size="11.5" font-family="Consolas, monospace" fill="#8d6e63"> "tools":[{...},{...}], "tool_choice":"auto", "temperature":0.2}</text>
+
+  <line x1="470" y1="276" x2="470" y2="302" stroke="#546e7a" stroke-width="2" marker-end="url(#dn)"/>
+  <text x="484" y="294" font-size="12" fill="#546e7a">HTTP POST　+　Authorization　+　x-opencode-session</text>
+
+  <!-- 网关 -->
+  <rect x="200" y="306" width="540" height="64" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="470" y="330" text-anchor="middle" font-size="14" font-weight="bold" fill="#37474f">opencode.ai/zen/go/v1</text>
+  <text x="470" y="352" text-anchor="middle" font-size="12" fill="#546e7a">网关转发　→　deepseek-v4-flash</text>
+  <text x="760" y="340" font-size="11.5" font-weight="bold" fill="#c62828">★ 要求带 x-opencode-session 头</text>
+  <text x="760" y="358" font-size="11" fill="#c62828">（面试素材 C）</text>
+
+  <line x1="470" y1="374" x2="470" y2="400" stroke="#546e7a" stroke-width="2" marker-end="url(#dn)"/>
+  <text x="484" y="392" font-size="12" fill="#546e7a">返回 JSON</text>
+
+  <!-- JSON 响应 -->
+  <rect x="60" y="404" width="820" height="112" rx="8" fill="#fffbeb" stroke="#f9a825" stroke-width="2"/>
+  <text x="470" y="426" text-anchor="middle" font-size="13" font-weight="bold" fill="#e65100">返回的 JSON（实测内容）</text>
+  <text x="80" y="450" font-size="11.5" font-family="Consolas, monospace" fill="#8d6e63">{"choices":[{"message":{</text>
+  <text x="80" y="468" font-size="11.5" font-family="Consolas, monospace" fill="#1565c0">  "content":"I'll check the current camera status to see the exposure settings.",</text>
+  <text x="80" y="486" font-size="11.5" font-family="Consolas, monospace" fill="#c62828">  "reasoning_content":"The user says the image looks a bit dark. I should check...",</text>
+  <text x="80" y="504" font-size="11.5" font-family="Consolas, monospace" fill="#1b5e20">  "tool_calls":[{"id":"call_3d57459d50f24d2cbbb4dfb8", "type":"function",</text>
+
+  <line x1="470" y1="520" x2="470" y2="546" stroke="#546e7a" stroke-width="2" marker-end="url(#dn)"/>
+  <text x="484" y="538" font-size="12" fill="#546e7a">ParseChatResponse()</text>
+
+  <!-- 入：C++ -->
+  <rect x="150" y="550" width="640" height="130" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="470" y="574" text-anchor="middle" font-size="15" font-weight="bold" fill="#1b5e20">拆出来的 ChatResponse</text>
+  <text x="180" y="598" font-size="12.5" fill="#2e7d32">status　　　　　　 = OK</text>
+  <text x="180" y="618" font-size="12.5" fill="#2e7d32">content　　　　　　= "I'll check the current camera status..."</text>
+  <text x="180" y="638" font-size="12.5" fill="#2e7d32">reasoning_content　= "The user says the image looks a bit dark..."</text>
+  <text x="180" y="660" font-size="12.5" font-weight="bold" fill="#1b5e20">tool_call　　　　　= get_camera_status　args={}　← 循环要继续的信号</text>
+
+  <text x="470" y="694" text-anchor="middle" font-size="11.5" fill="#90a4ae">以上是 lab_openai.exe 用真实服务跑出来的实际结果</text>
+</svg>

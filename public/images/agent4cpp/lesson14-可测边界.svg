@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" width="1000" height="560" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#90a4ae"/>
+    </marker>
+    <marker id="aG" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#388e3c"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="560" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">不确定性只在模型那一格</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">把这一格换掉，整条链路就全都能测了</text>
+
+  <!-- 链路 -->
+  <g font-size="11.5">
+    <!-- 1 用户输入 -->
+    <rect x="26" y="112" width="112" height="66" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+    <text x="82" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">用户输入</text>
+    <text x="82" y="160" text-anchor="middle" font-size="10.5" fill="#78909c">"画面有点暗"</text>
+    <line x1="138" y1="145" x2="162" y2="145" stroke="#90a4ae" stroke-width="2" marker-end="url(#a)"/>
+    <text x="150" y="134" text-anchor="middle" font-size="10" fill="#90a4ae">驱动</text>
+
+    <!-- 2 Agent::Run -->
+    <rect x="166" y="112" width="112" height="66" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+    <text x="222" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">Agent::Run</text>
+    <text x="222" y="160" text-anchor="middle" font-size="10.5" fill="#78909c">跑那个循环</text>
+    <line x1="278" y1="145" x2="302" y2="145" stroke="#90a4ae" stroke-width="2" marker-end="url(#a)"/>
+    <text x="290" y="134" text-anchor="middle" font-size="10" fill="#90a4ae">请求</text>
+
+    <!-- 3 模型客户端（红） -->
+    <rect x="306" y="106" width="140" height="78" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="3"/>
+    <text x="376" y="134" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#b71c1c">ILLMClient::Chat</text>
+    <text x="376" y="156" text-anchor="middle" font-size="10.5" fill="#c62828">发出去，等它回</text>
+    <text x="376" y="174" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#c62828">回什么内容？不知道</text>
+    <line x1="446" y1="145" x2="470" y2="145" stroke="#90a4ae" stroke-width="2" marker-end="url(#a)"/>
+    <text x="458" y="200" text-anchor="middle" font-size="10" fill="#90a4ae">tool_call</text>
+
+    <!-- 4 ToolRegistry -->
+    <rect x="474" y="112" width="112" height="66" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+    <text x="530" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">ToolRegistry</text>
+    <text x="530" y="160" text-anchor="middle" font-size="10.5" fill="#78909c">按名字找工具</text>
+    <line x1="586" y1="145" x2="610" y2="145" stroke="#90a4ae" stroke-width="2" marker-end="url(#a)"/>
+    <text x="598" y="134" text-anchor="middle" font-size="10" fill="#90a4ae">执行</text>
+
+    <!-- 5 设备 -->
+    <rect x="614" y="112" width="112" height="66" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+    <text x="670" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">C++ 工具</text>
+    <text x="670" y="160" text-anchor="middle" font-size="10.5" fill="#78909c">碰设备/算数据</text>
+    <line x1="726" y1="145" x2="750" y2="145" stroke="#90a4ae" stroke-width="2" marker-end="url(#a)"/>
+    <text x="738" y="134" text-anchor="middle" font-size="10" fill="#90a4ae">回灌</text>
+
+    <!-- 6 ToolResult -->
+    <rect x="754" y="112" width="112" height="66" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+    <text x="810" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">ToolResult</text>
+    <text x="810" y="160" text-anchor="middle" font-size="10.5" fill="#78909c">status/payload</text>
+    <line x1="866" y1="145" x2="890" y2="145" stroke="#90a4ae" stroke-width="2" marker-end="url(#a)"/>
+    <text x="878" y="134" text-anchor="middle" font-size="10" fill="#90a4ae">收敛</text>
+
+    <!-- 7 答复 -->
+    <rect x="894" y="112" width="80" height="66" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+    <text x="934" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">最终答复</text>
+    <text x="934" y="160" text-anchor="middle" font-size="10.5" fill="#78909c">给用户</text>
+  </g>
+
+  <!-- 罩住第 3 格 -->
+  <ellipse cx="376" cy="145" rx="92" ry="66" fill="none" stroke="#e53935" stroke-width="2.2" stroke-dasharray="9 6"/>
+  <text x="376" y="72" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#c62828">唯一不确定的一格</text>
+
+  <!-- 下行到 Mock -->
+  <line x1="376" y1="212" x2="376" y2="266" stroke="#388e3c" stroke-width="2.5" marker-end="url(#aG)"/>
+  <text x="390" y="244" font-size="11.5" fill="#2e7d32">换成它 ↓</text>
+
+  <rect x="216" y="270" width="320" height="96" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="3"/>
+  <text x="376" y="298" text-anchor="middle" font-size="14" font-weight="bold" fill="#1b5e20">MockLLMClient</text>
+  <text x="376" y="322" text-anchor="middle" font-size="12" fill="#2e7d32">按预设的台词返回，完全确定</text>
+  <text x="376" y="344" text-anchor="middle" font-size="11.5" fill="#66bb6a">想让它先要工具就写「先要工具」</text>
+  <text x="376" y="360" text-anchor="middle" font-size="11.5" fill="#66bb6a">想测兜底就写「一直要工具」</text>
+
+  <text x="700" y="300" font-size="12.5" font-weight="bold" fill="#37474f">换成 Mock 之后</text>
+  <text x="700" y="324" font-size="12" fill="#546e7a">整条链路每一格都确定了，</text>
+  <text x="700" y="344" font-size="12" fill="#546e7a">每一格都能写断言。</text>
+  <text x="700" y="370" font-size="12" font-weight="bold" fill="#1b5e20">而且不联网、不要 Key、不花钱。</text>
+
+  <!-- 底部 -->
+  <rect x="60" y="410" width="880" height="106" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="80" y="438" font-size="14" font-weight="bold" fill="#0d47a1">能测的到底有哪些（不依赖网络、不花钱）</text>
+
+  <rect x="80" y="452" width="252" height="50" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.5"/>
+  <text x="206" y="472" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1565c0">工具注册表</text>
+  <text x="206" y="490" text-anchor="middle" font-size="10.5" fill="#64b5f6">注册/查找/重名冲突</text>
+
+  <rect x="346" y="452" width="252" height="50" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.5"/>
+  <text x="472" y="472" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1565c0">参数校验与错误码</text>
+  <text x="472" y="490" text-anchor="middle" font-size="10.5" fill="#64b5f6">越界、缺参、类型错</text>
+
+  <rect x="612" y="452" width="308" height="50" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.5"/>
+  <text x="766" y="472" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1565c0">循环的收敛与兜底</text>
+  <text x="766" y="490" text-anchor="middle" font-size="10.5" fill="#64b5f6">转几圈停、转满 max_steps 怎么办</text>
+
+  <text x="500" y="542" text-anchor="middle" font-size="12" fill="#546e7a">测不了的那一格，用「换掉」而不是「断言」来解决 —— 这是整套测试策略的地基</text>
+</svg>

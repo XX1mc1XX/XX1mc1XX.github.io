@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" width="960" height="620" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aG" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#388e3c"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="620" fill="#fafafa"/>
+
+  <text x="480" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">检索四步：问答之间插进去的一段</text>
+  <text x="480" y="56" text-anchor="middle" font-size="12.5" fill="#666">用户问话之后、发给模型之前，先查一遍本地资料</text>
+
+  <!-- 入口 -->
+  <rect x="30" y="94" width="150" height="52" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="105" y="116" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#37474f">用户提问</text>
+  <text x="105" y="134" text-anchor="middle" font-size="11.5" font-family="Consolas, monospace" fill="#546e7a">"曝光 trigger"</text>
+  <line x1="180" y1="120" x2="212" y2="120" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- ① 分词 -->
+  <rect x="216" y="80" width="152" height="80" rx="9" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="292" y="106" text-anchor="middle" font-size="14" font-weight="bold" fill="#0d47a1">① 分词</text>
+  <text x="292" y="130" text-anchor="middle" font-size="11.5" font-family="Consolas, monospace" fill="#1565c0">["曝光","trigger"]</text>
+  <text x="292" y="148" text-anchor="middle" font-size="11" fill="#64b5f6">切词，去停用词</text>
+  <line x1="368" y1="120" x2="400" y2="120" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- ② 逐块打分（核心，橙色） -->
+  <rect x="404" y="80" width="164" height="80" rx="9" fill="#fff8e1" stroke="#f9a825" stroke-width="3"/>
+  <text x="486" y="106" text-anchor="middle" font-size="14" font-weight="bold" fill="#e65100">② 逐块打分</text>
+  <text x="486" y="130" text-anchor="middle" font-size="11.5" fill="#8d6e63">命中的一个词 +1 分</text>
+  <text x="486" y="148" text-anchor="middle" font-size="11" font-weight="bold" fill="#c62828">0 分直接丢</text>
+  <line x1="568" y1="120" x2="600" y2="120" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- ③ 排序 -->
+  <rect x="604" y="80" width="140" height="80" rx="9" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="674" y="106" text-anchor="middle" font-size="14" font-weight="bold" fill="#0d47a1">③ 按分降序</text>
+  <text x="674" y="130" text-anchor="middle" font-size="11.5" fill="#1565c0">命中多的排前面</text>
+  <text x="674" y="148" text-anchor="middle" font-size="11" fill="#64b5f6">并列时按原文顺序</text>
+  <line x1="744" y1="120" x2="776" y2="120" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- ④ top_k -->
+  <rect x="780" y="80" width="150" height="80" rx="9" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="855" y="106" text-anchor="middle" font-size="14" font-weight="bold" fill="#1b5e20">④ 取前 top_k</text>
+  <text x="855" y="130" text-anchor="middle" font-size="11.5" fill="#2e7d32">默认 3 条</text>
+  <text x="855" y="148" text-anchor="middle" font-size="11" fill="#66bb6a">够用就行</text>
+
+  <!-- 打分说明 -->
+  <rect x="404" y="182" width="164" height="34" rx="6" fill="#fffde7" stroke="#fdd835" stroke-width="1.5"/>
+  <text x="486" y="204" text-anchor="middle" font-size="11.5" fill="#795548">打分 = 关键词命中计数</text>
+  <line x1="486" y1="160" x2="486" y2="182" stroke="#fdd835" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+  <!-- 中间：逐块打分的示意 -->
+  <text x="60" y="252" font-size="14" font-weight="bold" fill="#37474f">逐块打分对着干的事（拿一个真实文档举例）</text>
+
+  <rect x="60" y="270" width="250" height="62" rx="8" fill="#fff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="76" y="292" font-size="11.5" font-family="Consolas, monospace" fill="#546e7a">#0 设备开机前请检查…</text>  <text x="76" y="312" font-size="11.5" fill="#90a4ae">命中：无</text>
+  <text x="272" y="306" text-anchor="end" font-size="15" font-weight="bold" fill="#bdbdbd">0 分</text>
+
+  <rect x="330" y="270" width="250" height="62" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="346" y="292" font-size="11.5" font-family="Consolas, monospace" fill="#1b5e20">#1 曝光 trigger 模式…</text>
+  <text x="346" y="312" font-size="11.5" fill="#2e7d32">命中：曝光、trigger</text>
+  <text x="562" y="306" text-anchor="end" font-size="15" font-weight="bold" fill="#1b5e20">2 分</text>
+
+  <rect x="600" y="270" width="250" height="62" rx="8" fill="#fffde7" stroke="#fdd835" stroke-width="1.8"/>
+  <text x="616" y="292" font-size="11.5" font-family="Consolas, monospace" fill="#795548">#2 trigger 间隔怎么…</text>
+  <text x="616" y="312" font-size="11.5" fill="#a1887f">命中：trigger</text>
+  <text x="832" y="306" text-anchor="end" font-size="15" font-weight="bold" fill="#f57f17">1 分</text>
+
+  <!-- 0 分丢弃示意 -->
+  <rect x="60" y="342" width="250" height="30" rx="6" fill="none" stroke="#bdbdbd" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="185" y="362" text-anchor="middle" font-size="11.5" fill="#9e9e9e">#0 被丢弃（不进候选）</text>
+
+  <!-- 拼进问题 -->
+  <rect x="60" y="408" width="844" height="150" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="80" y="436" font-size="14.5" font-weight="bold" fill="#0d47a1">拿到的三条，拼成一条 system 消息，塞在用户提问之前</text>
+
+  <rect x="84" y="452" width="238" height="86" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.5"/>
+  <text x="100" y="474" font-size="12" font-weight="bold" fill="#1565c0">system 消息</text>
+  <text x="100" y="496" font-size="11" font-family="Consolas, monospace" fill="#546e7a">从设备手册里找到</text>
+  <text x="100" y="513" font-size="11" font-family="Consolas, monospace" fill="#546e7a">以下资料：</text>
+  <text x="100" y="530" font-size="11" fill="#c62828">无关就忽略</text>
+
+  <line x1="322" y1="495" x2="368" y2="495" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <rect x="372" y="452" width="238" height="86" rx="7" fill="#bbdefb" stroke="#1976d2" stroke-width="2"/>
+  <text x="388" y="474" font-size="12" font-weight="bold" fill="#0d47a1">user 消息</text>
+  <text x="388" y="498" font-size="11.5" font-family="Consolas, monospace" fill="#0d47a1">"曝光 trigger"</text>
+  <text x="388" y="522" font-size="11" fill="#1565c0">原话，一个字不改</text>
+
+  <line x1="610" y1="495" x2="656" y2="495" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <rect x="660" y="452" width="220" height="86" rx="7" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="676" y="474" font-size="12" font-weight="bold" fill="#1b5e20">一起发给模型</text>
+  <text x="676" y="498" font-size="11" fill="#2e7d32">模型收到的是</text>
+  <text x="676" y="515" font-size="11" font-weight="bold" fill="#1b5e20">一个整理好的问题包</text>
+  <text x="676" y="532" font-size="11" fill="#66bb6a">它没碰过你的知识库</text>
+
+  <text x="480" y="592" text-anchor="middle" font-size="11.5" fill="#90a4ae">这一步叫 RAG（检索增强生成）—— 关键词是「提前查好」，不是「模型自己去查」</text>
+</svg>

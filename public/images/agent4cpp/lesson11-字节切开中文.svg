@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 600" width="980" height="600" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="600" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">按字节切块：字节位置不是字符位置</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">切点落在哪个字节上，就切在哪 —— 编译器不管那是不是一个汉字的中间</text>
+
+  <!-- 字节带 -->
+  <text x="60" y="108" font-size="14" font-weight="bold" fill="#37474f">文档原文「时增大」在内存里的样子（UTF-8，一个汉字 3 个字节）</text>
+
+  <!-- 9 个字节格 -->
+  <g font-family="Consolas, monospace">
+    <rect x="60" y="126" width="60" height="44" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.8"/>
+    <text x="90" y="154" text-anchor="middle" font-size="14" fill="#0d47a1">e6</text>
+    <rect x="122" y="126" width="60" height="44" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.8"/>
+    <text x="152" y="154" text-anchor="middle" font-size="14" fill="#0d47a1">97</text>
+    <rect x="184" y="126" width="60" height="44" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.8"/>
+    <text x="214" y="154" text-anchor="middle" font-size="14" fill="#0d47a1">b6</text>
+
+    <rect x="246" y="126" width="60" height="44" rx="5" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.8"/>
+    <text x="276" y="154" text-anchor="middle" font-size="14" fill="#1b5e20">e5</text>
+    <rect x="308" y="126" width="60" height="44" rx="5" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.8"/>
+    <text x="338" y="154" text-anchor="middle" font-size="14" fill="#1b5e20">a2</text>
+    <rect x="370" y="126" width="60" height="44" rx="5" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.8"/>
+    <text x="400" y="154" text-anchor="middle" font-size="14" fill="#1b5e20">9e</text>
+
+    <rect x="432" y="126" width="60" height="44" rx="5" fill="#fff8e1" stroke="#f9a825" stroke-width="1.8"/>
+    <text x="462" y="154" text-anchor="middle" font-size="14" fill="#8d6e63">e5</text>
+    <rect x="494" y="126" width="60" height="44" rx="5" fill="#fff8e1" stroke="#f9a825" stroke-width="1.8"/>
+    <text x="524" y="154" text-anchor="middle" font-size="14" fill="#8d6e63">a4</text>
+    <rect x="556" y="126" width="60" height="44" rx="5" fill="#fff8e1" stroke="#f9a825" stroke-width="1.8"/>
+    <text x="586" y="154" text-anchor="middle" font-size="14" fill="#8d6e63">a7</text>
+  </g>
+
+  <!-- 汉字大括号标注 -->
+  <path d="M 60 190 L 60 200 L 244 200 L 244 190" fill="none" stroke="#1976d2" stroke-width="1.8"/>
+  <text x="152" y="222" text-anchor="middle" font-size="22" font-weight="bold" fill="#1976d2">时</text>
+  <text x="152" y="242" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#90a4ae">e6 97 b6</text>
+
+  <path d="M 246 190 L 246 200 L 430 200 L 430 190" fill="none" stroke="#388e3c" stroke-width="1.8"/>
+  <text x="338" y="222" text-anchor="middle" font-size="22" font-weight="bold" fill="#388e3c">增</text>
+  <text x="338" y="242" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#90a4ae">e5 a2 9e</text>
+
+  <path d="M 432 190 L 432 200 L 616 200 L 616 190" fill="none" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="524" y="222" text-anchor="middle" font-size="22" font-weight="bold" fill="#e65100">大</text>
+  <text x="524" y="242" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#90a4ae">e5 a4 a7</text>
+
+  <!-- 切割红线（画在 97 与 b6 之间的格缝上，把「时」劈开） -->
+  <line x1="184" y1="112" x2="184" y2="300" stroke="#e53935" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <text x="184" y="102" text-anchor="middle" font-size="12" font-weight="bold" fill="#c62828">切点</text>
+
+  <!-- 两块结果 -->
+  <text x="60" y="290" font-size="14" font-weight="bold" fill="#37474f">切完变成两块</text>
+
+  <rect x="60" y="306" width="380" height="86" rx="9" fill="#ffebee" stroke="#e53935" stroke-width="2.2"/>
+  <text x="76" y="330" font-size="13" font-weight="bold" fill="#b71c1c">块 N（切点左边）</text>
+  <text x="76" y="354" font-size="12" font-family="Consolas, monospace" fill="#8d6e63">e6 97　← 「时」被砍掉了最后一个字节</text>
+  <text x="76" y="378" font-size="11.5" font-weight="bold" fill="#c62828">✗ 非法 UTF-8：e6 97 后面缺续字节，解不出来</text>
+
+  <rect x="460" y="306" width="380" height="86" rx="9" fill="#ffebee" stroke="#e53935" stroke-width="2.2"/>
+  <text x="476" y="330" font-size="13" font-weight="bold" fill="#b71c1c">块 N+1（切点右边）</text>
+  <text x="476" y="354" font-size="12" font-family="Consolas, monospace" fill="#8d6e63">b6 e5 a2 9e e5 a4 a7 ← 开头挂着一个孤字节</text>
+  <text x="476" y="378" font-size="11.5" font-weight="bold" fill="#c62828">✗ 非法 UTF-8：b6 是续字节，前面没有首字节</text>
+
+  <line x1="184" y1="300" x2="184" y2="306" stroke="#e53935" stroke-width="2"/>
+
+  <!-- 结论便签 -->
+  <rect x="60" y="418" width="556" height="140" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="80" y="446" font-size="14" font-weight="bold" fill="#e65100">模型实际收到的</text>
+  <rect x="80" y="458" width="516" height="40" rx="6" fill="#ffffff" stroke="#fdd835" stroke-width="1.5"/>
+  <text x="96" y="483" font-size="12.5" font-family="Consolas, monospace" fill="#c62828">#4  �增大曝光值。</text>
+  <text x="80" y="524" font-size="12" fill="#8d6e63">本来这句是「必要时增大曝光值」，检索出来变成一个问号方块。</text>
+  <text x="80" y="546" font-size="12" font-weight="bold" fill="#c62828">检索能命中，内容却是坏的 —— 比检索不到更麻烦。</text>
+
+  <!-- 对比小图 -->
+  <rect x="640" y="418" width="282" height="140" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+  <text x="660" y="446" font-size="13.5" font-weight="bold" fill="#37474f">为什么只在中文上出事</text>
+
+  <rect x="660" y="460" width="242" height="40" rx="6" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.6"/>
+  <text x="672" y="485" font-size="11.5" font-family="Consolas, monospace" fill="#1b5e20">ASCII　　1 字节 = 1 字符　✓</text>
+
+  <rect x="660" y="506" width="242" height="40" rx="6" fill="#ffebee" stroke="#e53935" stroke-width="1.6"/>
+  <text x="672" y="531" font-size="11.5" font-family="Consolas, monospace" fill="#b71c1c">中文　　3 字节 = 1 字符　✗</text>
+
+  <text x="490" y="586" text-anchor="middle" font-size="11.5" fill="#90a4ae">修法：切点定下来之后向前回退到 UTF-8 字符边界 —— 检查字节高位，不是 10xxxxxx 才是首字节</text>
+</svg>
