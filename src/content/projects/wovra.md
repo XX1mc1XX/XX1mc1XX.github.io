@@ -195,59 +195,15 @@ Wovra 专注于 AI 工作的**组织与生命周期**，而不是重新发明每
 
 运行时按职责组织，每个模块只做一件事。
 
-```
-src/wovra/
-  agent/          Agent 运行时（由四个 mixin 组装）
-    core.py         运行循环、轮生命周期、工具分发、用量记账、轮闭合结算链、观测刷新
-    assembly.py     共享历史装配（段落档 + 近期原文）、fork 基线、主 agent 路由裁剪、传话投递
-    maintenance.py  水位闸门、每轮一段话结算、折档线、分域（代码判、模型画树）、增量落地、回落
-    ledger.py       todo（大步/小步）、notify/consult、提交守卫
-    prompts.py      模型可见的提示词与工具 schema（纯数据）
-    support.py      运行常量与无状态工具函数
-    note.py         轮 → 一段话（写 + 渲染 + 解析）
-  tools/          内置工具箱
-    safety.py       工作区属主、审计挂钩、路径防护、命令越界判定、确认门、禁写区、设备只读白名单
-    files.py        读/写/改/删/移/回滚、搜索、检查点
-    documents.py    附件原生解析：docx/xlsx/pptx/pdf/csv（纯 stdlib，零新依赖）
-    shell.py        run_command、进程树强杀
-    background.py   后台任务注册表与生命周期
-    abort.py        协作式中断（卡住的工具调用也能中途停掉本轮）
-    web.py          web_search（多供应商 + 本地兜底）/ web_fetch（含 SSRF 防护、正文提取、结果缓存）
-    eyes.py         截图 / 看图 / 页面文本（含图片尺寸上限与「未注入」说明）
-    interaction.py  ask_user、用户 Hooks、当前时间
-    limits.py       工具输出的统一上限与超限落盘
-    permissions.py  文件权限守卫（按 agent 归属限制改写删）
-    status.py       工具结果成败判定的唯一权威口径
-  cli/            终端入口
-    main.py         argparse、子命令分发
-    session.py      会话锁、任务/模式解析
-    prompt.py       系统提示词组装、Agent 构造
-    render.py       流式轮次渲染、历史回放
-    interactive.py  chat 主循环、本地命令
-  blocks/         零 LLM 的块结构（V4 下只用于文件生命周期账本）
-    common.py       共用底座（事件/消息形状）
-    segment.py      轮 → 块（按文件聚合）
-    labels.py       生命周期标签 → 标签行
-    digest.py       块摘要 / 检视视图
-    migrate.py      v1 粗分块 → v3 按文件聚合的加载期迁移
-  task.py         持久任务树（Task、TaskState）
-  lifecycle.py    文件生命周期账本
-  llm.py          模型客户端（所有模型调用的唯一出口）
-  providers.py    渠道商清单（providers.json：端点/密钥/模型/能力）
-  settings.py     运行参数登记表 + 落盘与生效（配置面板的数据源）
-  envfile.py      .env 的按行读写（改值不改注释，原子落盘）
-  tokens.py       token 估算
-  truncate.py     事件索引
-  pathmatch.py    路径的鲁棒匹配（模型抄的路径形态归一）
-  attachments.py  粘贴/上传的附件（落盘 + 按「读文件级」注入）
-  observed.py     观察快照 + 「你读过的文件已改动」通知
-  registry.py     职责注册表（域树 → agent 条目；ID 体系 v2）
-  routing.py      路由规则、身份卡、职责表（谁管什么）
-  economics.py    分域经济判据（该不该裂、在哪层裂）
-  split_lifecycle.py  分域生命周期（pending/ready/rejected/skipped…）
-  serve.py        Web 服务（HTTP API + 静态前端）
-webui/            人视图前端（纯静态：index.html + vendor）
-```
+| 目录 | 装什么 |
+|---|---|
+| `agent/` | **Agent 运行时**，由四个 mixin 组装：运行循环与轮生命周期（core）、共享历史装配与 fork 基线（assembly）、水位闸门与分域（maintenance）、计划账本与提交守卫（ledger） |
+| `tools/` | **内置工具箱**：文件读写改删移与检查点、Shell 与进程管理、后台任务注册表、网页检索与抓取（含 SSRF 防护、正文提取、结果缓存）、截图与看图、附件原生解析（docx/xlsx/pptx/pdf/csv）、协作式中断、安全护栏（路径防护、命令越界判定、确认门、禁写区、设备只读白名单）、权限守卫 |
+| `cli/` | **终端入口**：参数解析与子命令分发、会话锁、系统提示词组装、流式轮次渲染、交互主循环 |
+| `blocks/` | 零 LLM 的块结构（V4 下只用于文件生命周期账本）：轮 → 块、生命周期标签、块摘要、历史数据迁移 |
+| 根级模块 | 持久任务树、文件生命周期账本、模型客户端（所有模型调用的唯一出口）、渠道商清单、运行参数登记表、`.env` 按行读写、token 估算、路径的鲁棒匹配、附件管理、观察快照、职责注册表、路由规则、分域经济判据、Web 服务 |
+
+`webui/` 是人视图前端——纯静态页面，不需要前端构建工具链。
 
 ## V4 上下文模型
 

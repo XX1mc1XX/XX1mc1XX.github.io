@@ -71,23 +71,13 @@ examples/
 
 ### 1. Tool 模块：工具是声明出来的
 
-新增一项可被大模型调用的设备能力，只需要**声明函数 + 一行注册**：
+新增一项可被大模型调用的设备能力，只需要**两步**：先用 `AGENT4CPP_TOOL` 宏声明一个函数（宏体就是你写的业务逻辑），再用 `AGENT4CPP_REGISTER_FUNCTION` 把它登记进注册表。JSON Schema 由宏和运行时注册表**自动生成**——手写 Schema 的工作量是零。
 
-```cpp
-// 声明：宏体就是函数体，参数自动映射成 JSON Schema
-AGENT4CPP_TOOL(set_exposure, "设置相机曝光时间") {
-  // 这里写业务逻辑
-}
-
-// 注册：真正送给模型的描述来自这一步
-AGENT4CPP_REGISTER_FUNCTION(registry, set_exposure, "设置相机曝光时间", ...);
-```
-
-**这里有个细节值得一提**：`AGENT4CPP_TOOL` 的第二个参数**是纯装饰**——宏体根本没用它，写在那里只是为了让人读代码时一眼知道这个工具干什么。真正生效的描述来自 `AGENT4CPP_REGISTER_FUNCTION`。
+**这里有个细节值得一提**：`AGENT4CPP_TOOL` 的第二个参数**是纯装饰**——宏体根本没用它，写在那里只是为了让人读代码时一眼知道这个工具干什么。真正生效的描述来自注册那一步。
 
 这种「看着有用其实没用」的地方，只有真读过宏展开才会发现。
 
-配套**六类参数构造宏**（整数 / 浮点 / 字符串 / 布尔 / 枚举 / 数字），另外 `AGENT4CPP_REGISTER_METHOD` 可以把 C++ 对象方法直接注册成工具——既有设备代码接入时不需要改造。
+配套**六类参数构造宏**（整数 / 浮点 / 字符串 / 布尔 / 枚举 / 数字），另外还有对应的宏可以把 C++ 对象方法直接注册成工具——既有设备代码接入时不需要改造。
 
 ![工具内部分层](/images/agent4cpp/lesson12-工具内部分层.svg)
 
@@ -117,13 +107,9 @@ AGENT4CPP_REGISTER_FUNCTION(registry, set_exposure, "设置相机曝光时间", 
 
 ### 4. Agent Runtime：整个项目的心脏
 
-核心是一个函数 `RunLocked()`。它将近 300 行，但**真正的逻辑只有 5 行**：
+核心是一个函数 `RunLocked()`。它很长，但**真正的逻辑只有五步**——问模型、看它还要不要工具、要就执行、把结果塞回记录、回到第一步再问。
 
 ![Agent 循环](/images/agent4cpp/lesson10-Agent循环.svg)
-
-```text
-问模型 → 它还要工具吗 → 要就执行 → 把结果塞回记录 → 回到第一步再问
-```
 
 程序里**没有一行代码判断「任务完成了没有」**——没有 `if (曝光调好了)`。这个判断完全在模型那边：它觉得够了，就不再要工具。代码只认一个信号：**有没有 `tool_call`**。
 
@@ -204,7 +190,7 @@ Mock 客户端在这里的价值就体现出来了——它让整条 Agent 链�
 
 | # | 文章 | 讲什么 |
 |---|---|---|
-| 1 | [手写一个 Agent 循环](/blog/agent-loop-from-scratch/) | 近 300 行的函数，真正的逻辑只有 5 行 |
+| 1 | [手写一个 Agent 循环](/blog/agent-loop-from-scratch/) | 真正的逻辑只有五步，其余全在处理意外 |
 | 2 | [Agent 框架的骨架与错误码](/blog/agent-framework-skeleton/) | 为什么不用异常，用返回值 |
 | 3 | [手写工具调用层](/blog/tool-calling-layer/) | 工具是声明出来的，不是手写 Schema 拼出来的 |
 | 4 | [接上模型，记下它干了什么](/blog/llm-client-and-logging/) | 流式响应与 tool_calls 解析 |
