@@ -23,6 +23,8 @@ order: 2
 
 ![工具调用流程](/images/agent4cpp/lesson04-工具调用流程.svg)
 
+![核心类图：这条链路上有哪些类](/images/agent4cpp/第1章_项目总览与架构设计-2.svg)
+
 | 环节 | 谁在干 | 干什么 |
 |---|---|---|
 | 听懂人话 | LLM Client | 把「图像太暗」连同工具清单发给模型 |
@@ -39,6 +41,8 @@ order: 2
 ## 二、模块怎么分
 
 整个库分八个模块，每个模块只依赖它该依赖的东西：
+
+![模块与目录结构](/images/agent4cpp/第4章_项目结构与代码组织-1.svg)
 
 ```
 include/agent4cpp/          对外公开的 SDK 头文件（13 个）
@@ -57,6 +61,10 @@ examples/
   qt_log_analyzer/       Qt Widgets 日志分析助手
 ```
 
+**它是个能编译能跑的完整工程**——下面这张是 Visual Studio 里的样子：左边是对外头文件，右边八个实现模块，下面那次构建把库、三个示例和全部测试一起编了出来。
+
+![Visual Studio 里的工程结构与构建结果](/images/agent4cpp/构建截图-VS解决方案.png)
+
 **三个能力层各有一个纯虚接口**，模式完全一样：
 
 | 接口 | 实现 |
@@ -70,6 +78,8 @@ examples/
 ## 三、逐个模块说设计
 
 ### 1. Tool 模块：工具是声明出来的
+
+![Tool 模块内部结构](/images/agent4cpp/第6章_Tool_模块设计与实现-1.svg)
 
 新增一项可被大模型调用的设备能力，只需要**两步**：先用 `AGENT4CPP_TOOL` 宏声明一个函数（宏体就是你写的业务逻辑），再用 `AGENT4CPP_REGISTER_FUNCTION` 把它登记进注册表。JSON Schema 由宏和运行时注册表**自动生成**——手写 Schema 的工作量是零。
 
@@ -106,6 +116,8 @@ examples/
 ![两种失败](/images/agent4cpp/lesson08-两种失败.svg)
 
 ### 4. Agent Runtime：整个项目的心脏
+
+![Agent 与周边类的关系](/images/agent4cpp/第9章_Agent_Runtime_模块设计与实现-1.svg)
 
 核心是一个函数 `RunLocked()`。它很长，但**真正的逻辑只有五步**——问模型、看它还要不要工具、要就执行、把结果塞回记录、回到第一步再问。
 
@@ -153,6 +165,10 @@ Status 模块统一了错误返回——**不用异常，用返回值携带错�
 | `qt_log_analyzer` | Qt Widgets | 把 Agent 嵌进图形界面：日志着色、行号定位、后台线程跑 Agent |
 
 第三个示例最能说明「可迁移」这件事——它把同一个 Agent 内核接进了 Qt 界面，界面层只需要关心怎么把用户的话交给 Agent、怎么把结果渲染出来。
+
+![Qt 日志分析助手的整体架构](/images/agent4cpp/第15章_示例三_Qt_日志分析助手架构-1.svg)
+
+![示例一：Mock 相机的演示链路](/images/agent4cpp/第13章_示例一_camera_mock_演示-1.svg)
 
 ![同步异步](/images/agent4cpp/lesson13-同步异步.svg)
 
