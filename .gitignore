@@ -15,6 +15,8 @@ pnpm-debug.log*
 
 # environment variables
 .env
+.env.local
+.env.*.local
 .env.production
 
 # macOS-specific files
@@ -23,8 +25,8 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# cloudflare ¹¹½¨»º´æ
+# cloudflare ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 .wrangler/
 
-# ±¾µØ²Ý¸å£º½ÌÑ§Ô­¸åÓë¸Ä¸å£¬Ö»ÔÚ±¾µØ£¬²»½ø²Ö¿â
+# ï¿½ï¿½ï¿½Ø²Ý¸å£ºï¿½ï¿½Ñ§Ô­ï¿½ï¿½ï¿½ï¿½Ä¸å£¬Ö»ï¿½Ú±ï¿½ï¿½Ø£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½
 drafts/

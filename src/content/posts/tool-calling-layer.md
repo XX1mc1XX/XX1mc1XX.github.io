@@ -1,7 +1,7 @@
 ---
 title: 手写工具调用层
 description: "模型能调用的工具是声明出来的，不是手写 JSON Schema 拼出来的。附工具登记处那把锁两次踩坑的记录。"
-pubDate: 2026-09-30
+pubDate: 2026-10-08
 tags: [C++, LLM, Agent, 并发]
 ---
 

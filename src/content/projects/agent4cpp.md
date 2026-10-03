@@ -79,5 +79,20 @@ if (response.tool_calls.empty()) break;
 
 ## 相关文章
 
+这套框架的完整实现过程写成了一个系列，从一个循环怎么转讲到怎么接上真实设备：
+
+| # | 讲什么 |
+|---|---|
+| 1 | [手写一个 Agent 循环](/blog/agent-loop-from-scratch/) —— 近 300 行的函数，真正的逻辑只有 5 行 |
+| 2 | [框架的骨架与错误码](/blog/agent-framework-skeleton/) —— 零件图，以及错误码为什么要单独设计 |
+| 3 | [手写工具调用层](/blog/tool-calling-layer/) —— 工具是声明出来的，不是手写 Schema 拼出来的 |
+| 4 | [接上模型，记下它干了什么](/blog/llm-client-and-logging/) —— 一个插口两种助手，还有 libcurl 那七步 |
+| 5 | [给 Agent 配一个资料柜](/blog/knowledge-store-keyword-search/) —— 关键词打分做检索，以及一个切碎中文的缺陷 |
+| 6 | [怎么把一个真实设备接进这套框架](/blog/connect-real-device/) —— 补上设备函数原来没有的那四样东西 |
+| 7 | [CLI 只是个壳](/blog/cli-as-a-shell/) —— 界面层与内核层的边界，换成 Qt 要动哪三处 |
+| 8 | [测试与验收](/blog/testing-the-agent/) —— 把测不了的那一格换掉，整条链路就都能测 |
+
+另有两篇散篇：
+
 - [为什么我没给这个 Agent 接向量数据库](/blog/lightweight-rag-keyword-search/)
 - [让大模型操作工业相机：工具怎么设计、循环跑在哪个线程](/blog/camera-ai-integration/)
