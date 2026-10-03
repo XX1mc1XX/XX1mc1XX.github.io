@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 700" width="980" height="700" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="700" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">六层单向依赖：变化点全部向内收敛</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">依赖只准向下。厂商 SDK 的差异被挡在最底下那一层，上面五层不知道它的存在</text>
+
+  <!-- 六层 -->
+  <!-- 资源层 -->
+  <rect x="60" y="84" width="620" height="66" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="80" y="110" font-size="14.5" font-weight="bold" fill="#37474f">资源层</text>
+  <text x="80" y="133" font-size="12" fill="#78909c">主题样式 / 图标 / 参数 Schema —— 编译进可执行文件，交互层只按名字引用</text>
+
+  <line x1="370" y1="150" x2="370" y2="176" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <!-- 交互层 -->
+  <rect x="60" y="180" width="620" height="66" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.2"/>
+  <text x="80" y="206" font-size="14.5" font-weight="bold" fill="#0d47a1">交互层</text>
+  <text x="80" y="229" font-size="12" fill="#1565c0">设备控制栏 │ 参数面板 │ 图像显示 —— 全程只凭序列号寻址</text>
+
+  <line x1="370" y1="246" x2="370" y2="272" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <!-- 门面层 -->
+  <rect x="60" y="276" width="620" height="66" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.2"/>
+  <text x="80" y="302" font-size="14.5" font-weight="bold" fill="#0d47a1">门面层 CameraContext</text>
+  <text x="80" y="325" font-size="12" fill="#1565c0">多机映射 · 生命周期托管 · 当前会话状态 —— 唯一的设备操作入口</text>
+
+  <line x1="370" y1="342" x2="370" y2="368" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <!-- 契约层 -->
+  <rect x="60" y="372" width="620" height="88" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="2.8"/>
+  <text x="80" y="398" font-size="14.5" font-weight="bold" fill="#e65100">契约层 CameraInterface</text>
+  <text x="80" y="421" font-size="12" fill="#8d6e63">17 个纯虚方法覆盖设备全生命周期、参数读写、图像获取三域</text>
+  <text x="80" y="443" font-size="12" fill="#8d6e63">统一参数模型 │ 有界缓冲队列 │ 统一错误码 —— 硬件无关的能力边界</text>
+
+  <line x1="370" y1="460" x2="370" y2="486" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <!-- 实现层 -->
+  <rect x="60" y="490" width="620" height="106" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="3"/>
+  <text x="80" y="516" font-size="14.5" font-weight="bold" fill="#b71c1c">实现层</text>
+  <text x="80" y="539" font-size="12" fill="#c62828">海康适配器 │ 虚拟相机（同构仿真）│ 工厂</text>
+  <rect x="80" y="552" width="580" height="30" rx="6" fill="#ffffff" stroke="#e53935" stroke-width="1.5"/>
+  <text x="92" y="572" font-size="12" font-weight="bold" fill="#b71c1c">全仓厂商条件编译仅 2 处，都落在这层的工厂注册与枚举里</text>
+
+  <!-- 右侧：三条可验证约束 -->
+  <rect x="704" y="84" width="240" height="512" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="824" y="114" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1b5e20">三条约束</text>
+  <text x="824" y="136" text-anchor="middle" font-size="11.5" fill="#66bb6a">可以用 grep 当场验证</text>
+
+  <rect x="722" y="152" width="204" height="112" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.6"/>
+  <text x="736" y="174" font-size="11.5" font-weight="bold" fill="#1b5e20">① 门面层不含适配器</text>
+  <text x="736" y="196" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">grep "HikCamera.h|</text>
+  <text x="736" y="212" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">     VirtualCamera.h"</text>
+  <text x="736" y="228" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">     src/CameraInterface/</text>
+  <text x="736" y="250" font-size="11.5" font-weight="bold" fill="#2e7d32">期望：无输出</text>
+
+  <rect x="722" y="276" width="204" height="106" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.6"/>
+  <text x="736" y="298" font-size="11.5" font-weight="bold" fill="#1b5e20">② 面板之间零引用</text>
+  <text x="736" y="320" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">grep "ControlWidget*"</text>
+  <text x="736" y="336" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">     src/ParamWidget/</text>
+  <text x="736" y="352" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">     src/ViewWidget/</text>
+  <text x="736" y="374" font-size="11.5" font-weight="bold" fill="#2e7d32">期望：无输出</text>
+
+  <rect x="722" y="394" width="204" height="112" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.6"/>
+  <text x="736" y="416" font-size="11.5" font-weight="bold" fill="#1b5e20">③ 交互层零厂商判断</text>
+  <text x="736" y="438" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">grep -iE "hikrobot|</text>
+  <text x="736" y="454" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">     \"Hik\"|MV_CC_"</text>
+  <text x="736" y="470" font-size="10.5" font-family="Consolas, monospace" fill="#546e7a">     src/ControlWidget/ …</text>
+  <text x="736" y="492" font-size="11.5" font-weight="bold" fill="#2e7d32">期望：无输出</text>
+
+  <text x="824" y="534" text-anchor="middle" font-size="11.5" fill="#2e7d32">约束不是靠人记，</text>
+  <text x="824" y="554" text-anchor="middle" font-size="11.5" fill="#2e7d32">是随时能跑一遍的</text>
+
+  <!-- 底部：变化点收敛 -->
+  <rect x="60" y="616" width="884" height="60" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+  <text x="490" y="641" text-anchor="middle" font-size="13" font-weight="bold" fill="#37474f">要换品牌，改的是最底下那一层 —— 上面五层一行不动</text>
+  <text x="490" y="663" text-anchor="middle" font-size="11.5" fill="#78909c">这就是「变化点向内收敛」的意思：越靠近设备的地方变化越频繁，就把它放在最底层</text>
+</svg>

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 760" width="1000" height="760" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aB" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#1976d2"/>
+    </marker>
+    <marker id="aG" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#388e3c"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="760" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">一帧图像的四级异步隔离</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">从 SDK 回调到界面渲染，中间隔着三个线程和一条有界队列 —— 界面永远不会被采集拖住</text>
+
+  <!-- 泳道外框 -->
+  <rect x="30" y="76" width="940" height="546" rx="12" fill="#f7f7f7" stroke="#e0e0e0" stroke-width="1.5"/>
+
+  <!-- ========== ① SDK 回调线程 ========== -->
+  <text x="52" y="106" font-size="13.5" font-weight="bold" fill="#37474f">① SDK 回调线程</text>
+  <text x="240" y="106" font-size="11" fill="#90a4ae">厂商 SDK 自己起的线程，我们只能被动接</text>
+
+  <rect x="52" y="118" width="228" height="62" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="2.2"/>
+  <text x="166" y="143" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#b71c1c">MV_CC 图像回调进来</text>
+  <text x="166" y="165" text-anchor="middle" font-size="11" fill="#c62828">在这层的时间预算极短</text>
+
+  <line x1="280" y1="149" x2="312" y2="149" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="316" y="118" width="286" height="62" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="2.2"/>
+  <text x="459" y="143" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#e65100">像素格式归一化 HikConvert2Mat</text>
+  <text x="459" y="165" text-anchor="middle" font-size="11" fill="#8d6e63">36 种格式 → Mono8 / RGB8 两种</text>
+
+  <line x1="602" y1="149" x2="634" y2="149" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="638" y="118" width="300" height="62" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.2"/>
+  <text x="788" y="143" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0d47a1">Put() 放进缓冲队列</text>
+  <text x="788" y="165" text-anchor="middle" font-size="11" fill="#1565c0">借 SDK 硬件转换通道，不让 CPU 逐像素转</text>
+
+  <!-- 分隔 -->
+  <line x1="52" y1="204" x2="948" y2="204" stroke="#e0e0e0" stroke-width="1.5"/>
+
+  <!-- ========== ② 有界缓冲队列 ========== -->
+  <text x="52" y="234" font-size="13.5" font-weight="bold" fill="#37474f">② 有界缓冲队列 CameraImageQueue</text>
+  <text x="380" y="234" font-size="11" fill="#90a4ae">固定 10 块缓冲来回倒 —— 稳态下不再申请堆内存</text>
+
+  <rect x="52" y="248" width="210" height="70" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="157" y="272" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1b5e20">空闲缓冲池</text>
+  <text x="157" y="293" text-anchor="middle" font-size="11" fill="#2e7d32">已有内存，等着被写</text>
+  <text x="157" y="310" text-anchor="middle" font-size="10.5" fill="#66bb6a">copyTo 原地写入</text>
+
+  <line x1="262" y1="283" x2="300" y2="283" stroke="#1976d2" stroke-width="2.2" marker-end="url(#aB)"/>
+  <text x="281" y="274" text-anchor="middle" font-size="10.5" fill="#1976d2">取一块</text>
+
+  <rect x="304" y="248" width="286" height="70" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="2.2"/>
+  <text x="447" y="272" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#e65100">队列满了怎么办</text>
+  <text x="447" y="293" text-anchor="middle" font-size="11" fill="#8d6e63">丢弃最旧那一帧，回收它的缓冲</text>
+  <text x="447" y="311" text-anchor="middle" font-size="11" font-weight="bold" fill="#c62828">保新弃旧 —— 预览要的是当前，不是完整</text>
+
+  <line x1="590" y1="283" x2="628" y2="283" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="632" y="248" width="306" height="70" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.2"/>
+  <text x="785" y="272" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0d47a1">工作队列</text>
+  <text x="785" y="293" text-anchor="middle" font-size="11" fill="#1565c0">等着被取走处理</text>
+  <text x="785" y="310" text-anchor="middle" font-size="10.5" fill="#64b5f6">Take() 带超时保护</text>
+
+  <!-- 分隔 -->
+  <line x1="52" y1="342" x2="948" y2="342" stroke="#e0e0e0" stroke-width="1.5"/>
+
+  <!-- ========== ③ 采集线程 ========== -->
+  <text x="52" y="372" font-size="13.5" font-weight="bold" fill="#37474f">③ 采集线程</text>
+  <text x="190" y="372" font-size="11" fill="#90a4ae">Take() 等帧最多 200ms —— 这个上限同时决定了停止采集的最坏响应延迟</text>
+
+  <rect x="52" y="386" width="404" height="62" rx="8" fill="#e8eaf6" stroke="#5c6bc0" stroke-width="2.2"/>
+  <text x="254" y="411" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#283593">Take() → cvMat2QImage → 投信号给界面</text>
+  <text x="254" y="433" text-anchor="middle" font-size="11" fill="#5c6bc0">深拷贝发生在这里</text>
+
+  <rect x="476" y="386" width="462" height="62" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="496" y="411" font-size="12" font-weight="bold" fill="#b71c1c">超时返回错误码，不把空帧当有效图像</text>
+  <text x="496" y="433" font-size="11" fill="#c62828">空帧一旦混进去，下游拿到的「画面」是假的</text>
+
+  <!-- 分隔 -->
+  <line x1="52" y1="470" x2="948" y2="470" stroke="#e0e0e0" stroke-width="1.5"/>
+
+  <!-- ========== ④ UI 线程 ========== -->
+  <text x="52" y="500" font-size="13.5" font-weight="bold" fill="#37474f">④ UI 线程</text>
+  <text x="160" y="500" font-size="11" fill="#90a4ae">只负责画，不参与采集与转换</text>
+
+  <rect x="52" y="514" width="886" height="72" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="495" y="540" text-anchor="middle" font-size="13" font-weight="bold" fill="#0d47a1">图形视图渲染 —— 持续满帧下界面不阻塞、无延迟堆积</text>
+  <text x="495" y="563" text-anchor="middle" font-size="11.5" fill="#1565c0">四个线程各自独立，任何一环慢下来都不会把主线程拖住</text>
+  <text x="495" y="580" text-anchor="middle" font-size="10.5" fill="#64b5f6">代价是「同一时刻一块缓冲只能有一个所有者」—— 靠归还闭环保证</text>
+
+  <!-- 归还闭环：走左侧竖线 + 泳道最底横线，绕开所有框 -->
+  <path d="M 157 318 L 157 606 L 940 606 L 940 318 L 938 318" fill="none" stroke="#388e3c" stroke-width="2.2" stroke-dasharray="8 5" marker-end="url(#aG)"/>
+  <rect x="600" y="594" width="266" height="24" rx="5" fill="#f7f7f7"/>
+  <text x="733" y="611" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#2e7d32">Recycle() 归还缓冲</text>
+
+  <!-- 底部：桥上的坑 -->
+  <rect x="60" y="624" width="880" height="112" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="80" y="650" font-size="13.5" font-weight="bold" fill="#e65100">这座桥上有个坑：cv::Mat → QImage 必须把 mat.step 一起传进去</text>
+  <text x="80" y="676" font-size="12" fill="#8d6e63">OpenCV 的行间可能有对齐填充。自己按「宽 × 通道数」算行长，会整幅错位 —— 这是纯 C++ 数学直觉会踩的坑。</text>
+  <text x="80" y="700" font-size="12" fill="#8d6e63">另一个契约：clone=false 构造出的 QImage 只是「借用」缓冲，不深拷贝。被借的一方必须活得更久且期间不能被改写。</text>
+  <text x="80" y="724" font-size="12" font-weight="bold" fill="#e65100">默认 clone=true 才安全 —— 这个默认值是刻意选的。</text>
+</svg>

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 620" width="980" height="620" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aG" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#388e3c"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="620" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">面板插件：宿主与 DLL 之间只靠两个 C 函数说话</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">新增面板不重编主程序 —— 代价是这两个函数名和签名一旦定了就不能改</text>
+
+  <!-- 宿主 -->
+  <rect x="40" y="92" width="340" height="330" rx="12" fill="#e3f2fd" stroke="#1565c0" stroke-width="2.5"/>
+  <text x="210" y="122" text-anchor="middle" font-size="15" font-weight="bold" fill="#0d47a1">主程序（宿主）</text>
+  <text x="210" y="144" text-anchor="middle" font-size="11.5" fill="#64b5f6">启动时扫描目录，装载 .dll</text>
+
+  <rect x="64" y="164" width="292" height="56" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="78" y="187" font-size="12" font-weight="bold" fill="#0d47a1">面板注册表</text>
+  <text x="78" y="207" font-size="11" fill="#64b5f6">按唯一 ID 去重，同名注册被拒</text>
+
+  <rect x="64" y="234" width="292" height="78" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="78" y="257" font-size="12" font-weight="bold" fill="#0d47a1">QDockWidget 停靠体系</text>
+  <text x="78" y="277" font-size="11" fill="#1565c0">任意边停靠 · 浮动成窗</text>
+  <text x="78" y="295" font-size="11" fill="#1565c0">关闭后从「视图」菜单恢复</text>
+
+  <rect x="64" y="326" width="292" height="72" rx="7" fill="#fff8e1" stroke="#f9a825" stroke-width="2"/>
+  <text x="78" y="349" font-size="12" font-weight="bold" fill="#e65100">IPanel 析构必须是虚的</text>
+  <text x="78" y="369" font-size="11" fill="#8d6e63">主程序只经 IPanel* 持有面板；</text>
+  <text x="78" y="387" font-size="11" font-weight="bold" fill="#c62828">非虚则只跑基类析构，插件资源全漏</text>
+
+  <!-- 契约 -->
+  <rect x="398" y="92" width="184" height="330" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="3"/>
+  <text x="490" y="122" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1b5e20">唯一的硬契约</text>
+  <text x="490" y="144" text-anchor="middle" font-size="11" fill="#66bb6a">extern "C" 纯 C 符号</text>
+
+  <rect x="416" y="166" width="148" height="86" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="490" y="190" text-anchor="middle" font-size="10.5" font-family="Consolas, monospace" fill="#1b5e20">ZyClear</text>
+  <text x="490" y="206" text-anchor="middle" font-size="10.5" font-family="Consolas, monospace" fill="#1b5e20">  ExtensionCount</text>
+  <text x="490" y="228" text-anchor="middle" font-size="10.5" font-family="Consolas, monospace" fill="#2e7d32">→ 有几个面板</text>
+  <text x="490" y="245" text-anchor="middle" font-size="10.5" fill="#66bb6a">两个导出名之一</text>
+
+  <rect x="416" y="264" width="148" height="86" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="490" y="288" text-anchor="middle" font-size="10.5" font-family="Consolas, monospace" fill="#1b5e20">ZyClear</text>
+  <text x="490" y="304" text-anchor="middle" font-size="10.5" font-family="Consolas, monospace" fill="#1b5e20">  ExtensionAt</text>
+  <text x="490" y="326" text-anchor="middle" font-size="10.5" font-family="Consolas, monospace" fill="#2e7d32">(index) → IPanel*</text>
+  <text x="490" y="343" text-anchor="middle" font-size="10.5" fill="#66bb6a">签名也是契约的一部分</text>
+
+  <rect x="412" y="362" width="156" height="48" rx="7" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="490" y="382" text-anchor="middle" font-size="11" font-weight="bold" fill="#b71c1c">改名 / 改签名</text>
+  <text x="490" y="400" text-anchor="middle" font-size="10.5" fill="#c62828">编译期不报错，运行期静默错调</text>
+
+  <!-- 插件 -->
+  <rect x="616" y="92" width="324" height="330" rx="12" fill="#fff3e0" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="778" y="122" text-anchor="middle" font-size="15" font-weight="bold" fill="#e65100">插件 .dll</text>
+  <text x="778" y="144" text-anchor="middle" font-size="11.5" fill="#a1887f">可以后装、可以拿走，主程序不认识它</text>
+
+  <rect x="640" y="164" width="276" height="76" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="654" y="187" font-size="12" font-weight="bold" fill="#e65100">实现 IPanel 接口</text>
+  <text x="654" y="207" font-size="11" fill="#8d6e63">CreateWidget(parent) 建面板</text>
+  <text x="654" y="227" font-size="11" fill="#8d6e63">parent 由宿主传入，交给 Qt 父子关系管</text>
+
+  <rect x="640" y="254" width="276" height="76" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="654" y="277" font-size="12" font-weight="bold" fill="#e65100">两个可选覆写</text>
+  <text x="654" y="297" font-size="11" fill="#8d6e63">DefaultArea —— 默认停哪一侧</text>
+  <text x="654" y="317" font-size="11" fill="#8d6e63">VisibleByDefault —— 初始开合</text>
+
+  <rect x="640" y="344" width="276" height="66" rx="7" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+  <text x="654" y="367" font-size="12" font-weight="bold" fill="#37474f">示例工程 4 个文件</text>
+  <text x="654" y="387" font-size="11" fill="#78909c">就能做出一个可装载的面板</text>
+  <text x="654" y="403" font-size="10.5" fill="#90a4ae">examples/panel_plugin/</text>
+
+  <!-- 箭头 -->
+  <line x1="380" y1="256" x2="396" y2="256" stroke="#388e3c" stroke-width="3" marker-end="url(#aG)"/>
+  <line x1="582" y1="256" x2="614" y2="256" stroke="#388e3c" stroke-width="3" marker-end="url(#aG)"/>
+
+  <!-- 底部：代价 -->
+  <rect x="60" y="452" width="860" height="152" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="80" y="480" font-size="14" font-weight="bold" fill="#37474f">这套机制的代价，我写在注释里</text>
+
+  <text x="80" y="510" font-size="12.5" font-weight="bold" fill="#c62828">① 插件与主程序必须同编译器、同 Qt 版本</text>
+  <text x="100" y="531" font-size="11.5" fill="#546e7a">否则传递 QWidget* 会出问题 —— 这是一整块 ABI 的代价，不是能绕过去的细节</text>
+
+  <text x="80" y="558" font-size="12.5" font-weight="bold" fill="#c62828">② extern "C" 同时负责去掉 C++ 名字修饰</text>
+  <text x="100" y="579" font-size="11.5" fill="#546e7a">按 C++ 链接的话，名字会被编码成带参数类型的长串，插件换个编译器版本宿主就 resolve 不到</text>
+
+  <text x="80" y="600" font-size="12.5" font-weight="bold" fill="#c62828">③ 面板标题三处共用 —— dock 标题、视图菜单项、工具栏提示</text>
+  <text x="480" y="600" font-size="11.5" fill="#546e7a">所以规定要写短</text>
+</svg>

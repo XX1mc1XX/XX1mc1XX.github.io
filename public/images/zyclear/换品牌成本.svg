@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 620" width="980" height="620" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aG" markerWidth="12" markerHeight="12" refX="10" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L11,3.5 z" fill="#388e3c"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="620" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">接一个新品牌，要改几处</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">左边是常见写法：改动散在上层各处；右边是这套结构：改动只落在实现层</text>
+
+  <!-- ============ 左：侵入式改造 ============ -->
+  <rect x="40" y="82" width="432" height="346" rx="12" fill="#ffebee" stroke="#e53935" stroke-width="2.5"/>
+  <text x="256" y="112" text-anchor="middle" font-size="15" font-weight="bold" fill="#b71c1c">侵入式改造</text>
+  <text x="256" y="134" text-anchor="middle" font-size="11.5" fill="#c62828">约 20 处改动，散在五层里</text>
+
+  <!-- 五层，每层都有红点 -->
+  <rect x="66" y="152" width="380" height="42" rx="6" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.5"/>
+  <text x="80" y="178" font-size="12" fill="#37474f">交互层 · 参数面板要按品牌分叉</text>
+  <circle cx="428" cy="173" r="9" fill="#e53935"/>
+  <text x="428" y="177" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">3</text>
+
+  <rect x="66" y="202" width="380" height="42" rx="6" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.5"/>
+  <text x="80" y="228" font-size="12" fill="#37474f">交互层 · 图像显示要认新格式</text>
+  <circle cx="428" cy="223" r="9" fill="#e53935"/>
+  <text x="428" y="227" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">4</text>
+
+  <rect x="66" y="252" width="380" height="42" rx="6" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.5"/>
+  <text x="80" y="278" font-size="12" fill="#37474f">门面层 · 要加新品牌的判断</text>
+  <circle cx="428" cy="273" r="9" fill="#e53935"/>
+  <text x="428" y="277" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">5</text>
+
+  <rect x="66" y="302" width="380" height="42" rx="6" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.5"/>
+  <text x="80" y="328" font-size="12" fill="#37474f">参数模型 · 新参数要手工建模</text>
+  <circle cx="428" cy="323" r="9" fill="#e53935"/>
+  <text x="428" y="327" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">4</text>
+
+  <rect x="66" y="352" width="380" height="42" rx="6" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.5"/>
+  <text x="80" y="378" font-size="12" fill="#37474f">状态管理 · 重连逻辑各写一遍</text>
+  <circle cx="428" cy="373" r="9" fill="#e53935"/>
+  <text x="428" y="377" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">4</text>
+
+  <text x="256" y="414" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#b71c1c">改完还要全量重测、重新发版</text>
+
+  <!-- ============ 右：增量式扩展 ============ -->
+  <rect x="508" y="82" width="432" height="346" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="724" y="112" text-anchor="middle" font-size="15" font-weight="bold" fill="#1b5e20">增量式扩展</text>
+  <text x="724" y="134" text-anchor="middle" font-size="11.5" fill="#2e7d32">1 处实现 + 1 处注册</text>
+
+  <rect x="534" y="152" width="380" height="42" rx="6" fill="#ffffff" stroke="#c8e6c9" stroke-width="1.5"/>
+  <text x="548" y="178" font-size="12" fill="#90a4ae">交互层 · 一行不动</text>
+  <text x="900" y="178" text-anchor="end" font-size="12" fill="#66bb6a">✓</text>
+
+  <rect x="534" y="202" width="380" height="42" rx="6" fill="#ffffff" stroke="#c8e6c9" stroke-width="1.5"/>
+  <text x="548" y="228" font-size="12" fill="#90a4ae">门面层 · 一行不动</text>
+  <text x="900" y="228" text-anchor="end" font-size="12" fill="#66bb6a">✓</text>
+
+  <rect x="534" y="252" width="380" height="42" rx="6" fill="#ffffff" stroke="#c8e6c9" stroke-width="1.5"/>
+  <text x="548" y="278" font-size="12" fill="#90a4ae">参数面板 · 一行不动</text>
+  <text x="900" y="278" text-anchor="end" font-size="12" fill="#66bb6a">✓</text>
+
+  <rect x="534" y="302" width="380" height="42" rx="6" fill="#ffffff" stroke="#c8e6c9" stroke-width="1.5"/>
+  <text x="548" y="328" font-size="12" fill="#90a4ae">图像链路 · 一行不动</text>
+  <text x="900" y="328" text-anchor="end" font-size="12" fill="#66bb6a">✓</text>
+
+  <!-- 唯一改动点 -->
+  <rect x="534" y="352" width="380" height="42" rx="6" fill="#c8e6c9" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="548" y="378" font-size="12" font-weight="bold" fill="#1b5e20">实现层 · 加一个适配器</text>
+  <text x="900" y="378" text-anchor="end" font-size="13" font-weight="bold" fill="#1b5e20">改这里</text>
+
+  <text x="724" y="414" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1b5e20">改完只需测这一个适配器</text>
+
+  <!-- 箭头 -->
+  <line x1="472" y1="255" x2="504" y2="255" stroke="#546e7a" stroke-width="3" marker-end="url(#a)"/>
+  <text x="488" y="246" text-anchor="middle" font-size="11" fill="#546e7a">改造后</text>
+
+  <!-- 底部 -->
+  <rect x="60" y="452" width="880" height="60" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+  <text x="490" y="477" text-anchor="middle" font-size="13" font-weight="bold" fill="#37474f">改动点由约 20 处收敛到 1 处</text>
+  <text x="490" y="499" text-anchor="middle" font-size="11.5" fill="#78909c">契约层先定好「一台相机应该能做什么」，新品牌只要证明自己能做到这些事，不用让上层认识它</text>
+
+  <rect x="240" y="534" width="500" height="56" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="490" y="558" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0d47a1">同一套契约换个场景也成立</text>
+  <text x="490" y="579" text-anchor="middle" font-size="11.5" fill="#1565c0">设备轴平移到 PLC / 运动控制卡，应用轴整包搬迁</text>
+</svg>

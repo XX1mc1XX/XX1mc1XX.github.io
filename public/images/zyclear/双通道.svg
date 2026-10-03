@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 660" width="980" height="660" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="660" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">同一套门面，两个入口</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">相机能力只实现一次，界面和大模型各走一条路调用它 —— 没有「AI 专用」的第二套实现</text>
+
+  <!-- ============ 上：人工通道 ============ -->
+  <rect x="60" y="86" width="860" height="146" rx="12" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="80" y="114" font-size="14.5" font-weight="bold" fill="#0d47a1">人工通道</text>
+  <text x="200" y="114" font-size="11.5" fill="#64b5f6">想精确控制时用这条路</text>
+
+  <rect x="80" y="132" width="150" height="66" rx="8" fill="#ffffff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="155" y="157" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">工程师</text>
+  <text x="155" y="179" text-anchor="middle" font-size="11" fill="#90a4ae">翻菜单、填参数</text>
+  <line x1="230" y1="165" x2="272" y2="165" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="276" y="132" width="196" height="66" rx="8" fill="#ffffff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="374" y="157" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">参数面板 / 图像显示</text>
+  <text x="374" y="179" text-anchor="middle" font-size="11" fill="#90a4ae">按参数类型挂载编辑控件</text>
+  <line x1="472" y1="165" x2="514" y2="165" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="518" y="132" width="380" height="66" rx="8" fill="#bbdefb" stroke="#1976d2" stroke-width="2.2"/>
+  <text x="708" y="157" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0d47a1">CameraContext —— 设备操作唯一入口</text>
+  <text x="708" y="179" text-anchor="middle" font-size="11" fill="#1565c0">多机映射 · 生命周期托管 · 会话状态</text>
+
+  <!-- ============ 下：AI 通道 ============ -->
+  <rect x="60" y="252" width="860" height="200" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="80" y="280" font-size="14.5" font-weight="bold" fill="#1b5e20">AI 通道</text>
+  <text x="200" y="280" font-size="11.5" fill="#66bb6a">「画面有点暗」这类常见操作走这条</text>
+
+  <rect x="80" y="298" width="150" height="66" rx="8" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="155" y="323" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">一句话</text>
+  <text x="155" y="345" text-anchor="middle" font-size="11" fill="#90a4ae">"图像有点暗"</text>
+  <line x1="230" y1="331" x2="272" y2="331" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="276" y="298" width="196" height="66" rx="8" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="374" y="323" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">Agent 循环</text>
+  <text x="374" y="345" text-anchor="middle" font-size="11" fill="#90a4ae">模型决定调哪个工具</text>
+  <line x1="472" y1="331" x2="514" y2="331" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="518" y="298" width="180" height="66" rx="8" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="608" y="321" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">工具提供者</text>
+  <text x="608" y="343" text-anchor="middle" font-size="11" fill="#8d6e63">四方法接口</text>
+  <line x1="698" y1="331" x2="740" y2="331" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="744" y="298" width="154" height="66" rx="8" fill="#c8e6c9" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="821" y="321" text-anchor="middle" font-size="12" font-weight="bold" fill="#1b5e20">10 个相机工具</text>
+  <text x="821" y="343" text-anchor="middle" font-size="11" fill="#2e7d32">枚举 / 连接 / 读写参数 / 拉流</text>
+
+  <!-- AI 通道汇入同一个门面 -->
+  <path d="M 821 364 L 821 400 L 708 400 L 708 200" fill="none" stroke="#388e3c" stroke-width="2.5" stroke-dasharray="8 5" marker-end="url(#a)"/>
+  <rect x="560" y="388" width="300" height="26" rx="6" fill="#e8f5e9"/>
+  <text x="710" y="406" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1b5e20">两条路汇进同一个门面，不是两套实现</text>
+
+  <!-- ============ 门面下方：设备层 ============ -->
+  <rect x="240" y="486" width="500" height="70" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="490" y="512" text-anchor="middle" font-size="13" font-weight="bold" fill="#e65100">契约层 CameraInterface</text>
+  <text x="490" y="534" text-anchor="middle" font-size="11.5" fill="#8d6e63">17 个纯虚方法 —— 界面与 AI 看到的是同一份能力定义</text>
+
+  <line x1="490" y1="484" x2="490" y2="486" stroke="#546e7a" stroke-width="2"/>
+
+  <rect x="330" y="578" width="320" height="56" rx="10" fill="#ffebee" stroke="#e53935" stroke-width="2.5"/>
+  <text x="490" y="602" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#b71c1c">海康适配器 │ 虚拟相机</text>
+  <text x="490" y="622" text-anchor="middle" font-size="11" fill="#c62828">换品牌只改这一层</text>
+
+  <!-- 底部注记 -->
+  <rect x="760" y="578" width="200" height="56" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1.6"/>
+  <text x="860" y="600" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#37474f">AI 层可以整包拿走</text>
+  <text x="860" y="620" text-anchor="middle" font-size="10.5" fill="#78909c">删掉它就是原来的项目</text>
+</svg>

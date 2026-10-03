@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 620" width="980" height="620" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#90a4ae"/>
+    </marker>
+    <marker id="aB" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#1976d2"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="620" fill="#fafafa"/>
+
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">面板联动：从网状耦合到一处收口</text>
+  <text x="490" y="56" text-anchor="middle" font-size="12.5" fill="#666">四个面板之间 n² 条连线，收成一条总线 —— 新增面板不用认识任何人</text>
+
+  <!-- ============ 左：网状 ============ -->
+  <rect x="30" y="82" width="440" height="420" rx="12" fill="#ffebee" stroke="#e53935" stroke-width="2.2"/>
+  <text x="250" y="112" text-anchor="middle" font-size="15" font-weight="bold" fill="#b71c1c">直接互相引用</text>
+  <text x="250" y="134" text-anchor="middle" font-size="11.5" fill="#c62828">4 个面板 = 12 条双向依赖</text>
+
+  <!-- 四个面板 -->
+  <rect x="106" y="164" width="128" height="52" rx="8" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.8"/>
+  <text x="170" y="196" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">设备控制栏</text>
+
+  <rect x="266" y="164" width="128" height="52" rx="8" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.8"/>
+  <text x="330" y="196" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">参数面板</text>
+
+  <rect x="106" y="320" width="128" height="52" rx="8" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.8"/>
+  <text x="170" y="352" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">图像显示</text>
+
+  <rect x="266" y="320" width="128" height="52" rx="8" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.8"/>
+  <text x="330" y="352" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">状态栏</text>
+
+  <!-- 连线 -->
+  <line x1="234" y1="190" x2="266" y2="190" stroke="#e53935" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="266" y1="196" x2="234" y2="196" stroke="#e53935" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="234" y1="346" x2="266" y2="346" stroke="#e53935" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="266" y1="352" x2="234" y2="352" stroke="#e53935" stroke-width="2" marker-end="url(#a)"/>
+
+  <line x1="170" y1="216" x2="170" y2="320" stroke="#e53935" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="178" y1="320" x2="178" y2="216" stroke="#e53935" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="330" y1="216" x2="330" y2="320" stroke="#e53935" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="322" y1="320" x2="322" y2="216" stroke="#e53935" stroke-width="2" marker-end="url(#a)"/>
+
+  <line x1="234" y1="180" x2="300" y2="330" stroke="#e53935" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="266" y1="330" x2="240" y2="200" stroke="#e53935" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="196" y1="216" x2="310" y2="322" stroke="#e53935" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line x1="300" y1="216" x2="200" y2="322" stroke="#e53935" stroke-width="1.6" stroke-dasharray="5 4"/>
+
+  <text x="250" y="272" text-anchor="middle" font-size="12" font-weight="bold" fill="#c62828">改一个，得考虑其他三个</text>
+
+  <text x="250" y="404" text-anchor="middle" font-size="12" fill="#c62828">新增面板：要插进这张网里</text>
+  <text x="250" y="426" text-anchor="middle" font-size="12" font-weight="bold" fill="#b71c1c">动到既有业务代码</text>
+  <text x="250" y="452" text-anchor="middle" font-size="11" fill="#ef9a9a">面板之间能互相拿到指针，什么都可能发生</text>
+
+  <!-- 箭头 -->
+  <line x1="478" y1="290" x2="510" y2="290" stroke="#546e7a" stroke-width="3" marker-end="url(#aB)"/>
+  <text x="494" y="280" text-anchor="middle" font-size="11" fill="#546e7a">改造</text>
+
+  <!-- ============ 右：总线 ============ -->
+  <rect x="516" y="82" width="434" height="420" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="733" y="112" text-anchor="middle" font-size="15" font-weight="bold" fill="#1b5e20">经事件总线</text>
+  <text x="733" y="134" text-anchor="middle" font-size="11.5" fill="#2e7d32">模块间零直接引用</text>
+
+  <!-- 总线 -->
+  <rect x="640" y="256" width="186" height="66" rx="33" fill="#1976d2" stroke="#0d47a1" stroke-width="2.5"/>
+  <text x="733" y="284" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">ListenerManger</text>
+  <text x="733" y="305" text-anchor="middle" font-size="11" fill="#bbdefb">6 类语义事件 · 按位掩码定向投递</text>
+
+  <!-- 四个面板 -->
+  <rect x="556" y="164" width="122" height="46" rx="8" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="617" y="193" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">设备控制栏</text>
+  <line x1="640" y1="212" x2="690" y2="254" stroke="#388e3c" stroke-width="2" marker-end="url(#aB)"/>
+
+  <rect x="706" y="164" width="122" height="46" rx="8" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="767" y="193" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">参数面板</text>
+  <line x1="760" y1="212" x2="750" y2="254" stroke="#388e3c" stroke-width="2" marker-end="url(#aB)"/>
+
+  <rect x="556" y="368" width="122" height="46" rx="8" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="617" y="397" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">图像显示</text>
+  <line x1="640" y1="366" x2="690" y2="324" stroke="#388e3c" stroke-width="2" marker-end="url(#aB)"/>
+
+  <rect x="706" y="368" width="122" height="46" rx="8" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="767" y="397" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">状态栏</text>
+  <line x1="760" y1="366" x2="750" y2="324" stroke="#388e3c" stroke-width="2" marker-end="url(#aB)"/>
+
+  <!-- 新增面板虚线 -->
+  <rect x="856" y="256" width="80" height="66" rx="8" fill="#ffffff" stroke="#66bb6a" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="896" y="284" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#2e7d32">新面板</text>
+  <text x="896" y="302" text-anchor="middle" font-size="10.5" fill="#66bb6a">订阅就行</text>
+  <line x1="856" y1="289" x2="830" y2="289" stroke="#66bb6a" stroke-width="2" marker-end="url(#aB)"/>
+
+  <text x="733" y="446" text-anchor="middle" font-size="12" fill="#2e7d32">新增面板 / 新事件类型</text>
+  <text x="733" y="468" text-anchor="middle" font-size="12" font-weight="bold" fill="#1b5e20">不触动既有业务代码</text>
+
+  <!-- 底部 -->
+  <rect x="60" y="524" width="860" height="72" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="490" y="550" text-anchor="middle" font-size="13" font-weight="bold" fill="#0d47a1">总线自己也有契约：进程内唯一，不持有订阅者所有权，也没有反注册接口</text>
+  <text x="490" y="572" text-anchor="middle" font-size="11.5" fill="#1565c0">一旦注册，指针就永久留在表里 —— 订阅者必须活得比后续所有通知更久，否则会在已析构对象上回调</text>
+  <text x="490" y="590" text-anchor="middle" font-size="11.5" fill="#1565c0">六类事件各占一个独立二进制位且不得复用：新增事件只能往后取更大的 2 的幂</text>
+</svg>
