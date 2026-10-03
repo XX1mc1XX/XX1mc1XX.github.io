@@ -30,3 +30,7 @@ pnpm-debug.log*
 
 # ���زݸ壺��ѧԭ����ĸ壬ֻ�ڱ��أ������ֿ�
 drafts/
+
+# Python 缓存（tools/ 下有脚本）
+__pycache__/
+*.pyc
