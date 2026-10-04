@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 720" width="1000" height="720" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="720" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">一次被数据判死的架构：多智能体冻结</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">不是因为它慢 —— 是因为它想省的那笔账，同一个代码库里的另一个功能早就替它省掉了</text>
+
+  <!-- 三组对照 -->
+  <text x="60" y="98" font-size="14.5" font-weight="bold" fill="#37474f">复刻一个网页版「我的世界」，三组各跑一次</text>
+
+  <rect x="60" y="114" width="286" height="196" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="203" y="142" text-anchor="middle" font-size="14" font-weight="bold" fill="#0d47a1">A 组 · 单 agent（旧栈）</text>
+  <text x="203" y="164" text-anchor="middle" font-size="11" fill="#64b5f6">组织层被结构上关掉</text>
+  <text x="80" y="192" font-size="11.5" fill="#1565c0">等效输入　263K</text>
+  <text x="80" y="214" font-size="11.5" fill="#1565c0">现金　　≈0.45 元</text>
+  <text x="80" y="236" font-size="11.5" fill="#1565c0">缓存命中　98.3%</text>
+  <text x="80" y="258" font-size="11.5" fill="#1565c0">墙钟　　116 分</text>
+  <rect x="80" y="270" width="246" height="30" rx="6" fill="#ffcdd2" stroke="#e53935" stroke-width="1.8"/>
+  <text x="203" y="290" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#b71c1c">观感分 0 · 不可玩</text>
+
+  <rect x="357" y="114" width="286" height="196" rx="10" fill="#ffebee" stroke="#e53935" stroke-width="3"/>
+  <text x="500" y="142" text-anchor="middle" font-size="14" font-weight="bold" fill="#b71c1c">B 组 · 组织（多 agent）</text>
+  <text x="500" y="164" text-anchor="middle" font-size="11" fill="#ef9a9a">三个并行子 agent</text>
+  <text x="377" y="192" font-size="11.5" font-weight="bold" fill="#c62828">等效输入　1,218K（+4.6×）</text>
+  <text x="377" y="214" font-size="11.5" font-weight="bold" fill="#c62828">现金　　≈1.10 元（+2.4×）</text>
+  <text x="377" y="236" font-size="11.5" fill="#c62828">缓存命中　88.1%</text>
+  <text x="377" y="258" font-size="11.5" fill="#c62828">墙钟　　108 分</text>
+  <rect x="377" y="270" width="246" height="30" rx="6" fill="#ffcdd2" stroke="#e53935" stroke-width="1.8"/>
+  <text x="500" y="290" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#b71c1c">观感分 1 · 不可玩</text>
+
+  <rect x="654" y="114" width="286" height="196" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="797" y="142" text-anchor="middle" font-size="14" font-weight="bold" fill="#1b5e20">D 组 · 单 agent（新栈）</text>
+  <text x="797" y="164" text-anchor="middle" font-size="11" fill="#66bb6a">组织层已删除，水位线管线</text>
+  <text x="674" y="192" font-size="11.5" fill="#2e7d32">等效输入　857K</text>
+  <text x="674" y="214" font-size="11.5" fill="#2e7d32">现金　　≈0.59 元</text>
+  <text x="674" y="236" font-size="11.5" fill="#2e7d32">缓存命中　96.6%</text>
+  <text x="674" y="258" font-size="11.5" fill="#2e7d32">墙钟　　94.5 分</text>
+  <rect x="674" y="270" width="246" height="30" rx="6" fill="#c8e6c9" stroke="#388e3c" stroke-width="1.8"/>
+  <text x="797" y="290" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1b5e20">通过 · 6 组功能</text>
+
+  <!-- 判死的真正理由 -->
+  <text x="60" y="348" font-size="14.5" font-weight="bold" fill="#37474f">真正判死它的：四条辩解逐条被拆</text>
+
+  <rect x="60" y="364" width="880" height="150" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+
+  <rect x="78" y="380" width="416" height="56" rx="7" fill="#ffffff" stroke="#e53935" stroke-width="2.2"/>
+  <text x="92" y="402" font-size="12" font-weight="bold" fill="#b71c1c">① 「主上下文不膨胀」</text>
+  <text x="92" y="424" font-size="11.5" fill="#c62828">V3 分层装配在这个代码库里已经保证了 —— 多 agent 净增零</text>
+
+  <rect x="506" y="380" width="416" height="56" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="520" y="402" font-size="12" font-weight="bold" fill="#e65100">② 「并行」</text>
+  <text x="520" y="424" font-size="11.5" fill="#8d6e63">市面已有现成商品</text>
+
+  <rect x="78" y="446" width="416" height="56" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="92" y="468" font-size="12" font-weight="bold" fill="#e65100">③ 「交叉验证」</text>
+  <text x="92" y="490" font-size="11.5" fill="#8d6e63">可用明确验收标准 + 一轮独立评审替代</text>
+
+  <rect x="506" y="446" width="416" height="56" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="520" y="468" font-size="12" font-weight="bold" fill="#e65100">④ 「失败隔离」</text>
+  <text x="520" y="490" font-size="11.5" fill="#8d6e63">V3 的降级机制已让不相关话题淡出</text>
+
+  <!-- 法医弧线 -->
+  <text x="60" y="550" font-size="14.5" font-weight="bold" fill="#37474f">实验本身也出过两次事故 —— 靠法医查出来，不靠小心</text>
+
+  <rect x="60" y="566" width="880" height="134" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+
+  <rect x="78" y="582" width="276" height="102" rx="7" fill="#ffffff" stroke="#b0bec5" stroke-width="1.6"/>
+  <text x="92" y="604" font-size="11.5" font-weight="bold" fill="#c62828">① 环境变量静默失败</text>
+  <text x="92" y="624" font-size="11" fill="#546e7a">set 是 Set-Variable 别名，</text>
+  <text x="92" y="641" font-size="11" fill="#546e7a">没设成环境变量 → 对照组的</text>
+  <text x="92" y="658" font-size="11" fill="#546e7a">组织层其实还开着</text>
+  <text x="92" y="677" font-size="11" font-weight="bold" fill="#1b5e20">修法：启动横幅自报状态</text>
+
+  <rect x="366" y="582" width="276" height="102" rx="7" fill="#ffffff" stroke="#b0bec5" stroke-width="1.6"/>
+  <text x="380" y="604" font-size="11.5" font-weight="bold" fill="#c62828">② Ctrl+C 级联</text>
+  <text x="380" y="624" font-size="11" fill="#546e7a">控制台级终止杀掉了全部</text>
+  <text x="380" y="641" font-size="11" fill="#546e7a">后台子进程，一个子任务的</text>
+  <text x="380" y="658" font-size="11" fill="#546e7a">账本因此丢失</text>
+  <text x="380" y="677" font-size="11" font-weight="bold" fill="#1b5e20">修法：独立进程组</text>
+
+  <rect x="654" y="582" width="268" height="102" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="2"/>
+  <text x="668" y="604" font-size="11.5" font-weight="bold" fill="#e65100">③ 基线资格被质疑</text>
+  <text x="668" y="624" font-size="11" fill="#8d6e63">98.3% 命中且不受长生成</text>
+  <text x="668" y="641" font-size="11" fill="#8d6e63">影响 —— 在当时假设下不可能</text>
+  <text x="668" y="658" font-size="11" fill="#8d6e63">后来探针部分救回：TTL 更长</text>
+  <text x="668" y="677" font-size="11" font-weight="bold" fill="#e65100">结论降级为「待验证」</text>
+</svg>

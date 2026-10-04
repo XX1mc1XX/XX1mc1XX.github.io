@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 780" width="1000" height="780" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="780" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">全绿的三样东西，全都撒过谎</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">测试绿、仪器绿、数据好看 —— 这一篇按「哪一层在撒谎」分类</text>
+
+  <!-- 仪器类 -->
+  <rect x="40" y="84" width="920" height="164" rx="12" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="62" y="112" font-size="14.5" font-weight="bold" fill="#e65100">第一类 · 仪器在撒谎</text>
+  <text x="62" y="132" font-size="11" fill="#a1887f">健康检查脚本退出码 0，是因为它测的是自己的桩</text>
+
+  <rect x="62" y="146" width="286" height="88" rx="8" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="76" y="168" font-size="11.5" font-weight="bold" fill="#e65100">表面症状</text>
+  <text x="76" y="188" font-size="11" fill="#8d6e63">健康检查「全绿」，829 个通过</text>
+  <text x="76" y="208" font-size="11" fill="#8d6e63">没人怀疑过这个数字</text>
+  <text x="76" y="226" font-size="11" fill="#8d6e63">它成了后续决策的地基</text>
+
+  <rect x="360" y="146" width="286" height="88" rx="8" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="374" y="168" font-size="11.5" font-weight="bold" fill="#e65100">根因</text>
+  <text x="374" y="188" font-size="11" fill="#8d6e63">两个渲染函数在生产里是死代码，</text>
+  <text x="374" y="208" font-size="11" fill="#8d6e63">唯一的引用来自检查脚本把它们</text>
+  <text x="374" y="226" font-size="11" font-weight="bold" fill="#b71c1c">monkeypatch 成测量桩 —— 从没真调</text>
+
+  <rect x="658" y="146" width="280" height="88" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="672" y="168" font-size="11.5" font-weight="bold" fill="#b71c1c">更妙的一层</text>
+  <text x="672" y="188" font-size="11" fill="#c62828">静态审查本身也没看出来：</text>
+  <text x="672" y="208" font-size="11" fill="#c62828">它看不到「工具已经坏了」，</text>
+  <text x="672" y="226" font-size="11" fill="#c62828">跑一次真实仪器才看得到</text>
+
+  <!-- 测试类 -->
+  <rect x="40" y="260" width="920" height="164" rx="12" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="62" y="288" font-size="14.5" font-weight="bold" fill="#0d47a1">第二类 · 测试在撒谎</text>
+  <text x="62" y="308" font-size="11" fill="#64b5f6">绿的真正原因是断言没跑，或者补丁没生效</text>
+
+  <rect x="62" y="322" width="286" height="88" rx="8" fill="#ffffff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="76" y="344" font-size="11.5" font-weight="bold" fill="#0d47a1">断言根本没跑</text>
+  <text x="76" y="364" font-size="11" fill="#1565c0">33 条安全断言在 Windows 上</text>
+  <text x="76" y="384" font-size="11" fill="#1565c0">因为无符号链接支持被整批跳过</text>
+  <text x="76" y="402" font-size="11" font-weight="bold" fill="#0d47a1">修法：跳过时说清「本机没跑」</text>
+
+  <rect x="360" y="322" width="286" height="88" rx="8" fill="#ffffff" stroke="#1976d2" stroke-width="2"/>
+  <text x="374" y="344" font-size="11.5" font-weight="bold" fill="#0d47a1">补丁没生效（最漂亮的一个）</text>
+  <text x="374" y="364" font-size="11" fill="#1565c0">测试用 from-import 导入函数，</text>
+  <text x="374" y="384" font-size="11" fill="#1565c0">于是替换模块属性是个空操作 ——</text>
+  <text x="374" y="402" font-size="11" font-weight="bold" fill="#b71c1c">测的是原函数，绿得毫无意义</text>
+
+  <rect x="658" y="322" width="280" height="88" rx="8" fill="#ffffff" stroke="#90caf9" stroke-width="1.8"/>
+  <text x="672" y="344" font-size="11.5" font-weight="bold" fill="#0d47a1">还有反向的</text>
+  <text x="672" y="364" font-size="11" fill="#1565c0">假红也出现过：测试断言原始</text>
+  <text x="672" y="384" font-size="11" fill="#1565c0">JSON 文本，被转义符搞出误报</text>
+  <text x="672" y="402" font-size="11" fill="#1565c0">修法：按语义解析 JSON</text>
+
+  <!-- 口径类 -->
+  <rect x="40" y="436" width="920" height="164" rx="12" fill="#ffebee" stroke="#e53935" stroke-width="2.5"/>
+  <text x="62" y="464" font-size="14.5" font-weight="bold" fill="#b71c1c">第三类 · 口径在撒谎</text>
+  <text x="62" y="484" font-size="11" fill="#ef9a9a">数字是真的，但这个数字测的不是你以为的那件事</text>
+
+  <rect x="62" y="498" width="286" height="88" rx="8" fill="#ffffff" stroke="#e53935" stroke-width="2"/>
+  <text x="76" y="520" font-size="11.5" font-weight="bold" fill="#b71c1c">水位线是个计费假象</text>
+  <text x="76" y="540" font-size="11" fill="#c62828">用了「累计计费输入」当水位 ——</text>
+  <text x="76" y="560" font-size="11" fill="#c62828">而它每一步都把整个 prompt 重算一遍</text>
+  <text x="76" y="578" font-size="11" font-weight="bold" fill="#b71c1c">虚高 19 倍（真 30K / 账 585K）</text>
+
+  <rect x="360" y="498" width="286" height="88" rx="8" fill="#ffffff" stroke="#e53935" stroke-width="1.8"/>
+  <text x="374" y="520" font-size="11.5" font-weight="bold" fill="#b71c1c">连带一个解析坑</text>
+  <text x="374" y="540" font-size="11" fill="#c62828">上下文数值带千位分隔符（129,611），</text>
+  <text x="374" y="560" font-size="11" fill="#c62828">转整数前得先去掉逗号</text>
+  <text x="374" y="578" font-size="11" fill="#c62828">这种坑不报错，只是把数字算错</text>
+
+  <rect x="658" y="498" width="280" height="88" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="672" y="520" font-size="11.5" font-weight="bold" fill="#1b5e20">怎么发现的</text>
+  <text x="672" y="540" font-size="11" fill="#2e7d32">一个设计决策是照着这个错数字</text>
+  <text x="672" y="560" font-size="11" fill="#2e7d32">做的。换成窗口占用率口径后，</text>
+  <text x="672" y="578" font-size="11" font-weight="bold" fill="#1b5e20">那个决策得重做一遍</text>
+
+  <!-- 环境类 -->
+  <rect x="40" y="612" width="920" height="152" rx="12" fill="#eceff1" stroke="#90a4ae" stroke-width="2.5"/>
+  <text x="62" y="640" font-size="14.5" font-weight="bold" fill="#37474f">第四类 · 环境在撒谎</text>
+  <text x="62" y="660" font-size="11" fill="#78909c">跑起来是真的，但跑的地方和你以为的不是一个地方</text>
+
+  <rect x="62" y="674" width="286" height="76" rx="8" fill="#ffffff" stroke="#b0bec5" stroke-width="1.8"/>
+  <text x="76" y="696" font-size="11.5" font-weight="bold" fill="#37474f">基线跑在别的端点上</text>
+  <text x="76" y="716" font-size="11" fill="#546e7a">命中率好到在那个假设下不可能</text>
+  <text x="76" y="736" font-size="11" fill="#546e7a">当天的配置已经找不回来了</text>
+
+  <rect x="360" y="674" width="286" height="76" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="374" y="696" font-size="11.5" font-weight="bold" fill="#e65100">但结论被部分救回了</text>
+  <text x="374" y="716" font-size="11" fill="#8d6e63">后续探针发现 TTL 比假设的更长</text>
+  <text x="374" y="736" font-size="11" fill="#8d6e63">「不同端点」降级为「待验证」</text>
+
+  <rect x="658" y="674" width="280" height="76" rx="8" fill="#ffffff" stroke="#b0bec5" stroke-width="1.8"/>
+  <text x="672" y="696" font-size="11.5" font-weight="bold" fill="#37474f">还有进程组的连带</text>
+  <text x="672" y="716" font-size="11" fill="#546e7a">控制台终止杀掉全部后台子进程，</text>
+  <text x="672" y="736" font-size="11" fill="#546e7a">一个子任务的账本因此永久丢失</text>
+</svg>

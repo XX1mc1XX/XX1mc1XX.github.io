@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000" height="700" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="700" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">三条直觉，三次被账本推翻</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">每一条当时听起来都对 —— 每一条都在 task.json 的逐轮账本上翻了车</text>
+
+  <!-- 三条直觉 -->
+  <rect x="40" y="86" width="920" height="252" rx="12" fill="#f7f7f7" stroke="#e0e0e0" stroke-width="1.5"/>
+
+  <!-- 1 -->
+  <rect x="62" y="104" width="288" height="216" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="206" y="132" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1b5e20">① 「截断省 token」</text>
+
+  <rect x="82" y="146" width="248" height="42" rx="6" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.6"/>
+  <text x="96" y="164" font-size="11.5" font-weight="bold" fill="#1b5e20">当时的想法</text>
+  <text x="96" y="181" font-size="11" fill="#2e7d32">少发点原文，省点钱</text>
+
+  <rect x="82" y="196" width="248" height="66" rx="6" fill="#ffffff" stroke="#388e3c" stroke-width="1.8"/>
+  <text x="96" y="216" font-size="11.5" font-weight="bold" fill="#1b5e20">账本说的</text>
+  <text x="96" y="236" font-size="11" fill="#2e7d32">截断的那一次：11 万 token</text>
+  <text x="96" y="253" font-size="11" font-weight="bold" fill="#c62828">烧掉了，编辑数 0</text>
+
+  <rect x="82" y="270" width="248" height="40" rx="6" fill="#c8e6c9" stroke="#388e3c" stroke-width="1.6"/>
+  <text x="96" y="288" font-size="11" fill="#1b5e20">不是更贵，是活没干 ——</text>
+  <text x="96" y="303" font-size="11" font-weight="bold" fill="#1b5e20">推翻它的理由是产出为零</text>
+
+  <!-- 2 -->
+  <rect x="364" y="104" width="288" height="216" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="508" y="132" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#0d47a1">② 「命中率至上」</text>
+
+  <rect x="384" y="146" width="248" height="42" rx="6" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="398" y="164" font-size="11.5" font-weight="bold" fill="#0d47a1">当时的想法</text>
+  <text x="398" y="181" font-size="11" fill="#1565c0">命中率越高越省钱</text>
+
+  <rect x="384" y="196" width="248" height="66" rx="6" fill="#ffffff" stroke="#1976d2" stroke-width="1.8"/>
+  <text x="398" y="216" font-size="11.5" font-weight="bold" fill="#0d47a1">账本说的</text>
+  <text x="398" y="236" font-size="11" fill="#1565c0">99.3% 命中 → 等效 5K</text>
+  <text x="398" y="253" font-size="11" font-weight="bold" fill="#c62828">96.4% 命中 → 等效 118K</text>
+
+  <rect x="384" y="270" width="248" height="40" rx="6" fill="#bbdefb" stroke="#1976d2" stroke-width="1.6"/>
+  <text x="398" y="288" font-size="11" fill="#0d47a1">只低 2.9 个百分点，</text>
+  <text x="398" y="303" font-size="11" font-weight="bold" fill="#0d47a1">贵了二十多倍</text>
+
+  <!-- 3 -->
+  <rect x="666" y="104" width="272" height="216" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="802" y="132" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#e65100">③ 「每轮必整理」</text>
+
+  <rect x="686" y="146" width="232" height="42" rx="6" fill="#ffffff" stroke="#fdd835" stroke-width="1.6"/>
+  <text x="700" y="164" font-size="11.5" font-weight="bold" fill="#e65100">当时的想法</text>
+  <text x="700" y="181" font-size="11" fill="#8d6e63">每轮收拾干净，越用越轻</text>
+
+  <rect x="686" y="196" width="232" height="66" rx="6" fill="#ffffff" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="700" y="216" font-size="11.5" font-weight="bold" fill="#e65100">账本说的</text>
+  <text x="700" y="236" font-size="11" fill="#8d6e63">14 轮整理花了 9.8 万 token</text>
+  <text x="700" y="253" font-size="11" font-weight="bold" fill="#c62828">第 2 轮：整理 3118 &gt; 干活 2816</text>
+
+  <rect x="686" y="270" width="232" height="40" rx="6" fill="#fffde7" stroke="#f9a825" stroke-width="1.6"/>
+  <text x="700" y="288" font-size="11" fill="#8d6e63">含整理开销后，</text>
+  <text x="700" y="303" font-size="11" font-weight="bold" fill="#e65100">优势被打回 1.00×</text>
+
+  <!-- 第四个：多 agent -->
+  <rect x="40" y="356" width="920" height="120" rx="10" fill="#ffebee" stroke="#e53935" stroke-width="2.5"/>
+  <text x="60" y="384" font-size="14" font-weight="bold" fill="#b71c1c">顺带的第四个：多 Agent 不是更慢，是更贵</text>
+
+  <rect x="60" y="398" width="290" height="62" rx="7" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.6"/>
+  <text x="74" y="420" font-size="11.5" font-weight="bold" fill="#b71c1c">墙钟：108 分 vs 116 分</text>
+  <text x="74" y="440" font-size="11" fill="#c62828">差 7%，在噪声内 —— 文档写的是「≈持平」</text>
+  <text x="74" y="455" font-size="11" fill="#c62828">写成「更慢」就是夸大事实</text>
+
+  <rect x="366" y="398" width="290" height="62" rx="7" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.6"/>
+  <text x="380" y="420" font-size="11.5" font-weight="bold" fill="#b71c1c">等效输入：+4.6×</text>
+  <text x="380" y="440" font-size="11" fill="#c62828">三个并行子 agent 换来零墙钟收益，</text>
+  <text x="380" y="455" font-size="11" fill="#c62828">但贵了 4.6 倍</text>
+
+  <rect x="672" y="398" width="266" height="62" rx="7" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.6"/>
+  <text x="686" y="420" font-size="11.5" font-weight="bold" fill="#b71c1c">现金：+2.4×</text>
+  <text x="686" y="440" font-size="11" fill="#c62828">观感分 0 对 1 —— 两边都不可玩，</text>
+  <text x="686" y="455" font-size="11" fill="#c62828">质量差异在噪声里</text>
+
+  <!-- 尺子 -->
+  <rect x="40" y="496" width="920" height="186" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="60" y="524" font-size="14" font-weight="bold" fill="#37474f">这三条为什么能被推翻：账本在逐轮落盘</text>
+
+  <rect x="60" y="538" width="286" height="52" rx="7" fill="#ffffff" stroke="#b0bec5" stroke-width="1.6"/>
+  <text x="74" y="558" font-size="11.5" font-weight="bold" fill="#37474f">不是靠事后回忆</text>
+  <text x="74" y="577" font-size="11" fill="#546e7a">每一轮的 token、命中、步数当场落盘</text>
+
+  <rect x="358" y="538" width="286" height="52" rx="7" fill="#ffffff" stroke="#b0bec5" stroke-width="1.6"/>
+  <text x="372" y="558" font-size="11.5" font-weight="bold" fill="#37474f">实测值，不是估算值</text>
+  <text x="372" y="577" font-size="11" fill="#546e7a">11 万、9.8 万、4.6× 都来自真实会话</text>
+
+  <rect x="656" y="538" width="282" height="52" rx="7" fill="#ffffff" stroke="#b0bec5" stroke-width="1.6"/>
+  <text x="670" y="558" font-size="11.5" font-weight="bold" fill="#37474f">推翻结论的是方向一致性</text>
+  <text x="670" y="577" font-size="11" fill="#546e7a">三代机制在同一任务上同向，不是显著性</text>
+
+  <rect x="60" y="604" width="878" height="62" rx="7" fill="#fff8e1" stroke="#f9a825" stroke-width="2"/>
+  <text x="76" y="626" font-size="12.5" font-weight="bold" fill="#e65100">诚实声明：n=1，模型输出有非确定性</text>
+  <text x="76" y="648" font-size="11.5" fill="#8d6e63">这些实验都是单次跑、无重复。结论的强度来自三代机制在同一任务上的方向一致性，而非统计显著性 —— 这句话原文就写在文档里，不是我们事后加的免责。</text>
+</svg>

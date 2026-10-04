@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 800" width="1000" height="800" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="800" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">四代上下文模型：每一代都死在同一个形状上</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">不是流水账 —— 每一代都压成一次选择：当时以为、实测、以及为什么删</text>
+
+  <!-- V1 -->
+  <rect x="40" y="84" width="920" height="146" rx="12" fill="#eceff1" stroke="#90a4ae" stroke-width="2.5"/>
+  <text x="62" y="112" font-size="14.5" font-weight="bold" fill="#37474f">V1 · 四轮 A/B：窗口 + 降档 + 每轮整理</text>
+  <rect x="470" y="96" width="72" height="22" rx="5" fill="#cfd8dc" stroke="#90a4ae" stroke-width="1.4"/>
+  <text x="506" y="112" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#546e7a">已淘汰</text>
+
+  <rect x="62" y="126" width="286" height="90" rx="8" fill="#ffffff" stroke="#b0bec5" stroke-width="1.6"/>
+  <text x="76" y="148" font-size="11.5" font-weight="bold" fill="#37474f">当时以为</text>
+  <text x="76" y="168" font-size="11" fill="#546e7a">输入省 32.7%，总成本就省下来了</text>
+  <text x="76" y="188" font-size="11" fill="#546e7a">整理消耗另算，不影响结论</text>
+  <text x="76" y="206" font-size="11" fill="#546e7a">同步整理不拖慢速度</text>
+
+  <rect x="360" y="126" width="286" height="90" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="374" y="148" font-size="11.5" font-weight="bold" fill="#e65100">实测</text>
+  <text x="374" y="168" font-size="11" fill="#8d6e63">输入省了 32.7%，总成本只省 7.2%</text>
+  <text x="374" y="188" font-size="11" fill="#8d6e63">延迟变成 2.25 倍（整理同步阻塞）</text>
+  <text x="374" y="206" font-size="11" fill="#8d6e63">轮摘要要求「既详细又短」——自相矛盾</text>
+
+  <rect x="658" y="126" width="280" height="90" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="672" y="148" font-size="11.5" font-weight="bold" fill="#1b5e20">活下来的</text>
+  <text x="672" y="168" font-size="11" fill="#2e7d32">四段生命周期的拆分：</text>
+  <text x="672" y="188" font-size="11" font-family="Consolas, monospace" fill="#2e7d32">History / Organization</text>
+  <text x="672" y="205" font-size="11" font-family="Consolas, monospace" fill="#2e7d32">Assembly / Expansion</text>
+
+  <!-- V2 -->
+  <rect x="40" y="242" width="920" height="146" rx="12" fill="#eceff1" stroke="#90a4ae" stroke-width="2.5"/>
+  <text x="62" y="270" font-size="14.5" font-weight="bold" fill="#37474f">V2 · 轮内免折 + 三档滑动窗口 + 异步整理</text>
+  <rect x="490" y="254" width="72" height="22" rx="5" fill="#cfd8dc" stroke="#90a4ae" stroke-width="1.4"/>
+  <text x="526" y="270" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#546e7a">已淘汰</text>
+
+  <rect x="62" y="284" width="286" height="90" rx="8" fill="#ffffff" stroke="#b0bec5" stroke-width="1.6"/>
+  <text x="76" y="306" font-size="11.5" font-weight="bold" fill="#37474f">当时以为</text>
+  <text x="76" y="326" font-size="11" fill="#546e7a">滑动窗口能控制基座体积</text>
+  <text x="76" y="346" font-size="11" fill="#546e7a">整理异步化就解决了延迟</text>
+  <text x="76" y="364" font-size="11" fill="#546e7a">截断结果能防止上下文过载</text>
+
+  <rect x="360" y="284" width="286" height="90" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="2.2"/>
+  <text x="374" y="306" font-size="11.5" font-weight="bold" fill="#b71c1c">实测</text>
+  <text x="374" y="326" font-size="11" fill="#c62828">窗口每轮在装配中部改写历史，</text>
+  <text x="374" y="346" font-size="11" font-weight="bold" fill="#b71c1c">命中率 83.7% → 49.9%</text>
+  <text x="374" y="366" font-size="11" fill="#c62828">2KB 截断造成重读风暴（同文件 39 次）</text>
+
+  <rect x="658" y="284" width="280" height="90" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="672" y="306" font-size="11.5" font-weight="bold" fill="#1b5e20">活下来的</text>
+  <text x="672" y="326" font-size="11" fill="#2e7d32">执行期零截断</text>
+  <text x="672" y="346" font-size="11" fill="#2e7d32">历史不可变</text>
+  <text x="672" y="366" font-size="11" fill="#2e7d32">窗口占用率口径（修掉计费假象）</text>
+
+  <!-- V3 -->
+  <rect x="40" y="400" width="920" height="146" rx="12" fill="#eceff1" stroke="#90a4ae" stroke-width="2.5"/>
+  <text x="62" y="428" font-size="14.5" font-weight="bold" fill="#37474f">V3 · 水位触发批量整理 + 文件地图 + 锚点自愈</text>
+  <rect x="506" y="412" width="72" height="22" rx="5" fill="#cfd8dc" stroke="#90a4ae" stroke-width="1.4"/>
+  <text x="542" y="428" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#546e7a">已淘汰</text>
+
+  <rect x="62" y="442" width="286" height="90" rx="8" fill="#ffffff" stroke="#b0bec5" stroke-width="1.6"/>
+  <text x="76" y="464" font-size="11.5" font-weight="bold" fill="#37474f">当时以为</text>
+  <text x="76" y="484" font-size="11" fill="#546e7a">优化对象该从命中率换成基座</text>
+  <text x="76" y="504" font-size="11" fill="#546e7a">水位触发就能让轻场景零整理成本</text>
+  <text x="76" y="522" font-size="11" fill="#546e7a">把提醒挪到绝对末尾不破缓存</text>
+
+  <rect x="360" y="442" width="286" height="90" rx="8" fill="#fff8e1" stroke="#f9a825" stroke-width="1.8"/>
+  <text x="374" y="464" font-size="11.5" font-weight="bold" fill="#e65100">实测</text>
+  <text x="374" y="484" font-size="11" fill="#8d6e63">这三条都对，且都活进了 V4</text>
+  <text x="374" y="504" font-size="11" fill="#8d6e63">但整理产出被「按域重组历史」消费掉，</text>
+  <text x="374" y="522" font-size="11" fill="#8d6e63">域归属始终没机械化 → 引出下一代的死因</text>
+
+  <rect x="658" y="442" width="280" height="90" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="672" y="464" font-size="11.5" font-weight="bold" fill="#1b5e20">活下来的</text>
+  <text x="672" y="484" font-size="11" fill="#2e7d32">基座是税基，命中率是折扣</text>
+  <text x="672" y="504" font-size="11" fill="#2e7d32">水位 → V4 的折档线</text>
+  <text x="672" y="522" font-size="11" fill="#2e7d32">文件地图 → V4 的执行者索引</text>
+
+  <!-- V4 -->
+  <rect x="40" y="558" width="920" height="146" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="3"/>
+  <text x="62" y="586" font-size="14.5" font-weight="bold" fill="#1b5e20">V4 · 取消重组：一份共享叙事 + 文件是唯一归属</text>
+  <rect x="392" y="570" width="60" height="22" rx="5" fill="#c8e6c9" stroke="#388e3c" stroke-width="1.4"/>
+  <text x="422" y="586" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1b5e20">现状</text>
+
+  <rect x="62" y="600" width="286" height="90" rx="8" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.6"/>
+  <text x="76" y="622" font-size="11.5" font-weight="bold" fill="#1b5e20">要解决的问题</text>
+  <text x="76" y="642" font-size="11" fill="#2e7d32">V3 有「两个真相源」：</text>
+  <text x="76" y="662" font-size="11" fill="#2e7d32">语义树说的和机械判据链算的不一致</text>
+  <text x="76" y="680" font-size="11" fill="#2e7d32">表现是「结构树没问题，上下文不对」</text>
+
+  <rect x="360" y="600" width="286" height="90" rx="8" fill="#ffffff" stroke="#388e3c" stroke-width="2"/>
+  <text x="374" y="622" font-size="11.5" font-weight="bold" fill="#1b5e20">最大的一处转向</text>
+  <text x="374" y="642" font-size="11" fill="#2e7d32">六个可复现的失败都指向同一件事：</text>
+  <text x="374" y="662" font-size="11" fill="#2e7d32">纯粹因为要给每个域重新切一份历史</text>
+  <text x="374" y="680" font-size="11" font-weight="bold" fill="#1b5e20">→ 取消重组</text>
+
+  <rect x="658" y="600" width="280" height="90" rx="8" fill="#fffde7" stroke="#fdd835" stroke-width="1.8"/>
+  <text x="672" y="622" font-size="11.5" font-weight="bold" fill="#795548">换来两条机械保证</text>
+  <text x="672" y="642" font-size="11" fill="#8d6e63">文件是唯一归属，按路径绑定</text>
+  <text x="672" y="662" font-size="11" fill="#8d6e63">公共历史 = 主 agent 的历史</text>
+  <text x="672" y="680" font-size="11" fill="#8d6e63">（不再造第二个真相源）</text>
+
+  <!-- 底部 -->
+  <rect x="40" y="718" width="920" height="68" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="60" y="744" font-size="12.5" font-weight="bold" fill="#0d47a1">同一个形状反复出现：每一代都是因为「多维护了一份派生的历史」而死</text>
+  <text x="60" y="768" font-size="11.5" fill="#1565c0">V1 的轮摘要、V2 的滑动窗口、V3 的按域重组 —— 三次都在同一处绊倒。V4 的做法是把派生那份取消掉，只留一份真实历史。</text>
+</svg>

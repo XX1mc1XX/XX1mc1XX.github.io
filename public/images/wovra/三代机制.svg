@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 760" width="1000" height="760" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aG" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#388e3c"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="760" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">同一个文件，三代机制：39 → 11 → 3 次读取</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">同一句输入、同一份 42KB 材料，各跑一次 —— 便宜的失败与昂贵的成功</text>
+
+  <!-- 三代 -->
+  <rect x="40" y="84" width="290" height="290" rx="12" fill="#ffebee" stroke="#e53935" stroke-width="2.5"/>
+  <text x="185" y="112" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#b71c1c">第一代 · 轮内折叠</text>
+  <text x="185" y="134" text-anchor="middle" font-size="11" fill="#ef9a9a">读过的内容当场折成一行的索引</text>
+
+  <rect x="60" y="150" width="250" height="50" rx="7" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.6"/>
+  <text x="74" y="170" font-size="11" fill="#c62828">折叠 → 失忆 → 重读</text>
+  <text x="74" y="190" font-size="11" fill="#c62828">同一段范围被反复读回来</text>
+
+  <rect x="60" y="210" width="250" height="72" rx="7" fill="#ffffff" stroke="#e53935" stroke-width="2"/>
+  <text x="74" y="232" font-size="11.5" font-weight="bold" fill="#b71c1c">39 次读取</text>
+  <text x="74" y="252" font-size="11" fill="#c62828">区间大量重叠：</text>
+  <text x="74" y="269" font-size="10.5" font-family="Consolas, monospace" fill="#c62828">694-1003 → 700-769 → 864-1003</text>
+
+  <rect x="60" y="292" width="250" height="62" rx="7" fill="#ffcdd2" stroke="#e53935" stroke-width="2.2"/>
+  <text x="74" y="314" font-size="11.5" font-weight="bold" fill="#b71c1c">撞上步数上限</text>
+  <text x="74" y="334" font-size="11" fill="#c62828">只落地 3 处编辑就断了</text>
+
+  <!-- 第二代 -->
+  <rect x="355" y="84" width="290" height="290" rx="12" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="500" y="112" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#e65100">第二代 · 不折叠 + 2KB 截断</text>
+  <text x="500" y="134" text-anchor="middle" font-size="11" fill="#a1887f">读得到，但每次只给前 2000 字符</text>
+
+  <rect x="375" y="150" width="250" height="50" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="1.6"/>
+  <text x="389" y="170" font-size="11" fill="#8d6e63">「一个 2000 字符的锁孔」</text>
+  <text x="389" y="190" font-size="11" fill="#8d6e63">42KB 材料一寸一寸地读</text>
+
+  <rect x="375" y="210" width="250" height="72" rx="7" fill="#ffffff" stroke="#f9a825" stroke-width="2"/>
+  <text x="389" y="232" font-size="11.5" font-weight="bold" fill="#e65100">11 次读取</text>
+  <text x="389" y="252" font-size="11" fill="#8d6e63">区间不重叠了，但每段都残缺</text>
+  <text x="389" y="269" font-size="11" font-weight="bold" fill="#b71c1c">0 次调用「展开原文」</text>
+
+  <rect x="375" y="292" width="250" height="62" rx="7" fill="#ffcdd2" stroke="#e53935" stroke-width="2.2"/>
+  <text x="389" y="314" font-size="11.5" font-weight="bold" fill="#b71c1c">烧掉 11 万 token</text>
+  <text x="389" y="334" font-size="11" fill="#c62828">编辑数 0，被用户中断</text>
+
+  <!-- 第三代 -->
+  <rect x="670" y="84" width="290" height="290" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="3"/>
+  <text x="815" y="112" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1b5e20">第三代 · 零截断</text>
+  <text x="815" y="134" text-anchor="middle" font-size="11" fill="#66bb6a">执行期一个字都不省</text>
+
+  <rect x="690" y="150" width="250" height="50" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.6"/>
+  <text x="704" y="170" font-size="11" fill="#2e7d32">配上窗口下限与文件地图</text>
+  <text x="704" y="190" font-size="11" fill="#2e7d32">一次就把该看的看全</text>
+
+  <rect x="690" y="210" width="250" height="72" rx="7" fill="#ffffff" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="704" y="232" font-size="11.5" font-weight="bold" fill="#1b5e20">3 次读取 —— 理论最小值</text>
+  <text x="704" y="252" font-size="10.5" font-family="Consolas, monospace" fill="#2e7d32">(1-400)(401-800)(801-1134)</text>
+  <text x="704" y="269" font-size="11" fill="#2e7d32">没有一步花在「找回本该在眼前的东西」</text>
+
+  <rect x="690" y="292" width="250" height="62" rx="7" fill="#c8e6c9" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="704" y="314" font-size="11.5" font-weight="bold" fill="#1b5e20">一轮完成，6 组功能</text>
+  <text x="704" y="334" font-size="11" fill="#2e7d32">改 18 处、跑 2 次</text>
+
+  <!-- 便宜 vs 贵 -->
+  <text x="60" y="410" font-size="14.5" font-weight="bold" fill="#37474f">账本把「便宜」和「贵」两个词对调了</text>
+
+  <rect x="60" y="426" width="426" height="150" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="80" y="454" font-size="13" font-weight="bold" fill="#e65100">看似便宜的那次（第二代）</text>
+  <text x="80" y="478" font-size="11.5" fill="#8d6e63">名义 110,080 token · 命中 87.3%</text>
+  <text x="80" y="500" font-size="11.5" fill="#8d6e63">等效折算后 ≈ 16,675</text>
+  <rect x="80" y="514" width="386" height="48" rx="7" fill="#ffcdd2" stroke="#e53935" stroke-width="2.2"/>
+  <text x="273" y="536" text-anchor="middle" font-size="13" font-weight="bold" fill="#b71c1c">产出：0 处编辑</text>
+  <text x="273" y="554" text-anchor="middle" font-size="11" fill="#c62828">等效数字更低，但活一点没干</text>
+
+  <rect x="514" y="426" width="426" height="150" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="534" y="454" font-size="13" font-weight="bold" fill="#1b5e20">看似昂贵的那次（第三代）</text>
+  <text x="534" y="478" font-size="11.5" fill="#2e7d32">名义 374,732 token · 命中 89.8%</text>
+  <text x="534" y="500" font-size="11.5" fill="#2e7d32">等效折算后 ≈ 45,612</text>
+  <rect x="534" y="514" width="386" height="48" rx="7" fill="#c8e6c9" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="727" y="536" text-anchor="middle" font-size="13" font-weight="bold" fill="#1b5e20">产出：任务完成</text>
+  <text x="727" y="554" text-anchor="middle" font-size="11" fill="#2e7d32">纯追加的事件流正合前缀缓存的脾气</text>
+
+  <!-- 结论 -->
+  <rect x="60" y="596" width="880" height="142" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="80" y="624" font-size="14" font-weight="bold" fill="#0d47a1">所以推翻截断的理由，不是「它更贵」</text>
+
+  <rect x="80" y="638" width="420" height="82" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="94" y="660" font-size="11.5" fill="#1565c0">第二代的等效输入其实比第三代更低。</text>
+  <text x="94" y="680" font-size="11.5" fill="#1565c0">如果只看成本，它甚至更划算。</text>
+  <text x="94" y="702" font-size="11.5" font-weight="bold" fill="#0d47a1">写「截断更贵」就跟账本对不上了。</text>
+
+  <rect x="520" y="638" width="400" height="82" rx="7" fill="#ffffff" stroke="#388e3c" stroke-width="2"/>
+  <text x="534" y="660" font-size="11.5" font-weight="bold" fill="#1b5e20">推掉它的是产出为零：钱花了，活没干。</text>
+  <text x="534" y="680" font-size="11.5" fill="#2e7d32">零截断让单轮名义 token 涨到 37 万，</text>
+  <text x="534" y="702" font-size="11.5" fill="#2e7d32">但追加结构把 89.8% 折回来 —— 机制自己付了这笔账。</text>
+</svg>
