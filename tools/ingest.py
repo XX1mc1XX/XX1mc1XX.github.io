@@ -55,17 +55,23 @@ def headers(env, ctype='application/json; charset=utf-8'):
 
 
 def chunk_text(body, title):
-    """按空行切段并合并。返回 [(序号, 文本)]。"""
+    """按空行切段并合并。返回 [(序号, 文本)]。
+
+    行尾先统一成 LF：草稿在 Windows 上是 CRLF，正文到这儿可能是 \\r\\n\\r\\n，
+    而切段只认 \\n\\n —— 不归一化的话整篇会被当成一段（块数变成 1），
+    单块还会撑爆 embed 的输入长度限制。
+    """
+    body = body.replace('\r\n', '\n').replace('\r', '\n')
     paras = [p.strip() for p in body.split('\n\n') if p.strip()]
 
     chunks, buf = [], ''
     for p in paras:
-        # 单段就超长（比如一大张代码块），自己独立成块
+        # 单段就超长（比如一大张代码块或表格），按上限硬切
         if len(p) >= CHUNK_CHARS:
             if buf:
                 chunks.append(buf)
                 buf = ''
-            chunks.append(p)
+            chunks.extend(p[i:i + CHUNK_CHARS] for i in range(0, len(p), CHUNK_CHARS))
             continue
         if buf and len(buf) + len(p) + 2 > CHUNK_CHARS:
             chunks.append(buf)
