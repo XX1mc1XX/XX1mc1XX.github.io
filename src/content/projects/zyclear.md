@@ -214,5 +214,14 @@ CI 即在**缺失厂商 SDK 的降级配置**下构建并跑通全部测试。
 
 ## 相关文章
 
-- [换相机品牌只改一处注册：工业相机客户端的分层怎么拆](/blog/camera-client-architecture/)
+这套客户端怎么从零搭起来，写成了一个系列。第一篇先立规矩，后面每篇拆一块：
+
+- [先给它画一道墙：六层依赖与能 grep 验证的规则](/blog/zyclear-layered-architecture/) —— 三条约束可以当场敲命令验证
+- [契约先行：17 个纯虚方法能覆盖一台相机的全部吗](/blog/zyclear-camera-contract/) —— 契约定错，所有实现都得打补丁
+- [工厂与适配器：换品牌为什么只改一处](/blog/zyclear-factory-adapter/) —— 含三个能编译通过但行为错的缺陷
+- [多机寻址：用序列号当一切的主键](/blog/zyclear-multi-camera/) —— 索引描述的是位置，不是身份
+
+另有两篇专题：
+
+- [换相机品牌只改一行注册：工业相机客户端的分层怎么拆](/blog/camera-client-architecture/)
 - [让大模型操作工业相机：工具怎么设计、循环跑在哪个线程](/blog/camera-ai-integration/)
