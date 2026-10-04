@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" width="1000" height="640" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aG" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#388e3c"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="640" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">委托的三步交接：一个单元格是怎么长出来的</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">模型只管存数据，视图只管画格子，控件由委托现场造 —— 三件事各归各的</text>
+
+  <!-- 三个角色 -->
+  <rect x="60" y="92" width="280" height="180" rx="12" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="200" y="122" text-anchor="middle" font-size="15" font-weight="bold" fill="#0d47a1">① 模型 CameraParamModel</text>
+  <text x="200" y="146" text-anchor="middle" font-size="11.5" fill="#64b5f6">只管存 —— 参数树、当前值</text>
+
+  <rect x="82" y="166" width="236" height="88" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="96" y="190" font-size="11.5" font-family="Consolas, monospace" fill="#1565c0">data(index, role)</text>
+  <text x="96" y="212" font-size="11.5" font-family="Consolas, monospace" fill="#1565c0">setData(index, value)</text>
+  <text x="96" y="238" font-size="11" fill="#64b5f6">不知道界面上长什么样</text>
+
+  <rect x="360" y="92" width="280" height="180" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="500" y="122" text-anchor="middle" font-size="15" font-weight="bold" fill="#1b5e20">② 视图 QTreeView</text>
+  <text x="500" y="146" text-anchor="middle" font-size="11.5" fill="#66bb6a">只管画 —— 格子、展开折叠</text>
+
+  <rect x="382" y="166" width="236" height="88" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.6"/>
+  <text x="396" y="190" font-size="11.5" fill="#2e7d32">向模型要数据来画</text>
+  <text x="396" y="212" font-size="11.5" fill="#2e7d32">要造控件时问委托</text>
+  <text x="396" y="238" font-size="11" fill="#66bb6a">不知道数据是什么类型</text>
+
+  <rect x="660" y="92" width="280" height="180" rx="12" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="800" y="122" text-anchor="middle" font-size="15" font-weight="bold" fill="#e65100">③ 委托 CameraParamDelegate</text>
+  <text x="800" y="146" text-anchor="middle" font-size="11.5" fill="#a1887f">只管造控件、管编辑</text>
+
+  <rect x="682" y="166" width="236" height="88" rx="7" fill="#ffffff" stroke="#fdd835" stroke-width="1.6"/>
+  <text x="696" y="190" font-size="11.5" font-family="Consolas, monospace" fill="#e65100">createWidget(…)</text>
+  <text x="696" y="212" font-size="11.5" font-family="Consolas, monospace" fill="#e65100">setEditorData(…)</text>
+  <text x="696" y="238" font-size="11" fill="#a1887f">按 type 分派 → 六类控件</text>
+
+  <!-- 三步流程 -->
+  <text x="60" y="316" font-size="14.5" font-weight="bold" fill="#37474f">三步交接（双击一个参数项开始）</text>
+
+  <!-- 第一步 -->
+  <rect x="60" y="336" width="276" height="96" rx="9" fill="#ffffff" stroke="#1976d2" stroke-width="2"/>
+  <text x="76" y="362" font-size="13" font-weight="bold" fill="#0d47a1">第一步 · 造什么控件</text>
+  <text x="76" y="384" font-size="11.5" fill="#546e7a">视图问委托：这个 index 该用什么</text>
+  <text x="76" y="402" font-size="11.5" fill="#546e7a">控件？委托看 type()，六个分支</text>
+  <text x="76" y="422" font-size="11" font-family="Consolas, monospace" fill="#64b5f6">createWidget → new 一个控件</text>
+
+  <line x1="336" y1="384" x2="368" y2="384" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- 第二步 -->
+  <rect x="372" y="336" width="256" height="96" rx="9" fill="#ffffff" stroke="#1976d2" stroke-width="2"/>
+  <text x="388" y="362" font-size="13" font-weight="bold" fill="#0d47a1">第二步 · 填上当前值</text>
+  <text x="388" y="384" font-size="11.5" fill="#546e7a">控件刚 new 出来是空的，</text>
+  <text x="388" y="402" font-size="11.5" fill="#546e7a">得从模型把值搬进来</text>
+  <text x="388" y="422" font-size="11" font-family="Consolas, monospace" fill="#64b5f6">setEditorData → 填值</text>
+
+  <line x1="628" y1="384" x2="660" y2="384" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- 第三步 -->
+  <rect x="664" y="336" width="276" height="96" rx="9" fill="#ffffff" stroke="#388e3c" stroke-width="2.2"/>
+  <text x="680" y="362" font-size="13" font-weight="bold" fill="#1b5e20">第三步 · 用户改完写回去</text>
+  <text x="680" y="384" font-size="11.5" fill="#546e7a">用户敲完，控件把新值交回</text>
+  <text x="680" y="402" font-size="11.5" fill="#546e7a">委托，委托写进模型</text>
+  <text x="680" y="422" font-size="11" font-family="Consolas, monospace" fill="#2e7d32">setModelData → 写回</text>
+
+  <!-- 三个坑 -->
+  <rect x="60" y="460" width="880" height="164" rx="10" fill="#ffebee" stroke="#e53935" stroke-width="2.5"/>
+  <text x="80" y="486" font-size="13.5" font-weight="bold" fill="#b71c1c">这三步上踩到的三个坑</text>
+
+  <rect x="80" y="500" width="276" height="110" rx="7" fill="#ffffff" stroke="#e53935" stroke-width="1.6"/>
+  <text x="94" y="522" font-size="12" font-weight="bold" fill="#b71c1c">① 枚举写回的是下标</text>
+  <text x="94" y="544" font-size="11" fill="#c62828">取值取自下拉框的 position，</text>
+  <text x="94" y="561" font-size="11" fill="#c62828">不是相机侧的编码表。两者只在</text>
+  <text x="94" y="578" font-size="11" fill="#c62828">编码连续时才相等 —— 落盘的</text>
+  <text x="94" y="595" font-size="11" font-weight="bold" fill="#b71c1c">选项是错的，界面还显示正常</text>
+
+  <rect x="372" y="500" width="256" height="110" rx="7" fill="#ffffff" stroke="#e53935" stroke-width="1.6"/>
+  <text x="386" y="522" font-size="12" font-weight="bold" fill="#b71c1c">② 索引没防</text>
+  <text x="386" y="544" font-size="11" fill="#c62828">无效索引经 getItem() 回落到</text>
+  <text x="386" y="561" font-size="11" fill="#c62828">根节点，结果把根写坏了；</text>
+  <text x="386" y="578" font-size="11" fill="#c62828">空选择走到 QList::first()</text>
+  <text x="386" y="595" font-size="11" font-weight="bold" fill="#b71c1c">一个坑，两个入口</text>
+
+  <rect x="644" y="500" width="276" height="110" rx="7" fill="#ffffff" stroke="#e53935" stroke-width="1.6"/>
+  <text x="658" y="522" font-size="12" font-weight="bold" fill="#b71c1c">③ setParam 的信号回环</text>
+  <text x="658" y="544" font-size="11" fill="#c62828">控件改了 → 发信号 → 又走一遍</text>
+  <text x="658" y="561" font-size="11" fill="#c62828">setParam → 再发信号…</text>
+  <text x="658" y="578" font-size="11" fill="#c62828">得在写回前把信号断开，</text>
+  <text x="658" y="595" font-size="11" font-weight="bold" fill="#b71c1c">否则栈就溢出了</text>
+</svg>

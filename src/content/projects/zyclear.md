@@ -214,14 +214,30 @@ CI 即在**缺失厂商 SDK 的降级配置**下构建并跑通全部测试。
 
 ## 相关文章
 
-这套客户端怎么从零搭起来，写成了一个系列。第一篇先立规矩，后面每篇拆一块：
+这套客户端怎么从零搭起来，写成了十一篇的系列。前四篇立规矩，中间六篇拆机制，最后一篇讲怎么在没有相机的机器上验证这一切：
+
+**一、先把墙立起来**
 
 - [先给它画一道墙：六层依赖与能 grep 验证的规则](/blog/zyclear-layered-architecture/) —— 三条约束可以当场敲命令验证
 - [契约先行：17 个纯虚方法能覆盖一台相机的全部吗](/blog/zyclear-camera-contract/) —— 契约定错，所有实现都得打补丁
 - [工厂与适配器：换品牌为什么只改一处](/blog/zyclear-factory-adapter/) —— 含三个能编译通过但行为错的缺陷
 - [多机寻址：用序列号当一切的主键](/blog/zyclear-multi-camera/) —— 索引描述的是位置，不是身份
 
+**二、墙里塞的是什么**
+
+- [六种参数压成一个外观类](/blog/zyclear-param-model/) —— 类型判断从编译期挪到运行期，换来了调用点只写一遍
+- [加型号不编译不发版：参数变成配置资产](/blog/zyclear-schema-driven-ui/) —— 也把编译期错误换成了运行期错误
+- [面板怎么长出控件：Model-View-Delegate 与六类编辑控件](/blog/zyclear-panel-mvd/) —— 三步交接上的三个坑
+- [一帧图像的四级异步：从 SDK 回调到界面渲染](/blog/zyclear-image-pipeline/) —— 归还的那一行必须在深拷贝之后
+- [面板之间不说话：事件总线与组合值那个坑](/blog/zyclear-event-bus/) —— 注册按位拆开，通知却整键查找
+- [外挂一个面板：插件契约与 ABI 的代价](/blog/zyclear-plugin-system/) —— 契约只有两个 C 符号，代价紧随其后
+
+**三、怎么证明它能用**
+
+- [构建与测试：怎么在没有相机的机器上把 CI 跑起来](/blog/zyclear-build-and-test/) —— 让「缺 SDK 的降级路径」成为每次推送都走一遍的常态
+
 另有两篇专题：
 
 - [换相机品牌只改一行注册：工业相机客户端的分层怎么拆](/blog/camera-client-architecture/)
 - [让大模型操作工业相机：工具怎么设计、循环跑在哪个线程](/blog/camera-ai-integration/)
+

@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000" height="700" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aO" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#f9a825"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="700" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">六种类型，压进一个外观类</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">界面只认 CameraParam 这一个类型 —— 底下是六种，上面看到的是一种</text>
+
+  <!-- 左：六种类型 -->
+  <text x="60" y="100" font-size="14" font-weight="bold" fill="#37474f">六种参数类型（各自字段不同）</text>
+
+  <rect x="60" y="118" width="200" height="76" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="76" y="142" font-size="13" font-weight="bold" fill="#0d47a1">INT</text>
+  <text x="76" y="164" font-size="11" font-family="Consolas, monospace" fill="#1565c0">value / min / max</text>
+  <text x="76" y="182" font-size="11" font-family="Consolas, monospace" fill="#1565c0">/ increment</text>
+
+  <rect x="274" y="118" width="200" height="76" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="290" y="142" font-size="13" font-weight="bold" fill="#0d47a1">DOUBLE</text>
+  <text x="290" y="164" font-size="11" font-family="Consolas, monospace" fill="#1565c0">value / min / max</text>
+
+  <rect x="488" y="118" width="200" height="76" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="504" y="142" font-size="13" font-weight="bold" fill="#1b5e20">ENUM</text>
+  <text x="504" y="164" font-size="11" font-family="Consolas, monospace" fill="#2e7d32">value / availableValue</text>
+  <text x="504" y="182" font-size="11" font-family="Consolas, monospace" fill="#2e7d32">/ valueInt / availableInt</text>
+
+  <rect x="702" y="118" width="238" height="76" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="718" y="142" font-size="13" font-weight="bold" fill="#0d47a1">BOOL</text>
+  <text x="718" y="164" font-size="11" font-family="Consolas, monospace" fill="#1565c0">value</text>
+
+  <rect x="60" y="208" width="200" height="76" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="76" y="232" font-size="13" font-weight="bold" fill="#0d47a1">STRING</text>
+  <text x="76" y="254" font-size="11" font-family="Consolas, monospace" fill="#1565c0">value / nMaxLength</text>
+
+  <rect x="274" y="208" width="200" height="76" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="290" y="232" font-size="13" font-weight="bold" fill="#37474f">CMD</text>
+  <text x="290" y="254" font-size="11" fill="#78909c">没有字段 —— 它是个动作</text>
+  <text x="290" y="272" font-size="11" fill="#90a4ae">不是值</text>
+
+  <!-- 汇流 -->
+  <path d="M 480 316 L 500 316 L 500 348" fill="none" stroke="#546e7a" stroke-width="2"/>
+  <path d="M 160 284 L 160 316" fill="none" stroke="#546e7a" stroke-width="2"/>
+  <path d="M 374 284 L 374 316" fill="none" stroke="#546e7a" stroke-width="2"/>
+  <path d="M 588 194 L 588 316" fill="none" stroke="#546e7a" stroke-width="2"/>
+  <path d="M 821 194 L 821 316" fill="none" stroke="#546e7a" stroke-width="2"/>
+  <line x1="160" y1="316" x2="821" y2="316" stroke="#546e7a" stroke-width="2"/>
+  <line x1="500" y1="316" x2="500" y2="352" stroke="#546e7a" stroke-width="2.5" marker-end="url(#a)"/>
+
+  <!-- 中间：外观类 -->
+  <rect x="250" y="358" width="500" height="168" rx="12" fill="#fff8e1" stroke="#f9a825" stroke-width="3"/>
+  <text x="500" y="388" text-anchor="middle" font-size="16" font-weight="bold" fill="#e65100">CameraParam（外观类）</text>
+  <text x="500" y="410" text-anchor="middle" font-size="11.5" fill="#a1887f">界面只跟这一个类打交道</text>
+
+  <rect x="274" y="426" width="452" height="34" rx="6" fill="#ffffff" stroke="#f9a825" stroke-width="1.6"/>
+  <text x="288" y="448" font-size="11.5" font-family="Consolas, monospace" fill="#8d6e63">name / type / accessMode / tips  ← 共同的骨架</text>
+
+  <rect x="274" y="468" width="218" height="42" rx="6" fill="#ffffff" stroke="#fdd835" stroke-width="1.6"/>
+  <text x="288" y="488" font-size="11" fill="#8d6e63">value 一个 QVariant 装住</text>
+  <text x="288" y="504" font-size="10.5" fill="#a1887f">不管底下是 int 还是结构体</text>
+
+  <rect x="508" y="468" width="218" height="42" rx="6" fill="#ffffff" stroke="#fdd835" stroke-width="1.6"/>
+  <text x="522" y="488" font-size="11" fill="#8d6e63">六个具体结构体是成员</text>
+  <text x="522" y="504" font-size="10.5" fill="#a1887f">按 type 取用哪一个</text>
+
+  <!-- 箭头到界面 -->
+  <line x1="500" y1="526" x2="500" y2="562" stroke="#f9a825" stroke-width="3" marker-end="url(#aO)"/>
+  <text x="520" y="550" font-size="11.5" fill="#8d6e63">界面只调 value() 和 type()</text>
+
+  <rect x="250" y="556" width="500" height="72" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2.5"/>
+  <text x="500" y="584" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#0d47a1">参数面板 / 编辑器 / AI 工具 —— 同一套代码认所有品牌</text>
+  <text x="500" y="610" text-anchor="middle" font-size="11.5" fill="#1565c0">换一家相机，这里一行不用改</text>
+
+  <!-- 右侧注记 -->
+  <rect x="770" y="358" width="180" height="270" rx="10" fill="#eceff1" stroke="#90a4ae" stroke-width="1.8"/>
+  <text x="860" y="386" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#37474f">为什么不拆成六个类</text>
+
+  <text x="788" y="414" font-size="11.5" font-weight="bold" fill="#1b5e20">六个具体类 + 一个基类</text>
+  <text x="788" y="434" font-size="11" fill="#546e7a">界面拿到基类指针，得先</text>
+  <text x="788" y="450" font-size="11" fill="#546e7a">dynamic_cast 才知道是谁</text>
+  <text x="788" y="470" font-size="11" font-weight="bold" fill="#c62828">每个调用点都要判断类型</text>
+
+  <line x1="788" y1="486" x2="932" y2="486" stroke="#b0bec5" stroke-width="1.5" stroke-dasharray="5 4"/>
+
+  <text x="788" y="510" font-size="11.5" font-weight="bold" fill="#1b5e20">一个外观 + 六种结构体</text>
+  <text x="788" y="530" font-size="11" fill="#546e7a">type() 告诉你是哪一种，</text>
+  <text x="788" y="546" font-size="11" fill="#546e7a">value() 直接给值</text>
+  <text x="788" y="566" font-size="11" font-weight="bold" fill="#1b5e20">调用点只写一遍</text>
+
+  <text x="788" y="596" font-size="11" fill="#78909c">代价：类型判断从编译期</text>
+  <text x="788" y="612" font-size="11" fill="#78909c">挪到了运行期</text>
+</svg>

@@ -34,3 +34,6 @@ drafts/
 # Python 缓存（tools/ 下有脚本）
 __pycache__/
 *.pyc
+
+# SVG 渲染预览图（下划线前缀，只作本地视觉检查用）
+public/images/**/_*.png

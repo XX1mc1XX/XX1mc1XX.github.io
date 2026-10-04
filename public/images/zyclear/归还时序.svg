@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000" height="700" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="11" markerHeight="11" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L10,3.5 z" fill="#546e7a"/>
+    </marker>
+    <marker id="aG" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#388e3c"/>
+    </marker>
+    <marker id="aR" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="700" fill="#fafafa"/>
+
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a1a">归还的那一行，必须在深拷贝之后</text>
+  <text x="500" y="56" text-anchor="middle" font-size="12.5" fill="#666">同一块像素缓冲，同一时刻只能有一个所有者 —— 这个约束的落点就是代码里的行序</text>
+
+  <!-- 正确的顺序 -->
+  <rect x="40" y="88" width="580" height="300" rx="12" fill="#e8f5e9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="60" y="116" font-size="14.5" font-weight="bold" fill="#1b5e20">正确的顺序（现在代码里就是这么写的）</text>
+
+  <rect x="64" y="134" width="532" height="52" rx="7" fill="#ffffff" stroke="#a5d6a7" stroke-width="1.8"/>
+  <text x="80" y="156" font-size="12" font-family="Consolas, monospace" fill="#1b5e20">cv::Mat cvImage = m_cameraContext-&gt;getImageLast();</text>
+  <text x="80" y="176" font-size="11" fill="#66bb6a">拿到的是一个「借用的头部」—— 像素还在池子那块内存里</text>
+
+  <line x1="330" y1="186" x2="330" y2="206" stroke="#546e7a" stroke-width="2.2" marker-end="url(#a)"/>
+
+  <rect x="64" y="210" width="532" height="64" rx="7" fill="#c8e6c9" stroke="#388e3c" stroke-width="2.5"/>
+  <text x="80" y="234" font-size="12.5" font-family="Consolas, monospace" font-weight="bold" fill="#1b5e20">QImage img = cvMat2QImage(cvImage);</text>
+  <text x="80" y="256" font-size="11" fill="#2e7d32">默认 clone=true → 这是一次真正的深拷贝，图像数据离开池子，归 QImage 自己</text>
+  <text x="80" y="272" font-size="11" font-weight="bold" fill="#1b5e20">↑ 像素从此有了第二个安全副本</text>
+
+  <line x1="330" y1="274" x2="330" y2="294" stroke="#388e3c" stroke-width="2.5" marker-end="url(#aG)"/>
+
+  <rect x="64" y="298" width="532" height="64" rx="7" fill="#ffffff" stroke="#388e3c" stroke-width="2"/>
+  <text x="80" y="322" font-size="12.5" font-family="Consolas, monospace" font-weight="bold" fill="#1b5e20">m_cameraContext-&gt;Recycle(cvImage);   // ← 下一行才还</text>
+  <text x="80" y="344" font-size="11" fill="#2e7d32">还回空闲池，这块内存随时可能被下一帧 Put 覆盖 —— 但 QImage 已经不怕了</text>
+
+  <text x="60" y="380" font-size="11.5" fill="#66bb6a">借出的是头部的使用许可，还回的也是头部 —— 像素自始至终没搬过家</text>
+
+  <!-- 错误的顺序 -->
+  <rect x="640" y="88" width="320" height="300" rx="12" fill="#ffebee" stroke="#e53935" stroke-width="2.5"/>
+  <text x="660" y="116" font-size="14.5" font-weight="bold" fill="#b71c1c">把两行调换会怎样</text>
+
+  <rect x="664" y="134" width="272" height="52" rx="7" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.8"/>
+  <text x="680" y="156" font-size="11.5" font-family="Consolas, monospace" fill="#c62828">Recycle(cvImage);  // 先还了</text>
+  <text x="680" y="176" font-size="11" fill="#ef9a9a">此刻 pool 认为这块没人用</text>
+
+  <line x1="800" y1="186" x2="800" y2="206" stroke="#c62828" stroke-width="2.2" marker-end="url(#aR)"/>
+
+  <rect x="664" y="210" width="272" height="64" rx="7" fill="#ffffff" stroke="#ef9a9a" stroke-width="1.8"/>
+  <text x="680" y="234" font-size="11.5" font-family="Consolas, monospace" fill="#c62828">QImage img = cvMat2QImage(</text>
+  <text x="680" y="252" font-size="11.5" font-family="Consolas, monospace" fill="#c62828">    cvImage, false);  // clone=false</text>
+  <text x="680" y="270" font-size="11" fill="#ef9a9a">只是借 QImage，不拷</text>
+
+  <line x1="800" y1="274" x2="800" y2="294" stroke="#c62828" stroke-width="2.5" marker-end="url(#aR)"/>
+
+  <rect x="664" y="298" width="272" height="64" rx="7" fill="#ffcdd2" stroke="#e53935" stroke-width="2.5"/>
+  <text x="680" y="322" font-size="12" font-weight="bold" fill="#b71c1c">下一帧 Put 写进同一块内存</text>
+  <text x="680" y="344" font-size="11" fill="#c62828">显示控件读到的像素正在被改写 → 画面撕裂、偶发花屏</text>
+
+  <text x="660" y="380" font-size="11.5" font-weight="bold" fill="#b71c1c">而且这个 bug 是概率性的，压测才容易复现</text>
+
+  <!-- 底部：两个契约 -->
+  <rect x="60" y="412" width="880" height="130" rx="10" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5"/>
+  <text x="80" y="440" font-size="14" font-weight="bold" fill="#e65100">cv::Mat → QImage 这座桥上，还有两条硬契约</text>
+
+  <rect x="80" y="454" width="410" height="76" rx="7" fill="#ffffff" stroke="#fdd835" stroke-width="1.8"/>
+  <text x="96" y="476" font-size="12.5" font-weight="bold" fill="#e65100">① 必须把 mat.step 一起传进去</text>
+  <text x="96" y="498" font-size="11.5" fill="#8d6e63">OpenCV 的行间可能有对齐填充。自己按「宽 × 通道数」</text>
+  <text x="96" y="518" font-size="11.5" fill="#8d6e63">算行长，会整幅错位 —— 纯 C++ 数学直觉在这里会翻车</text>
+
+  <rect x="510" y="454" width="410" height="76" rx="7" fill="#ffffff" stroke="#fdd835" stroke-width="1.8"/>
+  <text x="526" y="476" font-size="12.5" font-weight="bold" fill="#e65100">② clone=false 就只是「借用」</text>
+  <text x="526" y="498" font-size="11.5" fill="#8d6e63">不做深拷贝，被借的一方必须活得更久、期间不能被改写</text>
+  <text x="526" y="518" font-size="11.5" font-weight="bold" fill="#c62828">所以默认值给的是 clone=true —— 这个默认是刻意选的</text>
+
+  <!-- 底部数据 -->
+  <rect x="60" y="562" width="880" height="112" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="80" y="590" font-size="14" font-weight="bold" fill="#0d47a1">这条链路上的两个常量</text>
+
+  <rect x="80" y="604" width="410" height="56" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="96" y="626" font-size="12.5" font-weight="bold" fill="#0d47a1">队列容量 = 10</text>
+  <text x="96" y="648" font-size="11.5" fill="#1565c0">满了就丢最旧一帧并回收它的缓冲 —— 保新弃旧</text>
+
+  <rect x="510" y="604" width="410" height="56" rx="7" fill="#ffffff" stroke="#90caf9" stroke-width="1.6"/>
+  <text x="526" y="626" font-size="12.5" font-weight="bold" fill="#0d47a1">取帧超时 = 200ms</text>
+  <text x="526" y="648" font-size="11.5" fill="#1565c0">这一个值同时决定了停止采集的最坏响应延迟</text>
+</svg>
