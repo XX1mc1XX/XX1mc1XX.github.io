@@ -950,3 +950,142 @@ html.sidebar-hidden .agent-panel {
 		white-space: nowrap;
 	}
 }
+
+/* ── 文章系列分组 ──────────────────────────────────────────
+   和 .cards 一样用「1px 缝隙 + 边框色当分隔线」的做法，
+   但每组不再是一个大方框：组标题在框外，列表项之间靠边框色分隔。 */
+.series-list {
+	display: grid;
+	gap: 2.2rem;
+}
+
+.series__head {
+	margin-bottom: 0.6rem;
+}
+
+.series__title-row {
+	display: flex;
+	align-items: baseline;
+	gap: 0.7rem;
+	flex-wrap: wrap;
+}
+
+.series__name {
+	margin: 0;
+	font-family: var(--font-mono);
+	font-size: 1.15rem;
+	font-weight: 600;
+	color: var(--fg-strong);
+}
+
+.series__count {
+	font-family: var(--font-mono);
+	font-size: 0.78rem;
+	color: var(--fg-muted);
+	border: 1px solid var(--border);
+	padding: 0.05rem 0.4rem;
+}
+
+.series__project {
+	font-family: var(--font-mono);
+	font-size: 0.78rem;
+	color: var(--accent);
+	text-decoration: none;
+}
+
+.series__project:hover {
+	text-decoration: underline;
+}
+
+.series__tagline {
+	margin: 0.25rem 0 0;
+	font-size: 0.88rem;
+	color: var(--fg-muted);
+}
+
+.series__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--border);
+}
+
+.series__item + .series__item {
+	border-top: 1px solid var(--border);
+}
+
+.series__link {
+	position: relative;
+	display: block;
+	padding: 0.85rem 1.1rem;
+	color: inherit;
+	overflow: hidden;
+	transition: background-color 0.12s ease;
+}
+
+/* 与 .card 同款：悬停时左侧滑出一条 accent 竖线 */
+.series__link::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	background: var(--accent);
+	transform: scaleY(0);
+	transition: transform 0.15s ease;
+}
+
+.series__link:hover {
+	text-decoration: none;
+	background: var(--bg-hover);
+}
+
+.series__link:hover::after {
+	transform: scaleY(1);
+}
+
+.series__post-title {
+	display: block;
+	font-family: var(--font-mono);
+	font-size: 0.98rem;
+	font-weight: 600;
+	color: var(--fg-strong);
+}
+
+.series__post-desc {
+	display: block;
+	margin-top: 0.25rem;
+	font-size: 0.86rem;
+	line-height: 1.6;
+	color: var(--fg-muted);
+}
+
+.series__more,
+.more-link {
+	display: inline-block;
+	margin-top: 0.7rem;
+	font-family: var(--font-mono);
+	font-size: 0.85rem;
+	color: var(--accent);
+	text-decoration: none;
+}
+
+.series__more:hover,
+.more-link:hover {
+	text-decoration: underline;
+}
+
+/* 首页「文章」块底部的总入口 */
+.series-list > .more-link {
+	margin-top: 0;
+	padding-top: 1rem;
+	border-top: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+	.series__link {
+		padding: 0.75rem 0.85rem;
+	}
+}
+

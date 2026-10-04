@@ -38,3 +38,66 @@ export const site = {
 		stack: 'C++17 · Qt6 · OpenCV',
 	},
 };
+
+// 文章系列。首页与文章列表按这个分组，让访客一眼看到有哪几条完整的产出线——
+// 而不是一堆按时间平铺、看不出结构的单篇。
+// 未列进任何系列的 slug 自动落到「专题」组，所以以后加单篇不用改这里。
+export const series = [
+	{
+		id: 'zyclear',
+		name: 'ZyClear 智澈',
+		tagline: '跨品牌工业相机客户端：从零搭起六层架构',
+		project: '/projects/zyclear',
+		slugs: [
+			'zyclear-layered-architecture',
+			'zyclear-camera-contract',
+			'zyclear-factory-adapter',
+			'zyclear-multi-camera',
+			'zyclear-param-model',
+			'zyclear-schema-driven-ui',
+			'zyclear-panel-mvd',
+			'zyclear-image-pipeline',
+			'zyclear-event-bus',
+			'zyclear-plugin-system',
+			'zyclear-build-and-test',
+		],
+	},
+	{
+		id: 'agent4cpp',
+		name: 'agent4cpp',
+		tagline: '从零手写一个 Agent 框架：循环、工具、上下文',
+		project: '/projects/agent4cpp',
+		slugs: [
+			'agent-loop-from-scratch',
+			'agent-framework-skeleton',
+			'tool-calling-layer',
+			'llm-client-and-logging',
+			'knowledge-store-keyword-search',
+			'connect-real-device',
+			'cli-as-a-shell',
+			'testing-the-agent',
+		],
+	},
+	{
+		id: 'wovra',
+		name: 'Wovra',
+		tagline: '长时运行 Agent 运行时的设计复盘：被数据推翻的直觉',
+		project: '/projects/wovra',
+		slugs: [
+			'wovra-three-wrong-assumptions',
+			'wovra-cache-discount-tax-base',
+			'wovra-multi-agent-freeze',
+			'wovra-three-generations',
+			'wovra-context-v1-to-v4',
+			'wovra-engineering-pitfalls',
+		],
+	},
+];
+
+// 不属于上面任何系列的单篇落到这一组
+export const topicsGroup = {
+	id: 'topics',
+	name: '专题',
+	tagline: '单个问题的深入拆解',
+};
+

@@ -2,14 +2,18 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import PostCard from '../components/PostCard.astro';
+import SeriesGroup from '../components/SeriesGroup.astro';
 import { site } from '../site.config';
+import { groupBySeries } from '../utils/series';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 
 const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+const groups = groupBySeries(posts);
+const HOME_LIMIT = 6;
 ---
 
 <BaseLayout>
@@ -45,11 +49,24 @@ const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
 	</div>
 
 	<h2 class="section-title">文章</h2>
-	{posts.length > 0 ? (
-		<div class="cards">
-			{posts.slice(0, 3).map((post) => <PostCard post={post} />)}
-		</div>
-	) : (
-		<p class="empty">还没有文章。把 Markdown 放进 src/content/posts/ 就会出现。</p>
-	)}
+	{
+		groups.length > 0 ? (
+			<div class="series-list">
+				{groups.map((g) => (
+					<SeriesGroup
+						name={g.name}
+						tagline={g.tagline}
+						project={g.project}
+						posts={g.posts}
+						limit={HOME_LIMIT}
+					/>
+				))}
+				<a class="more-link" href="/blog/">
+					全部 {posts.length} 篇 →
+				</a>
+			</div>
+		) : (
+			<p class="empty">还没有文章。把 Markdown 放进 src/content/posts/ 就会出现。</p>
+		)
+	}
 </BaseLayout>

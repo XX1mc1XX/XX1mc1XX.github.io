@@ -1,0 +1,42 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+	name: string;
+	tagline: string;
+	project?: string;
+	posts: CollectionEntry<'posts'>[];
+	/** 只显示前几篇；不传就是全显示 */
+	limit?: number;
+}
+
+const { name, tagline, project, posts, limit } = Astro.props;
+const shown = limit ? posts.slice(0, limit) : posts;
+const hidden = posts.length - shown.length;
+---
+
+<section class="series">
+	<header class="series__head">
+		<div class="series__title-row">
+			<h3 class="series__name">{name}</h3>
+			<span class="series__count">{posts.length} 篇</span>
+			{project && <a class="series__project" href={project}>项目页 →</a>}
+		</div>
+		<p class="series__tagline">{tagline}</p>
+	</header>
+
+	<ol class="series__list">
+		{
+			shown.map((post) => (
+				<li class="series__item">
+					<a class="series__link" href={`/blog/${post.id}/`}>
+						<span class="series__post-title">{post.data.title}</span>
+						<span class="series__post-desc">{post.data.description}</span>
+					</a>
+				</li>
+			))
+		}
+	</ol>
+
+	{hidden > 0 && <a class="series__more" href="/blog">还有 {hidden} 篇 · 查看全部 →</a>}
+</section>
