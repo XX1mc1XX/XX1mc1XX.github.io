@@ -434,9 +434,9 @@ struct AgentConfig {
 
 ## 四个文件
 
-`Core` 模块落地下来是 4 个文件、166 行。这是整个项目里写的第一批代码。
+`Core` 模块落地下来是四个文件。这是整个项目里写的第一批代码，也是最干净的一批——后面的模块都从它这里借模式。
 
-### 文件 1：`include/agent4cpp/export.h`（18 行）
+### 文件 1：`include/agent4cpp/export.h`
 
 **它解决的问题**：本项目编译成 **DLL**（动态库）。DLL 有个规矩：
 
@@ -489,7 +489,7 @@ struct AgentConfig {
 class AGENT4CPP_API Status { ... };
 ```
 
-### 文件 2：`include/agent4cpp/status.h`（50 行）
+### 文件 2：`include/agent4cpp/status.h`
 
 一个枚举 + 一个类。结构如下：
 
@@ -558,7 +558,7 @@ class AGENT4CPP_API Status {
 
 **③ 只有 `message()` 返回 `const std::string&`**：因为 `message()` 是只读查询，没必要拷贝字符串；而 `ToString()` 要拼新字符串，返回 `std::string` 值。
 
-### 文件 3：`src/core/status.cpp`（81 行）
+### 文件 3：`src/core/status.cpp`
 
 结构如下：
 
@@ -624,7 +624,7 @@ return StatusCodeName(code_) + ": " + message_;   // "NOT_FOUND: 工具未注册
 
 `"字符串字面量" + std::string` 是可以的（`std::string` 提供了 `operator+`）。但反过来 `"字面量" + "字面量"` 不行——那是两个指针相加，编译错误。这里 `StatusCodeName()` 返回的是 `std::string`，所以在最左边，安全。
 
-### 文件 4：`include/agent4cpp/agent4cpp.h`（17 行）
+### 文件 4：`include/agent4cpp/agent4cpp.h`
 
 **伞形头文件（umbrella header）**：把项目所有公共头文件 include 一遍。
 

@@ -76,7 +76,7 @@ class MockLLMClient : public ILLMClient {
 
 ## 6 个测试各管一段
 
-6 个测试文件，加起来约 460 行，都放在 `tests/`。
+6 个测试文件都放在 `tests/`，每个管一段。
 
 | 测试 | 管哪一段 | 验证什么 |
 |---|---|---|
