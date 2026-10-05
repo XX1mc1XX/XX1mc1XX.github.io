@@ -12,9 +12,33 @@ interface Props {
 
 const WIDTH_KEY = 'agent-width';
 const OPEN_KEY = 'agent-open';
+// 旧键：老访客身上可能已经有它，读到就当「永久不再提示」，免得又被弹一次
 const HINT_KEY = 'agent-hint-seen';
+const HINT_FOREVER_KEY = 'agent-hint-forever';
+// 存的是日期字符串而不是布尔——「今日不再提示」第二天要自己失效
+const HINT_SNOOZE_KEY = 'agent-hint-snooze';
 // 面板最窄也要能放下输入框；往宽不设上限，可以一路拉到满屏
 const MIN_WIDTH = 300;
+
+function today() {
+	const d = new Date();
+	const pad = (n: number) => String(n).padStart(2, '0');
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// 本地存储可能被禁用（隐私模式），拿不到就当成「可以提示」，
+// 无非是多提示一遍，总比整个组件崩掉强
+function hintAllowed() {
+	try {
+		if (localStorage.getItem(HINT_FOREVER_KEY) === '1') return false;
+		if (localStorage.getItem(HINT_KEY) === 'seen') return false;
+		if (localStorage.getItem(HINT_SNOOZE_KEY) === today()) return false;
+		return true;
+	} catch {
+		return true;
+	}
+}
+
 
 export default function AgentDrawer({ articles }: Props) {
 	// 初始值直接读本地存储。放到 useEffect 里再读，首屏和水合后会差一帧，看着就是闪一下
@@ -40,8 +64,11 @@ export default function AgentDrawer({ articles }: Props) {
 	const [showDemo, setShowDemo] = useState(true);
 	const [error, setError] = useState('');
 	const [demoPlaying, setDemoPlaying] = useState(false);
-	// 首次访问时给一次提示，说来它到底能干什么。看过就记下来，不再打扰
+	// 首次访问时给一次提示，说来它到底能干什么。
+	// 关掉的方式有三种：看一遍就永久不再提示、勾「今日不再提示」、或点 × 只关这次
 	const [showHint, setShowHint] = useState(false);
+	// 气泡里的勾选状态，只有点「今日不再提示」时才会写进本地存储
+	const [snoozeChecked, setSnoozeChecked] = useState(false);
 
 	const listRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -74,22 +101,47 @@ export default function AgentDrawer({ articles }: Props) {
 
 	// 首次访问才弹一次提示。等页面稳下来再出现，一进来就冒出来太吵
 	useEffect(() => {
-		try {
-			if (localStorage.getItem(HINT_KEY) === 'seen') return;
-		} catch {
-			return;
-		}
-		const timer = setTimeout(() => setShowHint(true), 2600);
+		if (!hintAllowed()) return;
+		const timer = setTimeout(() => setShowHint(true), 2200);
 		return () => clearTimeout(timer);
 	}, []);
 
-	function dismissHint() {
-		setShowHint(false);
+	function writeHintFlag(key: string, value: string) {
 		try {
-			localStorage.setItem(HINT_KEY, 'seen');
+			localStorage.setItem(key, value);
 		} catch {
 			// 存不进去也无所谓，无非下次再多提示一遍
 		}
+	}
+
+	// 只关这一次：下次再进站还会提示
+	function closeHint() {
+		setShowHint(false);
+	}
+
+	// 勾了「今日不再提示」——存今天的日期，明天自然失效
+	function snoozeHintToday() {
+		setShowHint(false);
+		writeHintFlag(HINT_SNOOZE_KEY, today());
+	}
+
+	// 永久不再提示
+	function dismissHintForever() {
+		setShowHint(false);
+		writeHintFlag(HINT_FOREVER_KEY, '1');
+	}
+
+	// 点浮标 = 用户已经自己找到这个功能了，不用再提示
+	function openFromFab() {
+		setShowHint(false);
+		writeHintFlag(HINT_FOREVER_KEY, '1');
+		setOpen(true);
+	}
+
+	// 点 × ：勾了「今日不再提示」就顺带生效，没勾就只关这一次
+	function closeHintRespectingCheckbox() {
+		if (snoozeChecked) snoozeHintToday();
+		else closeHint();
 	}
 
 	// 页面上按 / 直接跳进来提问（ReadingTools 负责派发这个事件）
@@ -306,28 +358,60 @@ export default function AgentDrawer({ articles }: Props) {
 
 	return (
 		<>
-			<button
-				class="agent-fab"
-				type="button"
-				title="问 AI 助手"
-				onClick={() => {
-					dismissHint();
-					setOpen(true);
-				}}
-			>
+			<button class="agent-fab" type="button" title="问 AI 助手" onClick={openFromFab}>
 				<ChatMark />
 				<span class="agent-fab__label">问 AI</span>
 			</button>
 
 			{showHint && !open && (
-				<div class="agent-hint">
-					<button class="agent-hint__close" type="button" title="知道了" onClick={dismissHint}>
+				<div class="agent-hint" role="dialog" aria-label="问 AI 助手使用提示">
+					<button
+						class="agent-hint__close"
+						type="button"
+						title="关闭"
+						aria-label="关闭提示"
+						onClick={closeHintRespectingCheckbox}
+					>
 						×
 					</button>
-					它能读本站的文章，然后回答关于这些内容的问题。
-					<br />
-					<br />
-					点开先看一遍演示，不用填任何东西。
+
+					<div class="agent-hint__head">
+						<ChatMark />
+						<span class="agent-hint__title">问 AI 助手</span>
+					</div>
+
+					<p class="agent-hint__body">读本站文章回答问题。点开先看演示。</p>
+
+					<div class="agent-hint__actions">
+						<button
+							class="agent-hint__primary"
+							type="button"
+							onClick={() => {
+								dismissHintForever();
+								setOpen(true);
+							}}
+						>
+							试试看
+						</button>
+
+						<label class="agent-hint__check">
+							<input
+								type="checkbox"
+								checked={snoozeChecked}
+								onChange={(event) => {
+									const checked = (event.currentTarget as HTMLInputElement).checked;
+									setSnoozeChecked(checked);
+									// 勾上就立刻生效，不用再去找按钮
+									if (checked) snoozeHintToday();
+								}}
+							/>
+							<span>今日不再提示</span>
+						</label>
+					</div>
+
+					<button class="agent-hint__forever" type="button" onClick={dismissHintForever}>
+						永久不再提示
+					</button>
 				</div>
 			)}
 

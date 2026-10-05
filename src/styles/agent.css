@@ -27,36 +27,168 @@
 	transition: color 0.12s ease, border-color 0.12s ease, opacity 0.15s ease;
 }
 
-/* 首次访问的一次性提示，说清这东西能干什么。看过就再也不出现 */
+/* 首次访问的一次性提示气泡，指向右上角的浮标。
+   VS Code 的 coach mark 那种做法：3px 圆角、1px 细边、等宽标题、
+   自绘控件，靠层次而不是靠颜色块显得高级 */
 .agent-hint {
 	position: fixed;
-	top: calc(var(--tab-h) + 0.85rem + 34px + 0.6rem);
+	top: calc(var(--tab-h) + 0.85rem + 34px + 0.55rem);
 	right: 1.15rem;
 	z-index: 39;
-	width: 236px;
-	padding: 0.7rem 0.85rem;
+	width: 286px;
+	padding: 0.8rem 0.9rem 0;
 	background: var(--bg-elev);
 	border: 1px solid var(--border-mid);
 	border-radius: var(--radius);
 	font-size: 12.5px;
-	line-height: 1.65;
+	line-height: 1.6;
 	color: var(--fg-muted);
-	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.34);
-	animation: agent-hint-in 0.28s ease both;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.38);
+	animation: agent-hint-in 0.22s ease both;
 }
 
-/* 指向浮标的小三角 */
+.agent-hint__head {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin-bottom: 0.4rem;
+	color: var(--accent);
+}
+
+.agent-hint__title {
+	font-family: var(--font-mono);
+	font-size: 12.5px;
+	font-weight: 600;
+	color: var(--fg-strong);
+	letter-spacing: 0.01em;
+}
+
+.agent-hint__body {
+	margin: 0 0 0.8rem;
+}
+
+.agent-hint__actions {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+/* VS Code 的主按钮：实心 accent，悬停是变暗而不是变亮 */
+.agent-hint__primary {
+	padding: 0.28rem 0.8rem;
+	background: var(--accent);
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	color: #fff;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	line-height: 1.5;
+	cursor: pointer;
+	transition: background-color 0.1s ease;
+}
+
+.agent-hint__primary:hover {
+	background: var(--accent-soft);
+}
+
+.agent-hint__primary:focus-visible {
+	outline: 1px solid var(--fg-strong);
+	outline-offset: 1px;
+}
+
+.agent-hint__check {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-size: 12px;
+	color: var(--fg-muted);
+	cursor: pointer;
+	user-select: none;
+	transition: color 0.1s ease;
+}
+
+.agent-hint__check:hover {
+	color: var(--fg-strong);
+}
+
+/* 自绘成方角小方块：跟 VS Code 一致，不用系统那个圆角控件 */
+.agent-hint__check input {
+	appearance: none;
+	-webkit-appearance: none;
+	position: relative;
+	flex: none;
+	width: 14px;
+	height: 14px;
+	margin: 0;
+	background: var(--bg);
+	border: 1px solid var(--border-strong);
+	border-radius: 2px;
+	cursor: pointer;
+	transition: background-color 0.1s ease, border-color 0.1s ease;
+}
+
+.agent-hint__check input:hover {
+	border-color: var(--accent);
+}
+
+.agent-hint__check input:checked {
+	background: var(--accent);
+	border-color: var(--accent);
+}
+
+/* 对勾用两条边框旋转出来，省一个图标 */
+.agent-hint__check input:checked::after {
+	content: '';
+	position: absolute;
+	left: 4px;
+	top: 1px;
+	width: 3px;
+	height: 7px;
+	border: solid #fff;
+	border-width: 0 1.6px 1.6px 0;
+	transform: rotate(42deg);
+}
+
+.agent-hint__forever {
+	display: block;
+	width: calc(100% + 1.8rem);
+	margin: 0.75rem -0.9rem 0;
+	padding: 0.55rem 0.9rem;
+	background: none;
+	border: 0;
+	border-top: 1px solid var(--border-mid);
+	border-radius: 0 0 2px 2px;
+	color: var(--fg-dim);
+	font-family: var(--font-mono);
+	font-size: 11.5px;
+	text-align: left;
+	cursor: pointer;
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.agent-hint__forever:hover {
+	background: var(--bg-hover);
+	color: var(--fg-strong);
+}
+
+/* 指向浮标的小三角。right 要算着来：浮标右边缘距页边 1.15rem、宽约 100px，
+   中心大约在 68px 处，三角中心对齐它才不歪 */
 .agent-hint::before {
 	content: '';
 	position: absolute;
 	top: -5px;
-	right: 18px;
+	right: 45px;
 	width: 8px;
 	height: 8px;
 	background: var(--bg-elev);
 	border-top: 1px solid var(--border-mid);
 	border-left: 1px solid var(--border-mid);
 	transform: rotate(45deg);
+}
+
+/* 浅色下阴影要收着，同样的不透明度在白底上会显脏 */
+:root[data-theme="light"] .agent-hint {
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
 }
 
 .agent-hint__close {
