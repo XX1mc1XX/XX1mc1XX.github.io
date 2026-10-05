@@ -67,7 +67,7 @@ spdlog::level::level_enum ToSpdlogLevel(LogLevel level) {
 
 列举所有情况、不写 `default`、末尾兜底——漏了 case 编译器会警告。
 
-### 为什么用宏，不用普通函数
+### 1. 为什么用宏，不用普通函数
 
 ```cpp
 #define AGENT4CPP_LOG_INFO(message)                                      \
@@ -81,7 +81,7 @@ spdlog::level::level_enum ToSpdlogLevel(LogLevel level) {
 
 宏里有三个细节要注意：`::agent4cpp::` 前面那个 `::` 是从全局命名空间开始找，因为宏展开在用户的代码里，用户可能身处任意命名空间；`(message)` 外面套括号是防御性写法，万一传进来带逗号的表达式，不加括号会被宏的参数拆分搞错；反斜杠是对齐的续行符，除最后一行外每行都要有，且后面不能有空格。
 
-### 全局状态：log.cpp 里那三个 g_
+### 2. 全局状态：log.cpp 里那三个 g_
 
 ```cpp
 std::mutex g_log_mutex;                        // 锁
@@ -104,7 +104,7 @@ void SetLogLevel(LogLevel level) {
 
 日志操作很短（写一行文件），不需要提前解锁，`lock_guard` 足够。如果需要在中间手动解锁，那就得换成 `unique_lock`。
 
-### 日志写在哪：模块目录，不是工作目录
+### 3. 日志写在哪：模块目录，不是工作目录
 
 这是个我踩过的坑，结论是：日志必须写在"本模块（exe 或 dll）所在目录"，而不是当前工作目录。
 
@@ -160,7 +160,7 @@ return output.str();
 
 拼出来是 `20260924_153042_007`。用 `ostringstream` 而不是 `+`，是因为要拼数字（毫秒），`+` 处理不了，流可以自动处理各种类型。`setw(3)` + `setfill('0')` 让毫秒固定占 3 位，文件名长度一致、排序整齐。
 
-### 落盘时机：每条立刻 flush
+### 4. 落盘时机：每条立刻 flush
 
 造 logger 的时候有三个设置：
 
@@ -188,7 +188,7 @@ std::shared_ptr<spdlog::logger> CreateLogger(const std::filesystem::path& log_fi
 
 代价是频繁 IO，比攒批慢。但日志量不大（一轮对话几十条），可以接受。这是典型的"可靠性 vs 性能"取舍，而且这里的答案很明确：**日志的价值全在事后能查到，丢了就等于没写。**
 
-### 一个命名约定：Locked
+### 5. 一个命名约定：Locked
 
 ```cpp
 void EnsureLoggerLocked() {
@@ -244,7 +244,7 @@ void StartNewLogFile() {
 
 ## 三、模型接口：怎么抽象成可换的
 
-### 三种助手，一个插口
+### 1. 三种助手，一个插口
 
 想象你要雇一个助手，市面上有好几种：真助手（DeepSeek / OpenAI）联网、要钱、聪明、每次回答不一样；假助手（Mock）不联网、免费、按剧本演、回答固定；以后可能还有本地助手（比如 Ollama），跑在你自己电脑上。
 
@@ -288,7 +288,7 @@ agent.SetLLM(std::make_unique<OpenAICompatibleLLMClient>(config));
 
 大白话：插口是插座，实现类是各种电器。墙上那个插座不管你插的是台灯还是电风扇，它只提供电；至于插上去之后干什么，那是电器自己的事。同一行 `llm_->Chat(...)` 一个字没改，插进去谁就调谁，行为跟着实现类变——这叫多态。
 
-### 怎么写出这个插口
+### 2. 怎么写出这个插口
 
 ```cpp
 class AGENT4CPP_API ILLMClient {
@@ -324,7 +324,7 @@ virtual ~ILLMClient() = default;
 
 规则很简单：**只要一个类会被当基类用（有虚函数），析构函数就必须是虚的。** 忘了写不会编译报错，只会在运行时悄悄泄漏。
 
-### 几个工具类型
+### 3. 几个工具类型
 
 `std::optional` 用来表达"可能有，也可能没有"。消息里的"工具调用"字段大多数是没有的，用空字符串表达不明确（万一真的是空串呢），用 bool 标记又要同步维护两个字段。`std::optional<ToolCall>` 从类型上就说清了这件事：
 
@@ -347,7 +347,7 @@ ChatResponse Chat(const ChatRequest& request) override;
 
 作用就是告诉编译器"我这是在实现基类的那个纯虚函数"。假设你写错了签名（少个 `&`），没有 `override` 时编译器以为你定义了个新函数，基类的 `Chat` 还是纯虚的，你那个类依然不能实例化——报错信息很难懂。有 `override` 就会直接说"Chat 没有覆盖任何基类函数"。凡是覆盖基类的虚函数，都写上 `override`。
 
-### 六个角色
+### 4. 六个角色
 
 `llm_client.h` 里有六个类型：`ChatRole`（一条消息是谁说的）、`ToolCall`（助手说"我要调谁、传什么"）、`ChatMessage`（一条消息）、`ChatRequest`（一次请求）、`ChatResponse`（一次回复）、`ILLMClient`（那个统一插口）。
 
@@ -434,7 +434,7 @@ struct AGENT4CPP_API ChatResponse {
 
 `ILLMClient` 整个类只有两个成员，都跟实现无关：虚析构保证用基类指针删除对象时子类清理代码也会执行，`Chat` 规定"必须能收请求、返回回复"。接口里只有一个方法，够窄——窄的好处是实现它的门槛低，想接一个新的模型服务，只要实现一个 `Chat` 函数就行。
 
-### 假助手
+### 5. 假助手
 
 ```cpp
 class AGENT4CPP_API MockLLMClient : public ILLMClient {
@@ -489,7 +489,7 @@ EXPECT_EQ(mock.last_request().messages.size(), 3);
 
 ## 四、真把信寄出去：libcurl
 
-### 一封信要装什么
+### 1. 一封信要装什么
 
 发 HTTP 请求听着玄乎，其实就是四样东西：
 
@@ -506,7 +506,7 @@ struct HttpRequest {
 
 headers 用 `std::map` 存，因为头是"名字: 值"的键值对、可能有多个，方便按名字查和遍历。
 
-### 两个状态字段，最容易搞混
+### 2. 两个状态字段，最容易搞混
 
 ```cpp
 struct HttpResponse {
@@ -534,7 +534,7 @@ struct HttpResponse {
 
 排查时这么用：`status_code == 0` 说明问题在网络或证书，跟模型服务无关，该查 DNS、代理、防火墙、CA 证书；`status_code` 是 4xx/5xx 说明网络是通的，问题在请求本身或对方服务，去看 `body` 里的错误详情。搞混这两个，排查时就会找错方向——明明是自己 Key 写错了，却去查网络。
 
-### libcurl 的 API 为什么"原始"
+### 3. libcurl 的 API 为什么"原始"
 
 libcurl 是个用 C 写的网络传输库，`curl` 命令行工具就是它。它的用法是 C 风格的：
 
@@ -555,7 +555,7 @@ HttpResponse PostJson(const HttpRequest& request);
 
 使用者完全不用知道底下是 libcurl，哪天换成 WinHTTP，只要改这个 .cpp。
 
-### 回调："边收边给你"
+### 4. 回调："边收边给你"
 
 回信可能很大（模型返回的 JSON 有几 KB），libcurl 不是"收完了再给你"，而是"收到一块给你一块"：
 
@@ -572,7 +572,7 @@ size_t WriteBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
 
 `size * nmemb` 这么理解：libcurl 说"我给你 nmemb 个元素，每个 size 字节"。实际上几乎所有情况下 `size` 都是 1，但**不能假设**，规规矩矩相乘。`static_cast<std::string*>(userdata)` 是因为 `userdata` 是 `void*`，必须转回真实类型才能用——因为我们自己传的时候传的就是 `std::string*`，所以转回来安全。
 
-### 全局初始化用 RAII 管
+### 5. 全局初始化用 RAII 管
 
 `curl_global_init()` 和 `curl_global_cleanup()` 是整个程序一次的操作，不是每个请求一次。用一个结构体包起来，构造时初始化、析构时清理，就不会忘：
 
@@ -605,7 +605,7 @@ CurlApi* GetCurlApi() {
 
 对比常见的错误写法：全局静态变量 `static CurlApi g_api;` 的问题是跨编译单元的初始化顺序不保证。放进函数里，第一次调用时才构造，顺序完全可控。
 
-### 第三个插口
+### 6. 第三个插口
 
 ```cpp
 class AGENT4CPP_API IHttpClient {
@@ -630,7 +630,7 @@ class AGENT4CPP_API CurlHttpClient : public IHttpClient {
 
 两个语法点：`explicit` 禁止隐式转换，`CurlHttpClient c = config;` 编译不过，必须写 `CurlHttpClient c(config);`；`config = {}` 让参数可以省略，`CurlHttpClient client;` 就是默认配置。
 
-### PostJson 主流程
+### 7. PostJson 主流程
 
 ![libcurl 的七步流程](/images/agent4cpp/lesson08-curl流程.svg)
 
@@ -719,11 +719,11 @@ return HttpResponse{Status::Ok(), status_code, response_body};
 
 ## 五、从假助手切到真模型
 
-### 它是个翻译官
+### 1. 它是个翻译官
 
 出去把 C++ 翻译成 JSON，回来把 JSON 翻译成 C++。具体说，出去是把"用户的话 + 工具清单"打包成助手能读的东西寄出去；回来是把助手的话翻译回你的程序，并回答一个问题——它是想调工具，还是说完了？
 
-### 出去：每轮发两样东西
+### 2. 出去：每轮发两样东西
 
 ```cpp
 nlohmann::json body{
@@ -770,7 +770,7 @@ http_request.headers["x-opencode-session"] = RoutingSessionId();
 const HttpResponse http_response = http_client_->PostJson(http_request);
 ```
 
-### 回来：两种可能，都算成功
+### 3. 回来：两种可能，都算成功
 
 这是这一节最重要的一句话：
 
@@ -810,7 +810,7 @@ return ChatResponse{Status::Ok(), content, std::nullopt, reasoning};            
 
 `ParseToolCall()` 里有个值得知道的步骤：提前验证 `arguments` 是不是合法 JSON。模型偶尔会输出不合法的参数（截断的 JSON、或者直接给个数字），在源头验掉比执行时才炸好得多。验证失败也不抛出终止——返回错误状态，上层会回灌给模型让它自己改。
 
-### 实测
+### 4. 实测
 
 下面是 `lab_openai.exe` 打真实服务跑出来的完整往返——C++ 结构 → JSON → 网络 → JSON → C++ 结构：
 

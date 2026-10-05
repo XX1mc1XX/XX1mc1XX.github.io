@@ -1016,11 +1016,32 @@ html.sidebar-hidden .agent-panel {
 
 .series__link {
 	position: relative;
-	display: block;
+	display: grid;
+	grid-template-columns: 2.1rem 1fr;
+	gap: 0.55rem;
 	padding: 0.85rem 1.1rem;
 	color: inherit;
 	overflow: hidden;
 	transition: background-color 0.12s ease;
+}
+
+/* 系列内第几篇。等宽数字排左列，读者一眼能看出顺序和进度 */
+.series__num {
+	font-family: var(--font-mono);
+	font-size: 0.8rem;
+	line-height: 1.5;
+	color: var(--fg-dim);
+	padding-top: 0.12rem;
+	transition: color 0.12s ease;
+}
+
+.series__link:hover .series__num {
+	color: var(--accent);
+}
+
+/* 让长标题能在网格里正常换行，不被挤成竖排 */
+.series__text {
+	min-width: 0;
 }
 
 /* 与 .card 同款：悬停时左侧滑出一条 accent 竖线 */

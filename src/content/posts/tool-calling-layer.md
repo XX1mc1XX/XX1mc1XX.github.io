@@ -29,9 +29,9 @@ ToolResult tool_result = registry_->Call(tool_call.name, tool_call.arguments_jso
 
 下面按这个顺序走。
 
-## 用宏描述一个工具
+## 一、用宏描述一个工具
 
-### 为什么不手写 JSON
+### 1. 为什么不手写 JSON
 
 模型要知道"有哪些函数能调、每个函数要什么参数"，靠程序提前把函数描述成一段 JSON：
 
@@ -73,7 +73,7 @@ AGENT4CPP_REGISTER_FUNCTION(registry, set_exposure, "设置相机曝光时间。
 
 上面这几行同时做完三件事：**定义函数 + 描述参数 + 注册进工具箱**。
 
-### 四个核心类型
+### 2. 四个核心类型
 
 `tool.h` 的类型设计很简洁：四个 struct、一个 enum、一个类型别名。挑两个最关键的先说。
 
@@ -160,7 +160,7 @@ struct AGENT4CPP_API ToolParameter {
 
 `type = kString` 和 `required = true` 这两处默认值不是装饰。C++11 之前，`ToolParameter p;` 里的 `name` 会是空串（`std::string` 自己会初始化），但 `required` 会是**内存里的随机垃圾值**。加了默认成员初始化才有保证。
 
-### 五个宏
+### 3. 五个宏
 
 `tool.h` 有一半篇幅是宏。先看原项目那段英文注释，它是理解整套东西的钥匙：
 
@@ -295,7 +295,7 @@ AGENT4CPP_REGISTER_METHOD(registry, camera, setExposure, "设置相机曝光时�
 
 写这种多行宏有三条铁律：除最后一行外每行末尾都要有 `\`；`\` 后面**不能有空格**，否则续行失败、报一堆莫名其妙的错；`\` 尽量对齐在同一列。
 
-### 为什么不用"全局自动注册"
+### 4. 为什么不用"全局自动注册"
 
 很多框架会在启动时自动注册：定义一个全局对象，它的构造函数里往全局注册表塞。
 
@@ -322,7 +322,7 @@ int main() {
 
 顺序完全可控，没有全局状态，每个测试自己建一个干净的 registry。代价就是每个工具多写一行注册调用。显式优于隐式。
 
-## 参数 Schema 从哪来
+## 二、参数 Schema 从哪来
 
 `BuildOpenAIToolSchema` 就是那个翻译官：把 `ToolDefinition` 翻成 JSON。它的产物是模型唯一能看到的"工具清单"——这里少写一个字段，模型就永远发现不了那个工具。
 
@@ -451,7 +451,7 @@ schema
 
 `properties` 和 `required` 拼进去时用了 `std::move`——这俩盒子造完就没用了，搬进去省一次深拷贝。参数多的时候拷贝不便宜。**用完就没用的临时东西就用 move 搬**，这是全项目反复出现的习惯。
 
-## 参数进来先过一道安检
+## 三、参数进来先过一道安检
 
 模型回了 `{"exposure_us": "八千"}`——类型错了。校验这一层就在这种时候起作用：**不是报错终止，而是退回给模型让它自己改。**
 
@@ -469,7 +469,7 @@ schema
 
 这个"退回、让它自己改"的设计，是整个 Agent 系统能用的关键。如果直接报错终止对话，用户就得重新说一遍。
 
-### 唯一的爆破点
+### 1. 唯一的爆破点
 
 `nlohmann::json::parse()` 遇到坏文本会**抛异常**——这是库的固有行为，改不了。项目其他地方刻意不用异常，但这里必须处理。做法是把它关进一个门口，就地接住、转成普通的错误对象：
 
@@ -493,7 +493,7 @@ Status ParseArgumentsObject(const std::string& arguments_json,
 
 注意第二个参数是**指针**：函数的返回值被错误状态占用了，所以变出来的盒子只能通过这个参数送出去。
 
-### ValidateArguments
+### 2. ValidateArguments
 
 ```cpp
 Status ValidateArguments(const ToolDefinition& tool,
@@ -553,7 +553,7 @@ Status ValidateArguments(const ToolDefinition& tool,
 
 枚举为什么也用 `is_string()`？因为枚举在 JSON 里就是**文字**（类型是 `"string"`），只是额外限制了取值范围——那个限制单独一步查：`ContainsEnumValue` 核对这个值在不在允许的名单里。例如 `trigger_mode` 允许 `software` / `hardware`，模型传了 `continuous`——它是文字（类型这步通过），但不在名单里（这步抓住）。
 
-### 校验只管格式，不管业务
+### 3. 校验只管格式，不管业务
 
 校验层检查的是**格式**：能不能读、有没有少、类型对不对、选项对不对。**它不检查值在业务上合不合理。**
 
@@ -585,7 +585,7 @@ AGENT4CPP_TOOL(set_exposure, "设置相机曝光时间。") {
 
 这就是分层：通用设施管"格式对不对"，业务代码管"这件事合不合理"。很多项目把两层混着写，结果通用设施里塞满业务判断，换个项目就没法用了。
 
-## 参数怎么抄进 C++ 变量
+## 四、参数怎么抄进 C++ 变量
 
 参数是一整块 JSON，用某个值时得把它抄进 C++ 变量。六个 `GetRequiredXxx` 干这个。标准用法：
 
@@ -642,7 +642,7 @@ GetRequiredString(arguments_json, "label", &label);              // 解析第 3 
 
 同一块数据被拆了三遍。为什么还这么写？调用点最简洁——一行抄一个值，读起来最清楚；而拆包的开销相比后面跟模型通信的时间（几百毫秒起步）完全可以忽略。参数特别多的话，可以改成"拆一次包、让工具自己反复查"，那是个合理的优化方向。
 
-## 登记：Register
+## 五、登记：Register
 
 `ToolRegistry` 是仓库管理员：工具得有地方存、能按名字查、能执行。对外就三件事——登记（`Register`）、查（`ListTools` / `Find` / 清单生成）、执行（`Call`）。一个程序可能有多个仓库：一个 Agent 会话一个，或者一个设备一个，权限和生命周期都明确。
 
@@ -734,7 +734,7 @@ std::string ToolRegistry::ListToolSchemas() const {
 
 这里持锁执行了 `BuildOpenAIToolSchema`。判断标准不是"持锁时能不能执行代码"，而是"这段代码会不会慢、会不会回调"——它是本项目的纯计算函数，不回调 registry，微秒级，所以安全。不过这行有点绕：`BuildOpenAIToolSchema` 返回的是**字符串**，这里又 `parse` 回对象塞进数组，最后整体再 `dump` 一次——多了一次"字符串 → 对象"的无用转换。更好的设计是让它直接返回 json 对象，但它是对外 API，返回字符串对使用者更友好（不用暴露 nlohmann 类型），属于可接受的取舍。
 
-## 调度：Call
+## 六、调度：Call
 
 模型说"我要调 set_exposure，参数 8000"，Agent 就调 `registry.Call(...)`。这个函数分三步。
 
@@ -782,7 +782,7 @@ ToolResult ToolRegistry::Call(const std::string& name,
 | `catch (const std::exception& error)` | 标准异常，能用 `error.what()` 说出是什么错 |
 | `catch (...)` | **任何东西**——包括不是 `std::exception` 子类的（比如有人 `throw` 一个整数）。少这一层，那些异常就漏出去了 |
 
-### 为什么先拷贝、释放锁，再执行
+### 1. 为什么先拷贝、释放锁，再执行
 
 ![锁的边界](/images/agent4cpp/lesson05-锁的边界.svg)
 
@@ -794,7 +794,7 @@ ToolResult ToolRegistry::Call(const std::string& name,
 | ② | **它可能反过来再调 registry，这会死锁** | 用户完全可能这么写：`AGENT4CPP_TOOL(do_two_things, "...") { registry.Call("set_exposure", ...); }`。外层 `Call` 还持着锁，内层又要拿同一把锁——`shared_mutex` **不递归**（同一线程也不能重复拿），直接死锁 |
 | ③ | **拷贝的代价很小** | `ToolDefinition` 里就是几个字符串 + 一个 `std::function`，拷贝一次微秒级。拿它换"不阻塞别人 + 不死锁"，太值了 |
 
-### 为什么是 shared_mutex
+### 2. 为什么是 shared_mutex
 
 ![共享锁](/images/agent4cpp/lesson05-共享锁.svg)
 
@@ -815,7 +815,7 @@ std::shared_lock lock(mutex_);   // ListTools / Find / Call 里（读）—— �
 
 别写反了。
 
-### 贯穿整个类的几个细节
+### 3. 贯穿整个类的几个细节
 
 `std::shared_mutex` 那两种卡，用法上靠的是 RAII：
 
@@ -912,7 +912,7 @@ ToolResult OkToolResult(std::string content, std::string payload_json) {
 
 **以为"不用异常"和"这里写 try/catch"矛盾。** 绕了一下才想明白：库自己不用异常做控制流，但必须防着用户代码抛异常，这是同一条原则的两面。所以 `ParseArgumentsObject` 接住 JSON 库的爆炸、`Call` 接住用户代码的爆炸，一个都不能少。
 
-## 怎么确认它真的在工作
+## 七、怎么确认它真的在工作
 
 编译运行之后，下面这些输出是我实测的：
 
@@ -945,7 +945,7 @@ ToolResult OkToolResult(std::string content, std::string payload_json) {
 
 最后两行值得盯着看。第一行演示了**分层**：`-1` 是数字，格式合法，校验层放行；"曝光不能为负"由工具函数自己拦住。第二行演示了**异常兜底**：工具函数抛了 `std::runtime_error`，被 `Call` 接住转成错误回执——**程序没崩**。
 
-## 几个我当时犹豫过的设计
+## 八、几个我当时犹豫过的设计
 
 **工具返回值为什么要语义化。** 我最初只想返回数据。后来发现相机亮度返回 `0.5` 的同时，必须把目标值 `1.0` 和量纲说明 `0.0=black, 1.0=correct exposure` 一起给出去——模型读了才能算出该把曝光调到多少。只给 `0.5` 它只能瞎猜，可能越调越暗。这条代价是工具实现时要多写几行 payload 构造代码，我认为值。
 

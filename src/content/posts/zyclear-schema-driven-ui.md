@@ -11,7 +11,7 @@ tags: [C++, Qt, 架构设计, JSON, 工业软件]
 
 这一篇讲把这棵参数树从代码里搬出来的那一步：**参数定义变成一份 JSON 配置资产**，解析器读它，界面按它装配。
 
-## 参数表为什么该是配置
+## 一、参数表为什么该是配置
 
 先算一笔账。我在虚拟相机里试过两种写法。
 
@@ -32,7 +32,7 @@ CameraParamMetaInfo{ "DeviceControl", "DeviceUserID",   ZCParamType::STRING, "",
 
 **为什么参数描述是「纯数据」**：看 `CameraParamMetaInfo` 那五个字段——`group`（分组标题）、`name`（GenICam 节点名）、`type`（渲染成哪种控件）、`relative_list`、`tips`（说明文本）。五个字段里没有一个携带逻辑。它不是「怎么读写这个参数」，只是「这个参数叫什么、归哪组、长什么样」。**描述性数据没有理由编译进二进制。**
 
-## 去数一遍：5 组、37 项
+## 二、去数一遍：5 组、37 项
 
 先把这份配置摊开。`VirtualCameraParam.json`，248 行，正则数出来的结构是这样：
 
@@ -49,7 +49,7 @@ CameraParamMetaInfo{ "DeviceControl", "DeviceUserID",   ZCParamType::STRING, "",
 
 **为什么用 248 行 JSON 描述 37 项参数**：这不是啰嗦。一个 JSON 对象固定要 `name` / `type` / `relative_list` / `tips` 四个字段，加上引号、花括号、逗号，一项就花掉六七行。**行数换来的东西是「可读」**——你在编辑器里打开它，一行行扫下去，每个参数的用途一眼可见，不用去读结构体的构造调用。
 
-## JSON 怎么描述一棵参数树
+## 三、JSON 怎么描述一棵参数树
 
 结构本身很简单，两层。顶层是**数组**，数组的每个元素是一个**分组对象**；分组对象里有 `group`（分组名）和 `params`（参数数组）；参数数组的每个元素是一个**参数对象**。节选前两组看得最清楚：
 
@@ -83,7 +83,7 @@ CameraParamMetaInfo{ "DeviceControl", "DeviceUserID",   ZCParamType::STRING, "",
 
 **为什么 `type` 用字符串而不是数字**：字段名集中定义在实现文件顶部（`const QString kType = "type";` 这类），注释写着「它们是这份 JSON 的对外契约键，也是唯一允许改动 schema 的地方」。**写 JSON 的人是一份人读的配置的作者，不该被迫记住「3 代表 ENUM」这种编码。**
 
-## 解析器：两个文件各干什么
+## 四、解析器：两个文件各干什么
 
 `ParseUiJson` 拆成 `.h`（88 行，接口 + 契约注释）和 `.cpp`（293 行，实现）。职责切得很干净：
 
@@ -121,7 +121,7 @@ ZCParamType ParseUiJson::stringToParamType(const QString& typeStr) const
 
 **为什么是 `value(str, UNKNOWN)` 而不是 `typeMap[str]`**：`operator[]` 在键不存在时会**插入一个默认项**——这个函数是 `const` 的，本来就不该改动任何状态，用 `operator[]` 等于偷偷改了一个静态表，而且以 `const` 之名干了非 const 的事。`value()` 只读，未知类型返回 `UNKNOWN`，干净。
 
-## 一个真实的坑：失败路径不清表
+## 五、一个真实的坑：失败路径不清表
 
 这一篇最该讲透的坑，写在 `ParseUiJson.h` 第 28 到 32 行，代码作者（也就是我）自己把警告留在了契约文件里：
 
@@ -165,7 +165,7 @@ bool ParseUiJson::loadFromFile(const QString& filePath)
 
 这个坑最贵的部分不是代码，是**它骗过了调用方**。虚拟相机 `getParamList` 现在的写法是「先 `loadFromFile`，再 `getParamList()`，不看返回值」——如果哪天资源路径配错、文件缺失，它不会失败，它会**沉默地把上一次别的相机塞进来的表当成自己的参数表**。这才是「返回 false 不等于表空」真正咬人的地方。修法很简单（判一下返回值），但**先得有人知道这个坑存在**——这就是为什么它必须写在契约头文件里，而不是留在 commit message 里。
 
-## 视图运行时装配：空壳 + 现场挂载
+## 六、视图运行时装配：空壳 + 现场挂载
 
 参数表被解析出来之后，怎么变成界面上那一格格控件？
 
@@ -222,7 +222,7 @@ newGroup->setData(QVariant::fromValue(CameraParam(info)));
 
 **分组为什么复用 `CameraParam` 而不是另造一个节点类型**：因为它需要的东西跟参数一模一样——一个显示名（`name` 就是分组名）、一个能塞进 `QVariant` 的载荷、一套权限位。给它 `type = UNKNOWN`，`displayText()` 会回落到 `"unknow"`（也就是上一篇那个拼写），同时 `flags()` 因为 `isWriteable() == false` 自动判它不可编辑。**一个节点类，两种用途，靠类型字段分流。** 顺带说，模型 `data()` 里专为它写了一行：`if (m_groups.keys().contains(paramData.name())) return "";`——分组行的值列留空，不然就会把 `"unknow"` 显示出来。
 
-## `relative_list`：一个还没被消费的字段
+## 七、`relative_list`：一个还没被消费的字段
 
 `relative_list` 出现在每个参数对象里，解析器也老老实实把它填进了 `CameraParamMetaInfo.relative_list`，`CameraParam` 还专门开了一个 `relativeList()` 访问器。**但这份 JSON 里 37 项的 `relative_list` 全是空串**。
 
@@ -242,7 +242,7 @@ QCOMPARE(param.relativeList(), QStringLiteral("ExposureTime"));
 
 （第 5 篇讲过枚举的 `value` / `valueInt` 两套表示必须同步填。`relative_list` 跟那个不是一回事：枚举双表示是**单个参数内部**的两种形式，`relative_list` 是**两个参数之间**的关联。别混。）
 
-## 配置化的代价：把编译期错误变成运行期错误
+## 八、配置化的代价：把编译期错误变成运行期错误
 
 把参数表搬出代码，买到的是「改配置不编译」。代价必须说清楚，因为它不是小的。
 

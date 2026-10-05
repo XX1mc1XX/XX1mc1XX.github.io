@@ -27,11 +27,14 @@ const hidden = posts.length - shown.length;
 
 	<ol class="series__list">
 		{
-			shown.map((post) => (
+			shown.map((post, i) => (
 				<li class="series__item">
 					<a class="series__link" href={`/blog/${post.id}/`}>
-						<span class="series__post-title">{post.data.title}</span>
-						<span class="series__post-desc">{post.data.description}</span>
+						<span class="series__num">{String(i + 1).padStart(2, '0')}</span>
+						<span class="series__text">
+							<span class="series__post-title">{post.data.title}</span>
+							<span class="series__post-desc">{post.data.description}</span>
+						</span>
 					</a>
 				</li>
 			))

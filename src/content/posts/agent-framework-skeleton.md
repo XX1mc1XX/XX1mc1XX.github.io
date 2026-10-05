@@ -9,7 +9,7 @@ tags: [C++, LLM, Agent, 架构设计]
 
 顺序不能反过来。错误码这东西，单独看只是几个枚举值，没什么意思；只有先知道它会被放在链路的哪一环、会被谁接住，才知道它为什么必须长成那个样子。
 
-## 这个框架解决什么问题
+## 一、这个框架解决什么问题
 
 工业软件（相机控制、运动控制、视觉检测）里已经躺着大量稳定的 C++ 函数：
 
@@ -30,7 +30,7 @@ stage.moveTo(x, y);
 
 要让这句话最后真的变成 `camera.setExposure(8000)`，中间需要一条完整的链路。`agent4cpp` 就是把这条链路做成一个可复用的 C++ 库。
 
-## 一次真实的运行
+## 二、一次真实的运行
 
 我在参考项目里跑了一遍 Mock 演示，输入 `image is dark`，日志原样是这样的：
 
@@ -88,11 +88,11 @@ assistant final answer: Done. Exposure is now adjusted for a brighter image.
 
 把这张图记在心里。后面所有的模块，都是在某一环上替掉图中的一块。
 
-## 链路上真正重要的三件事
+## 三、链路上真正重要的三件事
 
 在往下之前，有三条认知必须先立起来。它们不是细节，是整条链路的承重墙。
 
-### 模型不执行代码
+### 1. 模型不执行代码
 
 这是全项目最重要的一句。大模型**没有**执行你的 C++ 函数，它只是输出了一段结构化文本：
 
@@ -106,7 +106,7 @@ assistant final answer: Done. Exposure is now adjusted for a brighter image.
 
 记住这句话：大模型不碰你的设备，它只是提要求，执行权始终在 C++ 这边。对工业软件来说，这条就是安全边界——模型只能从你注册过的工具里挑，挑不出范围。
 
-### 模型看到的不是你的 C++ 代码，是 JSON Schema
+### 2. 模型看到的不是你的 C++ 代码，是 JSON Schema
 
 模型怎么知道有 `set_exposure` 这个函数、它要什么参数？靠程序提前把函数"描述"成一段 JSON 发给它：
 
@@ -129,7 +129,7 @@ assistant final answer: Done. Exposure is now adjusted for a brighter image.
 
 这就是 **OpenAI Function Calling** 协议。整个项目的 `tool` 模块，核心工作就是：把你写的 C++ 函数，自动变成上面这段 JSON。**你没有手写这段 JSON，是宏和注册表生成的。**
 
-### 循环的终点是"模型不再要工具"
+### 3. 循环的终点是"模型不再要工具"
 
 ```cpp
 if (!llm_response.tool_call.has_value()) {
@@ -141,7 +141,7 @@ if (!llm_response.tool_call.has_value()) {
 
 那模型一直要工具怎么办？靠 `max_steps` 兜底。这个是后面 Agent 循环那篇的重点，这里你先记住有这么个上限就行。
 
-## 八个模块各管什么
+## 四、八个模块各管什么
 
 参考项目的 `src/` 下有 8 个模块，每个模块在这条链路上负责一段：
 
@@ -168,7 +168,7 @@ if (!llm_response.tool_call.has_value()) {
 
 `Core` 排在第一个不是巧合——它是所有模块的共同语言。任何一个模块出错，都要往回传一个东西。传什么、怎么传，就是下面要解决的问题。
 
-## 出错了，怎么告诉调用者
+## 五、出错了，怎么告诉调用者
 
 C++ 里让上层知道"这一步失败了"，就三个选择：
 
@@ -183,7 +183,7 @@ C++ 里让上层知道"这一步失败了"，就三个选择：
 > It intentionally avoids exceptions as a control-flow mechanism because industrial applications often need predictable failure paths and concise logs.
 > （刻意不用异常做控制流，因为工业应用需要可预测的失败路径和简洁的日志。）
 
-### 它长什么样
+### 1. 它长什么样
 
 ```cpp
 Status s = SetExposure(8000);
@@ -197,11 +197,11 @@ if (!s.ok()) {
 
 这个"小对象"的形状，决定了后面每个模块的接口长什么样。所以在写它之前，有三个 C++ 知识点得先讲清楚。
 
-## 写 Status 之前的三个 C++ 知识点
+## 六、写 Status 之前的三个 C++ 知识点
 
 基础语法没问题的话，这三处是新的东西。第二个是重点，也是最容易懵的地方。
 
-### 知识点 1：`enum class`（强类型枚举）
+### 1. 知识点 1：`enum class`（强类型枚举）
 
 ```cpp
 enum class StatusCode {
@@ -224,7 +224,7 @@ enum class StatusCode {
 
 命名前缀 `k` 是 Google C++ 风格对常量的约定，照写即可。
 
-### 知识点 2：`std::move`（移动语义）
+### 2. 知识点 2：`std::move`（移动语义）
 
 这一段我讲得细一点，因为它是 C++11 里最容易"以为自己懂了、其实没懂"的地方。
 
@@ -422,7 +422,7 @@ struct AgentConfig {
 | **可空**（不配知识库就是 nullptr，Agent 跳过 RAG） | 不能，引用必须绑定真实对象 |
 | **生命周期由外部管理** | 不能 |
 
-### 知识点 3：`[[nodiscard]]`
+### 3. 知识点 3：`[[nodiscard]]`
 
 ```cpp
 [[nodiscard]] bool ok() const;
@@ -432,11 +432,11 @@ struct AgentConfig {
 
 为什么加：`ok()` 是用来判断错误的，忘了判断就等于忘了处理错误。让编译器替你盯着。
 
-## 四个文件
+## 七、四个文件
 
 `Core` 模块落地下来是四个文件。这是整个项目里写的第一批代码，也是最干净的一批——后面的模块都从它这里借模式。
 
-### 文件 1：`include/agent4cpp/export.h`
+### 1. 文件 1：`include/agent4cpp/export.h`
 
 **它解决的问题**：本项目编译成 **DLL**（动态库）。DLL 有个规矩：
 
@@ -489,7 +489,7 @@ struct AgentConfig {
 class AGENT4CPP_API Status { ... };
 ```
 
-### 文件 2：`include/agent4cpp/status.h`
+### 2. 文件 2：`include/agent4cpp/status.h`
 
 一个枚举 + 一个类。结构如下：
 
@@ -558,7 +558,7 @@ class AGENT4CPP_API Status {
 
 **③ 只有 `message()` 返回 `const std::string&`**：因为 `message()` 是只读查询，没必要拷贝字符串；而 `ToString()` 要拼新字符串，返回 `std::string` 值。
 
-### 文件 3：`src/core/status.cpp`
+### 3. 文件 3：`src/core/status.cpp`
 
 结构如下：
 
@@ -624,7 +624,7 @@ return StatusCodeName(code_) + ": " + message_;   // "NOT_FOUND: 工具未注册
 
 `"字符串字面量" + std::string` 是可以的（`std::string` 提供了 `operator+`）。但反过来 `"字面量" + "字面量"` 不行——那是两个指针相加，编译错误。这里 `StatusCodeName()` 返回的是 `std::string`，所以在最左边，安全。
 
-### 文件 4：`include/agent4cpp/agent4cpp.h`
+### 4. 文件 4：`include/agent4cpp/agent4cpp.h`
 
 **伞形头文件（umbrella header）**：把项目所有公共头文件 include 一遍。
 
@@ -652,7 +652,7 @@ return StatusCodeName(code_) + ": " + message_;   // "NOT_FOUND: 工具未注册
 
 **现在写它会飘红**（clangd 报找不到 `agent.h` 等文件）——因为那些头文件还没写。**不用管**，飘红不影响编译（只要没人 include 这个文件）。等所有头文件都写完，飘红会自动消失。
 
-## 把它跑起来
+## 八、把它跑起来
 
 验证脚手架已经放好了：`_lab/lab_status.cpp`。它不是复刻产物，只是个调用你 `Status` 的测试 main。
 
@@ -748,7 +748,7 @@ move 之后原对象**不是销毁了**，而是变成"有效但未指定"状态
 
 **写 `agent4cpp.h` 时一片飘红。** 一开始以为是自己写错了，其实是那些头文件还没写。飘红不影响编译，别管它。
 
-## 几个我当时犹豫过的设计
+## 九、几个我当时犹豫过的设计
 
 **`Status` 为什么不用异常。** 异常的问题不是"不能用"，而是**失败路径不可预测**。工业软件里错误往往要跨进程、跨回调传递，异常在某一层被吞掉之后，你连错在哪都不知道。`Status` 牺牲了"忘记检查"这一点的强制性（靠 `[[nodiscard]]` 补），换来了完整的、可见的传递路径。
 

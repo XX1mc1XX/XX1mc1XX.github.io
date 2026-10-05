@@ -11,7 +11,9 @@ export interface SeriesGroup {
 
 /**
  * 把文章按 site.config.ts 里的系列分组。
- * 组内按 pubDate 倒序；组之间按 site.config 的声明顺序，专题永远排最后。
+ * 组内保持 site.config 里的 slugs 声明顺序——那是**叙事顺序**，读者该从第 1 篇读起，
+ * 所以这里刻意不按 pubDate 排（发布日往往与阅读顺序相反）。
+ * 组之间按 site.config 的声明顺序，专题永远排最后（按时间倒序）。
  * 某系列一篇都没有时整组不出现——避免空标题。
  */
 export function groupBySeries(posts: CollectionEntry<'posts'>[]): SeriesGroup[] {
@@ -29,8 +31,7 @@ export function groupBySeries(posts: CollectionEntry<'posts'>[]): SeriesGroup[] 
 			project: s.project,
 			posts: s.slugs
 				.map((slug) => bySlug.get(slug))
-				.filter((p): p is CollectionEntry<'posts'> => p !== undefined)
-				.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+				.filter((p): p is CollectionEntry<'posts'> => p !== undefined),
 		};
 	}).filter((g) => g.posts.length > 0);
 

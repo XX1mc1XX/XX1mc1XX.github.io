@@ -13,7 +13,7 @@ tags: [C++, LLM, Agent, 架构设计]
 
 先说一句可能让你意外的话：**这个函数很长，但真正的逻辑只有五步**，剩下的全是在处理各种各样的意外情况。所以我打算先把那五步说清楚，再带你走一遍那些"意外"是怎么处理的。
 
-## 最反直觉的一点
+## 一、最反直觉的一点
 
 我先把这个说在前面，因为它跟我一开始的直觉是反的。
 
@@ -27,7 +27,7 @@ tags: [C++, LLM, Agent, 架构设计]
 
 所以最后的做法是：把"完没完"的判断权交出去，代码只负责"它还要工具，我就给；它不要了，我就返回"。
 
-## 循环本体
+## 二、循环本体
 
 抛开所有异常处理，这个循环长这样：
 
@@ -37,11 +37,11 @@ tags: [C++, LLM, Agent, 架构设计]
 
 就这些。下面所有的代码都是在处理这 5 步里可能出的岔子。
 
-## 头文件：能拧什么、拿回什么、状态放哪
+## 三、头文件：能拧什么、拿回什么、状态放哪
 
 先看 `agent.h`，它只回答三个问题。
 
-### 能拧什么：`AgentConfig`
+### 1. 能拧什么：`AgentConfig`
 
 ```cpp
 struct AGENT4CPP_API AgentConfig {
@@ -63,7 +63,7 @@ struct AGENT4CPP_API AgentConfig {
 
 "不拥有 + 可空"这两个语义叠在一起，只有裸指针合适。
 
-### 拿回什么：`AgentResponse`
+### 2. 拿回什么：`AgentResponse`
 
 ```cpp
 struct AGENT4CPP_API AgentResponse {
@@ -75,7 +75,7 @@ struct AGENT4CPP_API AgentResponse {
 
 那个 `transcript` 我强烈建议你打印出来看。它把"模型要调什么工具、传什么参数、工具返回什么"**全程留痕**——调试的时候，出问题到底出在哪一步，看它一目了然。这个项目里所有的日志都是从它来的。
 
-### 三个公开方法
+### 3. 三个公开方法
 
 | 方法 | 干什么 | 什么时候用 |
 |---|---|---|
@@ -85,7 +85,7 @@ struct AGENT4CPP_API AgentResponse {
 
 `RunAsync` 那条我踩过：最早界面上用的是同步 `Run`，结果模型一思考就是十几秒，**整个界面冻住**。后来换成异步，才好。
 
-### 状态放哪：成员变量
+### 4. 状态放哪：成员变量
 
 ```cpp
 const ToolRegistry* registry_;            // 不拥有 + 可空
@@ -98,11 +98,11 @@ mutable std::mutex mutex_;                // 保护 messages_
 
 `mutex_` 为什么标 `mutable`？因为 `transcript()` 是个 `const` 方法，但它**也要读锁**。`const` 方法里改不了普通成员，所以锁必须是 `mutable` 的。这个坑我在写工具注册表的时候就踩过一次，这里第二次遇到。
 
-## 一行一行走 RunLocked
+## 四、一行一行走 RunLocked
 
 下面按执行顺序走。我会尽量说清楚**每段为什么这么写**，以及**不这么写会怎样**。
 
-### 进来先检查零件齐不齐
+### 1. 进来先检查零件齐不齐
 
 ```cpp
 if (registry_ == nullptr) {
@@ -117,7 +117,7 @@ if (llm_client_ == nullptr) {
 
 **早点检查比转到一半空指针崩了好**——这两件事的出错现场不一样：空指针崩在循环深处，而传入 null 的现场在 `Run` 的调用方。后者好查得多。
 
-### 知识库检索：在问模型之前
+### 2. 知识库检索：在问模型之前
 
 ```cpp
 if (config_.knowledge_store != nullptr &&
@@ -145,7 +145,7 @@ output << "\nUse this knowledge when it is relevant. Ignore it if it does not ap
 
 **为什么要加这句**：检索出来的片段**可能跟问题无关**（检索算法不完美）。如果不明确告诉模型"不相关就忽略"，它会被无关信息带跑——这是 RAG 最典型的翻车方式。
 
-### 用户这句话进记录
+### 3. 用户这句话进记录
 
 ```cpp
 AGENT4CPP_LOG_INFO("user input: " + user_input);
@@ -156,7 +156,7 @@ messages_.push_back(ChatMessage{ChatRole::kUser, std::move(user_input), ""});
 
 `std::move` 是因为 `user_input` 是按值传进来的，后面不再用它，直接把内部缓冲区搬进 vector，省一次字符串拷贝。
 
-### 进核心循环
+### 4. 进核心循环
 
 ```cpp
 for (int step = 0; step < config_.max_steps; ++step) {
@@ -164,7 +164,7 @@ for (int step = 0; step < config_.max_steps; ++step) {
 
 下面是一圈里发生的事情。
 
-### ① 问模型
+### 5. ① 问模型
 
 ```cpp
 ChatResponse llm_response = llm_client_->Chat(
@@ -181,7 +181,7 @@ if (!llm_response.status.ok()) {
 
 模型那边出错（网络断、Key 错）就直接返回，不硬转。
 
-### ② 把模型的回复存进记录
+### 6. ② 把模型的回复存进记录
 
 同一条消息，按角色要拼成不同的形状——助手这一侧又分三种情况：
 
@@ -202,7 +202,7 @@ messages_.push_back(ChatMessage{ChatRole::kAssistant, llm_response.content,
 
 第三个参数是空的 `tool_call_id`——因为这条是 **assistant 说的**，不是工具返回的，所以没有 id。
 
-### ③ 判断：唯一的正常出口
+### 7. ③ 判断：唯一的正常出口
 
 ```cpp
 if (!llm_response.tool_call.has_value()) {
@@ -215,7 +215,7 @@ if (!llm_response.tool_call.has_value()) {
 
 **这是整个循环唯一的正常出口。** 回到开头那句话——代码里没有一行判断"任务完成没有"，只认"有没有 `tool_call`"这一个信号。
 
-### ④ 执行工具
+### 8. ④ 执行工具
 
 ```cpp
 const ToolCall& tool_call = *llm_response.tool_call;
@@ -228,7 +228,7 @@ ToolResult tool_result = registry_->Call(tool_call.name, tool_call.arguments_jso
 
 这一点我觉得是整个架构里最重要的：**大模型不能执行任何代码，它只会输出文本，执行是 C++ 这侧做的**。对工业软件来说这就是安全边界——模型只能从你注册过的工具里挑，挑不出范围。
 
-### ⑤ 把工具结果塞回去
+### 9. ⑤ 把工具结果塞回去
 
 ```cpp
 std::ostringstream observation;
@@ -257,7 +257,7 @@ messages_.push_back(ChatMessage{ChatRole::kTool, observation.str(), tool_call.id
 | `content` | 一句人话说明，模型写总结时会用 |
 | `payload` | 结构化 JSON，模型做推理主要靠它 |
 
-### ⑥ 兜底：转满了还没停
+### 10. ⑥ 兜底：转满了还没停
 
 ```cpp
 AGENT4CPP_LOG_ERROR("agent reached max_steps before final answer");
@@ -293,7 +293,7 @@ return AgentResponse{
 
 **`max_steps` 设成 8 是个折中，两种情况下都不理想**：简单问答本来 1 圈就够，异常时最多白打 8 次 API；复杂任务（比如多相机标定）8 圈可能真不够。更好的做法可能是按任务类型给不同预算，或者用"总 token 预算"代替"步数预算"——因为贵的是 token 不是步数。这一点我留着没改，因为现在还没有足够的实际数据来定这个阈值。
 
-## 怎么确认它真的在工作
+## 五、怎么确认它真的在工作
 
 跑一次之后，把 `transcript` 打出来看。下面是 `lab_agent.exe` 真实跑出来的 7 条记录——循环转了三圈，每圈加两条：
 
@@ -301,7 +301,7 @@ return AgentResponse{
 
 最后那条**没有 `tool_call`**，循环就停在那。如果转满 8 圈还没停，日志里会有 `agent reached max_steps before final answer`——看到这句，说明模型没收敛，得回头看看工具描述是不是写得不够清楚。
 
-## 几个我当时犹豫过的设计
+## 六、几个我当时犹豫过的设计
 
 **终止条件为什么只看 `tool_call`，不做别的判断。**
 因为一旦开始自己判断"完没完"，就得给每类任务配规则，通用性就没了。代价是模型说"完成"不等于真的完成——工业场景要求确定性的时候（比如"必须确认曝光真的改成 10000"），这个方案不够，得另外加结果校验或者人工确认。这是当前方案的边界，我知道它在哪。
