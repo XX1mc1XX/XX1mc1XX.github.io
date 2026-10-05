@@ -6,10 +6,6 @@ import { loadSessions, saveSessions, newSession } from './types';
 import { runAgent, ApiError } from './llm';
 import { demoScript } from './demo';
 
-interface Props {
-	articles: Article[];
-}
-
 const WIDTH_KEY = 'agent-width';
 const OPEN_KEY = 'agent-open';
 // 旧键：老访客身上可能已经有它，读到就当「永久不再提示」，免得又被弹一次
@@ -40,7 +36,10 @@ function hintAllowed() {
 }
 
 
-export default function AgentDrawer({ articles }: Props) {
+// 语料不再由服务端内嵌进每个页面：那要往 HTML 里塞进全部文章全文（400KB+），
+// 而绝大多数访客——尤其是只想快速翻一遍的 HR——根本不会点开助手。
+// 改成页面空闲时去取 /articles.json，首屏因此从 870KB 掉到 30KB 上下
+export default function AgentDrawer() {
 	// 初始值直接读本地存储。放到 useEffect 里再读，首屏和水合后会差一帧，看着就是闪一下
 	const [open, setOpen] = useState(() => {
 		try {
@@ -69,6 +68,10 @@ export default function AgentDrawer({ articles }: Props) {
 	const [showHint, setShowHint] = useState(false);
 	// 气泡里的勾选状态，只有点「今日不再提示」时才会写进本地存储
 	const [snoozeChecked, setSnoozeChecked] = useState(false);
+	// 文章语料，懒加载。空数组时助手还不能回答，见 loadCorpus
+	const [articles, setArticles] = useState<Article[]>([]);
+	// 存 Promise 而不是布尔：并发调用（预取 + 用户立刻发问）要共用同一次请求
+	const corpusRef = useRef<Promise<Article[]> | null>(null);
 
 	const listRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -103,6 +106,44 @@ export default function AgentDrawer({ articles }: Props) {
 	useEffect(() => {
 		if (!hintAllowed()) return;
 		const timer = setTimeout(() => setShowHint(true), 2200);
+		return () => clearTimeout(timer);
+	}, []);
+
+	// 取文章语料。同一份只下一次：预取和用户发问可能同时发生，
+	// 缓存住 Promise 就能让它们共用同一次请求
+	function loadCorpus(): Promise<Article[]> {
+		if (!corpusRef.current) {
+			corpusRef.current = fetch('/articles.json')
+				.then((res) => {
+					if (!res.ok) throw new Error(String(res.status));
+					return res.json() as Promise<Article[]>;
+				})
+				.then((list) => {
+					setArticles(list);
+					return list;
+				})
+				.catch((cause) => {
+					// 失败就别缓存，下次发问时再试一次
+					corpusRef.current = null;
+					throw cause;
+				});
+		}
+		return corpusRef.current;
+	}
+
+	// 页面空闲时悄悄把语料取回来，等用户真点开助手通常已经就绪。
+	// 用 requestIdleCallback 是为了不跟首屏渲染抢带宽；不支持就退回定时器
+	useEffect(() => {
+		const start = () => {
+			loadCorpus().catch(() => {
+				// 预取失败不打扰用户，等他真发问时再报错
+			});
+		};
+		if (typeof requestIdleCallback === 'function') {
+			const id = requestIdleCallback(start, { timeout: 3000 });
+			return () => cancelIdleCallback(id);
+		}
+		const timer = setTimeout(start, 1200);
 		return () => clearTimeout(timer);
 	}, []);
 
@@ -256,9 +297,17 @@ export default function AgentDrawer({ articles }: Props) {
 		};
 
 		try {
+			// 语料是懒加载的，首次发问可能要等一下；页面空闲时已预取的话这里是直接命中
+			let corpus: Article[];
+			try {
+				corpus = await loadCorpus();
+			} catch {
+				throw new Error('文章语料没取回来，检查一下网络再试。');
+			}
+
 			const result = await runAgent({
 				question,
-				articles,
+				articles: corpus,
 				history,
 				signal: controller.signal,
 				onDelta: (text) => patchLast((message) => ({ ...message, content: message.content + text })),

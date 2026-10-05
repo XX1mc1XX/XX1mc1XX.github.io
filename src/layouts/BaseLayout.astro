@@ -8,7 +8,6 @@ import ActivityBar from '../components/ActivityBar.astro';
 import SideBar from '../components/SideBar.astro';
 import ReadingTools from '../components/ReadingTools.astro';
 import AgentDrawer from '../components/agent/AgentDrawer';
-import { collectArticles } from '../lib/articles';
 import { site } from '../site.config';
 
 interface Props {
@@ -23,9 +22,6 @@ const { title, description = site.tagline, wide = false } = Astro.props;
 // 只有传了 sidebar 槽位的页面（文章、项目）才出左栏。
 // 在服务端就定下来，浏览器不会先画出一根空条再收掉
 const hasSidebar = Astro.slots.has('sidebar');
-
-// 构建时把全部文章一起交给助手，它才能在浏览器里检索并回答
-const articles = await collectArticles();
 ---
 
 <!doctype html>
@@ -72,7 +68,7 @@ const articles = await collectArticles();
 				</div>
 			</main>
 
-			<AgentDrawer articles={articles} client:load />
+			<AgentDrawer client:load />
 		</div>
 
 		<StatusBar />
