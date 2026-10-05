@@ -1,4 +1,7 @@
-export interface Article {
+// 目录项：助手一开始拿到的就是这份，不含正文。
+// 正文单独成文件，读到哪篇才取哪篇——原来把全文一起塞进 /articles.json，
+// 是 827KB（gzip 后 334KB），而访客每打开一个页面都会把它拉一遍
+export interface ArticleMeta {
 	kind: 'post' | 'project';
 	id: string;
 	title: string;
@@ -6,6 +9,10 @@ export interface Article {
 	date: string;
 	tags: string[];
 	url: string;
+}
+
+// 带上正文的完整条目，只有 read_article 真的去读某一篇时才会出现
+export interface Article extends ArticleMeta {
 	body: string;
 }
 
@@ -21,12 +28,6 @@ export interface Message {
 	tools?: ToolCall[];
 }
 
-export interface Settings {
-	baseUrl: string;
-	model: string;
-	apiKey: string;
-}
-
 export interface Session {
 	id: string;
 	title: string;
@@ -34,28 +35,7 @@ export interface Session {
 	updatedAt: number;
 }
 
-export const DEFAULTS: Settings = {
-	baseUrl: 'https://api.deepseek.com',
-	model: 'deepseek-chat',
-	apiKey: '',
-};
-
-const SETTINGS_KEY = 'agent-settings';
 const SESSIONS_KEY = 'agent-sessions';
-
-export function loadSettings(): Settings {
-	try {
-		const raw = localStorage.getItem(SETTINGS_KEY);
-		if (!raw) return { ...DEFAULTS };
-		return { ...DEFAULTS, ...JSON.parse(raw) };
-	} catch {
-		return { ...DEFAULTS };
-	}
-}
-
-export function saveSettings(settings: Settings) {
-	localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-}
 
 export function newSession(): Session {
 	return {

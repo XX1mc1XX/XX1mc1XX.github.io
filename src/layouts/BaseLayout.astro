@@ -45,12 +45,28 @@ const hasSidebar = Astro.slots.has('sidebar');
 			if (localStorage.getItem('sidebar-open') === '0') {
 				document.documentElement.classList.add('sidebar-hidden');
 			}
-			// 上次开着助手就继续开着。宽度要自己补 px，存的是个纯数字
-			if (localStorage.getItem('agent-open') === '1') {
+
+			const openAgent = () => {
+				// 宽度要自己补 px，存的是个纯数字
 				const w = Number(localStorage.getItem('agent-width')) || 460;
 				document.documentElement.style.setProperty('--agent-w', w + 'px');
 				document.documentElement.classList.add('agent-open');
-			}
+			};
+			// 上次开着助手就继续开着
+			if (localStorage.getItem('agent-open') === '1') openAgent();
+
+			// 助手岛用 client:idle，要等浏览器空闲才水合，这期间点浮标是没人接的。
+			// 兜底：把状态写进本地存储再手动加类——等岛水合时它读到的就是
+			// 「已经打开」，state 和这里一致，不会反手把面板又关上
+			document.addEventListener('click', (event) => {
+				if (!event.target.closest || !event.target.closest('.agent-fab')) return;
+				try {
+					localStorage.setItem('agent-open', '1');
+				} catch {
+					// 存不进去也无妨，这次照样打开，只是下次进来不会自动开着
+				}
+				openAgent();
+			}, true);
 		</script>
 	</head>
 	<body>
@@ -68,7 +84,13 @@ const hasSidebar = Astro.slots.has('sidebar');
 				</div>
 			</main>
 
-			<AgentDrawer client:load />
+			<!-- client:idle 而不是 client:load：助手那一坨（marked + dompurify + preact）
+			     是 43KB gzip，70 个页面每个都带。访客里真正会点开助手的不到一成，
+			     不值得让它去跟首屏抢带宽。面板的显隐本来就由 CSS 的 agent-open 类控制，
+			     水合晚一点只会看到空框，不会有布局跳动。
+			     timeout 是上限——不给的话 requestIdleCallback 会一直等到浏览器
+			     真正空闲，页面忙的时候可能等很久；这期间点击由 head 里那段兜底接住 -->
+			<AgentDrawer client:idle={{ timeout: 1500 }} />
 		</div>
 
 		<StatusBar />

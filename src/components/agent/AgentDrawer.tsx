@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import type { Article, Message, Session, ToolCall } from './types';
+import type { ArticleMeta, Message, Session, ToolCall } from './types';
 import { loadSessions, saveSessions, newSession } from './types';
 import { runAgent, ApiError } from './llm';
 import { demoScript } from './demo';
@@ -36,9 +36,13 @@ function hintAllowed() {
 }
 
 
-// 语料不再由服务端内嵌进每个页面：那要往 HTML 里塞进全部文章全文（400KB+），
+// 内容不再由服务端内嵌进每个页面：那要往 HTML 里塞进全部文章全文（400KB+），
 // 而绝大多数访客——尤其是只想快速翻一遍的 HR——根本不会点开助手。
-// 改成页面空闲时去取 /articles.json，首屏因此从 870KB 掉到 30KB 上下
+//
+// 第一版改成页面空闲时去取整份语料，首屏因此从 870KB 掉到 30KB；
+// 但那份 JSON 是 827KB（gzip 334KB），访客打开任何一个页面都会拉一遍，
+// 而真正会点开助手的不到一成。所以再拆一次：这里只取目录（几十 KB），
+// 正文由 read_article 工具按需去 /articles/<id>.json 取
 export default function AgentDrawer() {
 	// 初始值直接读本地存储。放到 useEffect 里再读，首屏和水合后会差一帧，看着就是闪一下
 	const [open, setOpen] = useState(() => {
@@ -68,10 +72,10 @@ export default function AgentDrawer() {
 	const [showHint, setShowHint] = useState(false);
 	// 气泡里的勾选状态，只有点「今日不再提示」时才会写进本地存储
 	const [snoozeChecked, setSnoozeChecked] = useState(false);
-	// 文章语料，懒加载。空数组时助手还不能回答，见 loadCorpus
-	const [articles, setArticles] = useState<Article[]>([]);
+	// 内容目录，懒加载。里面只有标题和摘要，正文由 read_article 按需取
+	const [articles, setArticles] = useState<ArticleMeta[]>([]);
 	// 存 Promise 而不是布尔：并发调用（预取 + 用户立刻发问）要共用同一次请求
-	const corpusRef = useRef<Promise<Article[]> | null>(null);
+	const corpusRef = useRef<Promise<ArticleMeta[]> | null>(null);
 
 	const listRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -109,14 +113,14 @@ export default function AgentDrawer() {
 		return () => clearTimeout(timer);
 	}, []);
 
-	// 取文章语料。同一份只下一次：预取和用户发问可能同时发生，
+	// 取内容目录。同一份只下一次：预取和用户发问可能同时发生，
 	// 缓存住 Promise 就能让它们共用同一次请求
-	function loadCorpus(): Promise<Article[]> {
+	function loadCorpus(): Promise<ArticleMeta[]> {
 		if (!corpusRef.current) {
 			corpusRef.current = fetch('/articles.json')
 				.then((res) => {
 					if (!res.ok) throw new Error(String(res.status));
-					return res.json() as Promise<Article[]>;
+					return res.json() as Promise<ArticleMeta[]>;
 				})
 				.then((list) => {
 					setArticles(list);
@@ -297,12 +301,12 @@ export default function AgentDrawer() {
 		};
 
 		try {
-			// 语料是懒加载的，首次发问可能要等一下；页面空闲时已预取的话这里是直接命中
-			let corpus: Article[];
+			// 目录是懒加载的，首次发问可能要等一下；页面空闲时已预取的话这里是直接命中
+			let corpus: ArticleMeta[];
 			try {
 				corpus = await loadCorpus();
 			} catch {
-				throw new Error('文章语料没取回来，检查一下网络再试。');
+				throw new Error('文章目录没取回来，检查一下网络再试。');
 			}
 
 			const result = await runAgent({

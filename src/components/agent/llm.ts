@@ -1,4 +1,4 @@
-import type { Article, ToolCall } from './types';
+import type { Article, ArticleMeta, ToolCall } from './types';
 import { toolDefinitions, systemPrompt } from './tools';
 
 interface ChatMessage {
@@ -15,8 +15,8 @@ export class ApiError extends Error {
 	}
 }
 
-// 工具全部在客户端跑，数据就是构建时导出的那份 JSON
-export function createToolRunner(articles: Article[]) {
+// 工具全部在客户端跑。手里只有目录（标题+摘要），正文按需去 /articles/<id>.json 取
+export function createToolRunner(articles: ArticleMeta[]) {
 	const byId = new Map(articles.map((item) => [item.id, item]));
 
 	// 次数闸门。模型（尤其轻量档）不太遵守「搜两次就够了」这类口头约束，
@@ -54,7 +54,7 @@ export function createToolRunner(articles: Article[]) {
 
 		const posts = articles.filter((item) => item.kind === 'post');
 		const projects = articles.filter((item) => item.kind === 'project');
-		const line = (item: Article) =>
+		const line = (item: ArticleMeta) =>
 			`- ${item.id} ｜ ${item.title} ｜ ${item.description}`;
 		return [
 			'## 文章',
@@ -65,17 +65,26 @@ export function createToolRunner(articles: Article[]) {
 		].join('\n');
 	}
 
-	function read_article(args: Record<string, unknown>) {
+	// 正文不在手上，得去取。多一次本地 CDN 上的请求，
+	// 换来的是每个访客少下载 334KB（gzip）
+	async function read_article(args: Record<string, unknown>) {
 		const gate = overBudget('read_article');
 		if (gate) return gate;
 
 		const id = String(args.id ?? '');
-		const item = byId.get(id);
-		if (!item) {
+		if (!byId.has(id)) {
 			return `没有找到 id 为「${id}」的内容。可用 id：${[...byId.keys()].join(', ')}`;
 		}
-		const head = `# ${item.title}\n路径：${item.url}\n摘要：${item.description}\n\n`;
-		return head + item.body.slice(0, 12000);
+
+		try {
+			const response = await fetch(`/articles/${encodeURIComponent(id)}.json`);
+			if (!response.ok) return `读取「${id}」失败（${response.status}）。`;
+			const item = (await response.json()) as Article;
+			const head = `# ${item.title}\n路径：${item.url}\n摘要：${item.description}\n\n`;
+			return head + item.body.slice(0, 12000);
+		} catch (cause) {
+			return `读取「${id}」失败：${cause instanceof Error ? cause.message : String(cause)}`;
+		}
 	}
 
 	// 语义检索：交给服务端做向量检索。
@@ -172,11 +181,7 @@ export function createToolRunner(articles: Article[]) {
 		return available.length > 0 ? available : undefined;
 	}
 
-	return {
-		impl,
-		remainingTools,
-		write: (args: Record<string, unknown>) => String(args.query ?? args.id ?? ''),
-	};
+	return { impl, remainingTools };
 }
 
 // 从 SSE 流里逐块取 delta
@@ -211,7 +216,7 @@ async function* streamDeltas(response: Response) {
 
 export interface RunOptions {
 	question: string;
-	articles: Article[];
+	articles: ArticleMeta[];
 	history?: ChatMessage[];
 	signal?: AbortSignal;
 	onDelta: (text: string) => void;

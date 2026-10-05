@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-"""把 dist/articles.json 里的文章切块灌进 Cloudflare Vectorize。
+"""把构建产物里的文章切块灌进 Cloudflare Vectorize。
 
 走 Cloudflare REST 直连，不经 Worker 的 /api/ingest —— 那条路要多一个
 INGEST_TOKEN，而且 Pages 项目的 secret 用 API 读不出值。这里直接用长期
 Token（读 token 放进 .env.local），还能顺便查库状态。
+
+正文来源：/articles.json 现在只剩目录（标题+摘要），正文一篇一个文件放在
+dist/articles/<id>.json。目录和正文分开是为了页内助手——访客不用为了点开
+助手就把全站正文下载一遍。切块口径不变。
 
 切块口径：按空行分段，再把相邻小段合并到接近 CHUNK_CHARS。中文按字符算就行。
 
@@ -88,6 +92,27 @@ def body_hash(text):
     return hashlib.sha1(text.encode('utf-8')).hexdigest()[:16]
 
 
+def load_articles():
+    """读构建产物，返回 [{id, title, url, body}, ...]。
+
+    目录（dist/articles.json）和正文（dist/articles/<id>.json）是分开的两份，
+    这里合回一份。clean_vectors.py 也走这个函数，保证两边口径完全一致。
+    """
+    index_path = os.path.join(ROOT, 'dist', 'articles.json')
+    if not os.path.exists(index_path):
+        raise SystemExit(f'找不到 {index_path}，先跑一次 npm run build')
+
+    index = json.loads(io.open(index_path, encoding='utf-8').read())
+
+    out = []
+    for meta in index:
+        single = os.path.join(ROOT, 'dist', 'articles', f"{meta['id']}.json")
+        if not os.path.exists(single):
+            raise SystemExit(f'找不到 {single}，构建产物不完整，重新跑一次 npm run build')
+        out.append(json.loads(io.open(single, encoding='utf-8').read()))
+    return out
+
+
 def chunk_text(body, title):
     """按空行切段并合并。返回 [(序号, 文本)]。
 
@@ -168,12 +193,7 @@ def main():
         print(json.dumps(index_info(env), ensure_ascii=False, indent=2))
         return 0
 
-    src = os.path.join(ROOT, 'dist', 'articles.json')
-    if not os.path.exists(src):
-        print(f'找不到 {src}，先跑一次 npm run build')
-        return 1
-
-    articles = json.loads(io.open(src, encoding='utf-8').read())
+    articles = load_articles()
     only = [a for a in args if not a.startswith('--')]
     force = '--force' in args
 

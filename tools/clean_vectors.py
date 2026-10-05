@@ -18,7 +18,7 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # ingest 模块自己会包装 stdout，这里别再包一次——会把已关的流再包一遍
-from ingest import chunk_text, load_env  # noqa: E402
+from ingest import chunk_text, load_articles, load_env  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INDEX = 'blog-content'
@@ -54,12 +54,8 @@ def list_all_ids(env):
 
 def expected_ids():
     """本地重算一遍应该有哪些 id —— 跟 ingest 的口径完全一致。"""
-    src = os.path.join(ROOT, 'dist', 'articles.json')
-    if not os.path.exists(src):
-        raise SystemExit(f'找不到 {src}，先跑一次 npm run build')
-    arts = json.loads(io.open(src, encoding='utf-8').read())
     out = set()
-    for a in arts:
+    for a in load_articles():
         for i, _ in chunk_text(a['body'], a['title']):
             out.add(f"{a['id']}#{i}")
     return out
