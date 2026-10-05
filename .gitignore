@@ -35,5 +35,8 @@ drafts/
 __pycache__/
 *.pyc
 
+# 灌向量库的断点进度，只在本机有意义
+tools/.ingest_state.json
+
 # SVG 渲染预览图（下划线前缀，只作本地视觉检查用）
 public/images/**/_*.png

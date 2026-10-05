@@ -7,12 +7,17 @@ Token（读 token 放进 .env.local），还能顺便查库状态。
 
 切块口径：按空行分段，再把相邻小段合并到接近 CHUNK_CHARS。中文按字符算就行。
 
+进度记在 tools/.ingest_state.json（内容指纹），所以中途断掉再跑会自动跳过
+已灌成功的篇目；内容改过的会自动重灌。要强制全部重来加 --force。
+
 用法（blog 目录下）：
-    python tools/ingest.py                 # 灌全部
+    python tools/ingest.py                 # 灌全部（跳过已是最新的）
     python tools/ingest.py <slug> [...]    # 只灌指定几篇
+    python tools/ingest.py --force         # 忽略进度，全部重灌
     python tools/ingest.py --list          # 只看库里有什么，不写
     python tools/ingest.py --count         # 查库里有多少向量
 """
+import hashlib
 import io
 import json
 import os
@@ -28,6 +33,15 @@ MIN_CHUNK_CHARS = 200
 EMBED_MODEL = '@cf/baai/bge-m3'
 INDEX = 'blog-content'
 EMBED_BATCH = 10  # bge-m3 单次能吃的条数有限
+
+# 正常一次请求只要 2-20 秒。原来设 180/300 秒，碰上被掐断的连接就得干等三分钟，
+# 而重试又从头来——慢的其实是这个等待，不是 Cloudflare
+EMBED_TIMEOUT = 60
+UPSERT_TIMEOUT = 90
+
+# 记哪些文章已经灌完（含内容指纹）。网络一抖就得重跑时，靠它跳过已完成的部分，
+# 不然每次中断都从第 1 篇重来
+STATE_PATH = os.path.join(ROOT, 'tools', '.ingest_state.json')
 
 
 def load_env():
@@ -52,6 +66,26 @@ def api(env, path):
 def headers(env, ctype='application/json; charset=utf-8'):
     return {'Content-Type': ctype,
             'Authorization': f"Bearer {env['VECTORIZE_API_TOKEN']}"}
+
+
+def read_state():
+    """读断点状态：{slug: {'hash': 内容指纹, 'chunks': 块数}}"""
+    try:
+        return json.loads(io.open(STATE_PATH, encoding='utf-8').read())
+    except Exception:
+        return {}
+
+
+def write_state(state):
+    try:
+        io.open(STATE_PATH, 'w', encoding='utf-8').write(
+            json.dumps(state, ensure_ascii=False, indent=1, sort_keys=True))
+    except Exception:
+        pass  # 记不住就下次重灌，不影响正确性
+
+
+def body_hash(text):
+    return hashlib.sha1(text.encode('utf-8')).hexdigest()[:16]
 
 
 def chunk_text(body, title):
@@ -95,7 +129,7 @@ def embed(env, texts):
         api(env, f'/ai/run/{EMBED_MODEL}'),
         data=json.dumps({'text': texts}).encode('utf-8'),
         method='POST', headers=headers(env))
-    res = json.loads(urllib.request.urlopen(req, timeout=180).read().decode('utf-8'))
+    res = json.loads(urllib.request.urlopen(req, timeout=EMBED_TIMEOUT).read().decode('utf-8'))
     if not res.get('success'):
         raise RuntimeError(f"embed 失败: {res.get('errors')}")
     return res['result']['data']
@@ -109,7 +143,7 @@ def upsert(env, vectors):
         data=body.encode('utf-8'),
         method='POST',
         headers=headers(env, 'application/x-ndjson; charset=utf-8'))
-    res = json.loads(urllib.request.urlopen(req, timeout=300).read().decode('utf-8'))
+    res = json.loads(urllib.request.urlopen(req, timeout=UPSERT_TIMEOUT).read().decode('utf-8'))
     if not res.get('success'):
         raise RuntimeError(f"upsert 失败: {res.get('errors')}")
     return res['result']
@@ -141,38 +175,62 @@ def main():
 
     articles = json.loads(io.open(src, encoding='utf-8').read())
     only = [a for a in args if not a.startswith('--')]
+    force = '--force' in args
 
+    state = {} if force else read_state()
     total = 0
+    skipped = 0
+    failed = []
+
     for art in articles:
         slug = art['id']
         if only and slug not in only:
             continue
 
+        # 内容没变就跳过：网络一抖就得重跑，不记进度的话每次都从第一篇白烧一遍
+        digest = body_hash(art['title'] + '\n' + art['body'])
+        done = state.get(slug)
+        if done and done.get('hash') == digest:
+            print(f'{"":>4}    {slug:<34} 已是最新，跳过')
+            skipped += 1
+            continue
+
         url = art.get('url') or f'/blog/{slug}/'
         pieces = chunk_text(art['body'], art['title'])
 
-        vectors = []
-        for s in range(0, len(pieces), EMBED_BATCH):
-            batch = pieces[s:s + EMBED_BATCH]
-            vecs = embed(env, [f'{art["title"]}\n\n{t}' for _, t in batch])
-            for (i, _text), v in zip(batch, vecs):
-                vectors.append({
-                    'id': f'{slug}#{i}',
-                    'values': v,
-                    'metadata': {
-                        'title': art['title'][:200],
-                        'url': url[:300],
-                        # metadata 有大小上限，正文截断存即可
-                        'text': f'{art["title"]}\n\n{_text}'[:2000],
-                    },
-                })
+        try:
+            vectors = []
+            for s in range(0, len(pieces), EMBED_BATCH):
+                batch = pieces[s:s + EMBED_BATCH]
+                vecs = embed(env, [f'{art["title"]}\n\n{t}' for _, t in batch])
+                for (i, _text), v in zip(batch, vecs):
+                    vectors.append({
+                        'id': f'{slug}#{i}',
+                        'values': v,
+                        'metadata': {
+                            'title': art['title'][:200],
+                            'url': url[:300],
+                            # metadata 有大小上限，正文截断存即可
+                            'text': f'{art["title"]}\n\n{_text}'[:2000],
+                        },
+                    })
 
-        res = upsert(env, vectors)
-        got = res.get('mutationId') or res.get('count') or len(vectors)
+            upsert(env, vectors)
+        except Exception as exc:
+            # 单篇失败不让整轮到这儿停——记下来，最后一起报，下次跑会自动补
+            print(f'{"":>4}    {slug:<34} 失败: {str(exc)[:60]}')
+            failed.append(slug)
+            continue
+
+        state[slug] = {'hash': digest, 'chunks': len(vectors)}
+        write_state(state)
         print(f'{len(vectors):>3} 块  {slug:<34} {art["title"]}')
         total += len(vectors)
 
-    print(f'\n共灌入 {total} 块。')
+    print(f'\n新灌 {total} 块，跳过 {skipped} 篇（已是最新）。')
+    if failed:
+        print(f'失败 {len(failed)} 篇：{" ".join(failed)}')
+        print('再跑一次同一条命令即可，已成功的会自动跳过。')
     return 0
 
 
