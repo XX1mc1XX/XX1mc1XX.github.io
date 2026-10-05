@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 
 import preact from '@astrojs/preact';
+import rehypeImages from './src/utils/rehype-images.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,6 +15,8 @@ export default defineConfig({
       shikiConfig: {
           themes: { light: 'light-plus', dark: 'dark-plus' },
       },
+      // 给正文里的图补上宽高和 loading="lazy"，理由见该文件的注释
+      rehypePlugins: [rehypeImages],
 	},
 
   integrations: [preact()],

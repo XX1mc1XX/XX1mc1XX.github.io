@@ -26,11 +26,11 @@ Wovra 要解决的就是这件事：**让 AI 的工作变得可管理、可观�
 
 **先看它长什么样。** 下面是它跑一个真实会话时的界面——左边是每个 agent 的上下文占用条，中间是一轮之内按时间铺开的事件流，顶栏六格是这一刻的用量账：
 
-![Wovra 对话页](/images/wovra/ui-conv.png)
+![Wovra 对话页](/images/wovra/ui-conv.webp)
 
 再看分域生长树（一棵只增不改的树，每个框是一个域，按归属 agent 上色）：
 
-![分域生长树](/images/wovra/ui-project.png)
+![分域生长树](/images/wovra/ui-project.webp)
 
 其余界面（账本页、用量页、开放轮续跑）见后面的 [Web UI](#web-ui) 一节。
 
@@ -227,7 +227,7 @@ WOVRA_TASKS_ROOT=/tmp/demo wovra serve   # 用另一份数据目录起演示实�
 
 对话页把一轮之内发生的事按时间铺开：用户原文、模型的思考与正文（Markdown 实时渲染）、每一次工具调用与结果（默认折叠，点开是原文）、每个 agent 各占一个消息块。
 
-![对话页](/images/wovra/ui-conv.png)
+![对话页](/images/wovra/ui-conv.webp)
 
 顶栏六格是「这一刻的账」：Σ prompt / 缓存命中率 / LLM 调用 / 轮次 / 工具调用 / TTFT 均值。两处口径值得说明：**工具调用一步可以大于 1**（一步里并行调多个只读工具，也就顺带看出并行度）；**TTFT 均值只统计干活轮**——结算/分域那种一次读 20 万 token 的批量调用不计入，否则均值会被它们抬飞。六格在跑轮期间按步刷新，不必等这一轮结束。左边每个 agent 一条上下文占用条（当前/窗口 + 实测峰值）。
 
@@ -235,19 +235,19 @@ WOVRA_TASKS_ROOT=/tmp/demo wovra serve   # 用另一份数据目录起演示实�
 
 **开放轮 + 续跑**：一轮只有产出最终回答才算闭合，被打断或步数用尽的轮会一直开着，新消息并入它——界面上明确标出来，并给一个「▶ 续跑」（等价于命令行 `/c`，不注入新消息）。
 
-![未闭合轮与续跑](/images/wovra/ui-open-round.png)
+![未闭合轮与续跑](/images/wovra/ui-open-round.webp)
 
 **账本页**是结算产出的现状与状态账本（决策升级 / 待办实验 / 已决策）：
 
-![账本页](/images/wovra/ui-ledger.png)
+![账本页](/images/wovra/ui-ledger.webp)
 
 **项目页**给出文件树 + 生长中的分域树：域画成一棵树（一个域一个框、按归属 agent 上色），只增不改——每次分域只加节点，结构树从不重写。每个 agent 的职责及它名下的文件列在树旁（职责就是分域阶段写的那段话，文件归属则是 Runtime 按路径机械算的）：
 
-![项目页](/images/wovra/ui-project.png)
+![项目页](/images/wovra/ui-project.webp)
 
 **用量页**把账拆开：轮账按阶段归属、按 agent 聚合、缓存命中逐项对账：
 
-![用量页](/images/wovra/ui-usage.png)
+![用量页](/images/wovra/ui-usage.webp)
 
 页面还有一个「工作目录选择器」（新建会话时挑工作区，跨平台）与审批 / 自主模式切换。
 

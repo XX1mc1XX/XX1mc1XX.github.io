@@ -19,7 +19,7 @@ order: 2
 
 **先看它跑起来是什么样。** 左边是接进来的 Qt 日志分析助手，右边是命令行模式——两个前端，同一个 Agent 内核：
 
-![运行效果：Qt 界面与命令行](/images/agent4cpp/项目效果1.png)
+![运行效果：Qt 界面与命令行](/images/agent4cpp/项目效果1.webp)
 
 ## 一、整体是怎么转起来的
 
@@ -67,7 +67,7 @@ examples/
 
 **它是个能编译能跑的完整工程**——下面这张是 Visual Studio 里的样子：左边是对外头文件，右边八个实现模块，下面那次构建把库、三个示例和全部测试一起编了出来。
 
-![Visual Studio 里的工程结构与构建结果](/images/agent4cpp/构建截图-VS解决方案.png)
+![Visual Studio 里的工程结构与构建结果](/images/agent4cpp/构建截图-VS解决方案.webp)
 
 **三个能力层各有一个纯虚接口**，模式完全一样：
 
@@ -172,7 +172,7 @@ Status 模块统一了错误返回——**不用异常，用返回值携带错�
 
 ![示例三：Qt 日志分析助手的整体架构](/images/agent4cpp/第15章_示例三_Qt_日志分析助手架构-1.svg)
 
-![示例运行效果：一份日志丢进去，助手自己调工具去查](/images/agent4cpp/项目效果2.png)
+![示例运行效果：一份日志丢进去，助手自己调工具去查](/images/agent4cpp/项目效果2.webp)
 
 ![示例一：Mock 相机的演示链路](/images/agent4cpp/第13章_示例一_camera_mock_演示-1.svg)
 
