@@ -420,22 +420,6 @@ html.agent-open .agent-panel {
 	border-color: var(--accent);
 }
 
-.agent-hint {
-	margin: 0.7rem 0 0.2rem;
-	font-size: 12px;
-	line-height: 1.65;
-	color: var(--fg-dim);
-}
-
-/* 设置面板里的说明文字。注意别跟上面那个 .agent-hint 气泡搞混——
-   之前两处共用一个类名，结果这段被当成浮空气泡，盖住了三个输入框 */
-.agent-note {
-	margin: 0.7rem 0 0.2rem;
-	font-size: 12px;
-	line-height: 1.65;
-	color: var(--fg-dim);
-}
-
 .agent-body {
 	flex: 1;
 	min-height: 0;

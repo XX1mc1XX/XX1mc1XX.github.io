@@ -106,10 +106,13 @@ export default function AgentDrawer() {
 		if (node) node.scrollTop = node.scrollHeight;
 	}, [messages, open, busy]);
 
-	// 首次访问才弹一次提示。等页面稳下来再出现，一进来就冒出来太吵
+	// 首次访问才弹一次提示。留一点延迟，免得一进来就冒出来太吵。
+	// 但这个计时器是在**水合之后**才开始的，而岛用 client:idle 水合本身
+	// 还要等浏览器空闲（线上首屏又有一两秒），原来设 2200ms 实际要五六秒
+	// 才出现——访客早开始读正文了，这时右上角冒东西反而突兀
 	useEffect(() => {
 		if (!hintAllowed()) return;
-		const timer = setTimeout(() => setShowHint(true), 2200);
+		const timer = setTimeout(() => setShowHint(true), 900);
 		return () => clearTimeout(timer);
 	}, []);
 
