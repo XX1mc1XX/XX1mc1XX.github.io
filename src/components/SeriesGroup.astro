@@ -6,16 +6,26 @@ interface Props {
 	tagline: string;
 	project?: string;
 	posts: CollectionEntry<'posts'>[];
-	/** 只显示前几篇；不传就是全显示 */
+	/** 默认显示前几篇 */
 	limit?: number;
+	/**
+	 * true 时超出的部分默认折叠，点「展开全部」就地展开（/blog 用）。
+	 * false 时超出的部分直接链到 /blog（首页用）。
+	 */
+	collapsible?: boolean;
 }
 
-const { name, tagline, project, posts, limit } = Astro.props;
-const shown = limit ? posts.slice(0, limit) : posts;
-const hidden = posts.length - shown.length;
+const { name, tagline, project, posts, limit = 0, collapsible = false } = Astro.props;
+
+// visibleCount 是「不点开就能看到几篇」，跟实际渲染了几条不是一回事：
+// 可折叠时要把全部条目都渲染出来（靠 CSS 收起多余的），但折叠线仍在 limit 处
+const visibleCount = limit > 0 ? limit : posts.length;
+const shown = collapsible ? posts : posts.slice(0, visibleCount);
+const hiddenCount = posts.length - visibleCount;
+const hasExtra = collapsible && hiddenCount > 0;
 ---
 
-<section class="series">
+<section class="series" data-series>
 	<header class="series__head">
 		<div class="series__title-row">
 			<h3 class="series__name">{name}</h3>
@@ -28,7 +38,7 @@ const hidden = posts.length - shown.length;
 	<ol class="series__list">
 		{
 			shown.map((post, i) => (
-				<li class="series__item">
+				<li class={`series__item${hasExtra && i >= visibleCount ? ' series__item--extra' : ''}`}>
 					<a class="series__link" href={`/blog/${post.id}/`}>
 						<span class="series__num">{String(i + 1).padStart(2, '0')}</span>
 						<span class="series__text">
@@ -41,5 +51,29 @@ const hidden = posts.length - shown.length;
 		}
 	</ol>
 
-	{hidden > 0 && <a class="series__more" href="/blog">还有 {hidden} 篇 · 查看全部 →</a>}
+	{
+		hasExtra ? (
+			<button class="series__toggle" type="button" data-series-toggle>
+				<span data-more>展开全部 {posts.length} 篇</span>
+				<span data-less>收起</span>
+			</button>
+		) : (
+			hiddenCount > 0 && (
+				<a class="series__more" href="/blog">
+					还有 {hiddenCount} 篇 · 查看全部 →
+				</a>
+			)
+		)
+	}
 </section>
+
+<script>
+	// 事件委托：一页里有好几个系列，而且这个组件每页只该挂一次监听。
+	// Astro 会把这段打包去重，所以不用担心重复绑定
+	document.addEventListener('click', (event) => {
+		const target = event.target as Element | null;
+		const toggle = target?.closest('[data-series-toggle]');
+		if (!toggle) return;
+		toggle.closest('[data-series]')?.classList.toggle('series--expanded');
+	});
+</script>

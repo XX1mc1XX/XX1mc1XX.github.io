@@ -40,8 +40,11 @@ const articles = await collectArticles();
 		<link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
 		<title>{title ? `${title} · ${site.name}` : site.name}</title>
 		<script is:inline>
-			// 这两件都要在首屏渲染前定好，否则会先闪一下再变
+			// 这几件都要在首屏渲染前定好，否则会先闪一下再变
 			document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
+			// 标记「JS 可用」。文章系列的折叠靠它生效：没有 JS 时列表得全部可见，
+			// 所以默认不收，等这个类加上去才折叠——反过来做会先闪出全部再收起来
+			document.documentElement.classList.add('js');
 			// 用户手动收起过侧边栏就一直收起；切页时左右两栏不会忽有忽无
 			if (localStorage.getItem('sidebar-open') === '0') {
 				document.documentElement.classList.add('sidebar-hidden');

@@ -1092,6 +1092,52 @@ html.sidebar-hidden .agent-panel {
 	text-decoration: none;
 }
 
+/* ── 系列内折叠 ──────────────────────────────────────────
+   默认全部可见（无 JS 也能读），只有 html 上带了 .js 才把多余的收起来。
+   反过来做的话，首屏会先闪出全部再收，很难看 */
+html.js .series__item--extra {
+	display: none;
+}
+
+html.js .series--expanded .series__item--extra {
+	display: block;
+}
+
+.series__toggle {
+	display: block;
+	width: 100%;
+	margin-top: 0.6rem;
+	padding: 0.55rem 1.1rem;
+	background: none;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--fg-muted);
+	font-family: var(--font-mono);
+	font-size: 0.82rem;
+	text-align: left;
+	cursor: pointer;
+	transition: color 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.series__toggle:hover {
+	color: var(--accent);
+	border-color: var(--accent);
+	background: var(--bg-hover);
+}
+
+/* 展开 / 收起两套文案，靠父级 class 切 */
+.series__toggle [data-less] {
+	display: none;
+}
+
+.series--expanded .series__toggle [data-more] {
+	display: none;
+}
+
+.series--expanded .series__toggle [data-less] {
+	display: inline;
+}
+
 .series__more:hover,
 .more-link:hover {
 	text-decoration: underline;
