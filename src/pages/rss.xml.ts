@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { site } from '../site.config';
+import { getPublishedPosts } from '../utils/articles';
 
 function escapeXml(value: string) {
 	return value
@@ -11,9 +11,7 @@ function escapeXml(value: string) {
 }
 
 export const GET: APIRoute = async ({ site: siteUrl }) => {
-	const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
-		(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-	);
+	const posts = await getPublishedPosts();
 
 	const origin = siteUrl ?? new URL('https://example.pages.dev');
 	const url = (path: string) => new URL(path, origin).href;

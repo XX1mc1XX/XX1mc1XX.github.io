@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { collectArticle, collectArticleIndex } from '../../lib/articles';
+import { collectArticle, collectArticleIndex } from '../../utils/articles';
 
 // 一篇一个静态 JSON。助手的 read_article 工具按需取，
 // 不用再把全部正文塞进目录里让每个访客都下载一遍

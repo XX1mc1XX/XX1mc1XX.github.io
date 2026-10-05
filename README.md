@@ -24,30 +24,57 @@ npm run preview  # 预览构建产物
 | 页面结构与路由 | `src/pages/` |
 | 文章 | `src/content/posts/*.md` |
 | 项目 | `src/content/projects/*.md` |
+| 灌向量库、图片压缩这类一次性脚本 | `tools/` |
 
 ## AI 助手
 
 访客点右上角浮标，页面变成两栏：正文在左自动变窄，助手在右。拖中间边界可调栏宽，
 宽度记在本地。助手自带会话历史，也存本地。
 
-打开时先看到一段录好的回放（不消耗 API），看清它能干什么，再自己填 Key 提问。
+打开时先看到一段录好的回放（不消耗额度），看清它能干什么，再直接提问。
 
-**为什么访客要自己填 Key**：站点是纯静态的，没有服务端。
-请求从访客的浏览器直接发往模型服务商，Key 只存在访客自己的 localStorage 里，
-不经过任何服务器。这样站主不承担任何费用，也不用担心 Key 泄漏。
+**Key 在服务端，访客什么都不用填**。浏览器打自家的 `/api/chat`，
+由 `public/_worker.js` 添上 Key 再转发给模型。Key 只从 Pages 的环境变量读，
+不会出现在任何返回给浏览器的内容里。
+
+站点本身是静态的。`_worker.js` 只用 Advanced Mode 接管四个端点——
+对话转发、向量检索、联网搜索、GitHub 搜索——其余请求原样交给静态资源。
+
+助手一开始只取一份内容**目录**（`/articles.json`，十几 KB，页面空闲时预取），
+要读全文时才去取对应的单篇（`/articles/<id>.json`）。
+早先的做法是把全站正文打包成一份 JSON，827KB，每个访客每开一个页面都会下载一遍。
+
+## 站内搜索与灌数据
+
+站内语义搜索走 Cloudflare Vectorize（索引 `blog-content`，Workers AI 的 bge-m3 向量化）。
+灌数据不经 Worker，直接跑脚本：
+
+```bash
+npm run build                  # 先出构建产物，脚本读 dist/
+python tools/ingest.py         # 灌全部（内容没变的自动跳过）
+python tools/ingest.py --count # 查库里有多少向量
+python tools/clean_vectors.py --dry   # 比对库里和陈旧块，只报告不删
+```
+
+凭据放 `.env.local`（不进仓库）：`CF_ACCOUNT_ID` + `VECTORIZE_API_TOKEN`，
+注意变量名是 `VECTORIZE_API_TOKEN` 而不是 `CF_API_TOKEN`。
 
 | 文件 | 作用 |
 |---|---|
-| `src/lib/articles.ts` | 构建时把全部文章转成纯文本，供助手检索 |
-| `src/components/agent/tools.ts` | 工具定义（3 个）+ 系统提示词 |
+| `src/lib/articles.ts` | 「已发布文章」的唯一查询口径；构建时收集内容目录 |
+| `src/pages/articles.json.ts` | 目录端点 `/articles.json`（只有标题摘要） |
+| `src/pages/articles/[id].json.ts` | 单篇全文 `/articles/<id>.json`，助手读到哪篇取哪篇 |
+| `src/components/agent/tools.ts` | 工具定义（5 个）+ 系统提示词 |
 | `src/components/agent/llm.ts` | 流式 SSE 解析 + agent 工具调用循环 |
-| `src/components/agent/types.ts` | 设置与会话的本地存储 |
+| `src/components/agent/types.ts` | 会话的本地存储 |
 | `src/components/agent/AgentDrawer.tsx` | 面板界面（分栏、拖宽、历史、演示） |
-| `src/components/agent/demo.ts` | 未填 Key 时播放的演示脚本 |
+| `src/components/agent/demo.ts` | 面板刚打开时播放的回放脚本 |
 | `src/styles/agent.css` | 分栏布局与面板样式 |
+| `public/_worker.js` | `/api/*` 四个端点 + 静态资源回落 |
 
-默认连 DeepSeek。换服务商在面板的设置里改 Base URL 和模型名即可，
-只要对方是 OpenAI 兼容协议就不用改代码。
+默认连 DeepSeek（见 `_worker.js` 顶部的 `DEFAULT_MODEL`）。换服务商改那里的
+`DEFAULT_BASE_URL` / `DEFAULT_MODEL`，或在 Pages 项目里设 `AI_BASE_URL` / `AI_MODEL`
+覆盖——只要对方是 OpenAI 兼容协议，代码一行不用动。
 
 演示脚本在 `demo.ts` 里，是纯静态文本，改完重新构建就行。
 

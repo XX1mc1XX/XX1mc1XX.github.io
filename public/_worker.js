@@ -2,15 +2,49 @@
 // 放在 public/ 里，构建时会被原样复制到输出目录根，Pages 会自动用它处理请求。
 //
 // 三件事：
-//   /api/chat   把对话请求加上 API Key 转发给模型
-//   /api/search 把查询向量化，去 Vectorize 里找语义最近的片段
-//   /api/ingest 把文章切块灌进向量库（一次性，需要令牌）
+//   /api/chat         把对话请求加上 API Key 转发给模型
+//   /api/search       把查询向量化，去 Vectorize 里找语义最近的片段
+//   /api/web-search   联网搜索（Tavily，没配 Key 就退回抓 Bing）
+//   /api/gh-search    转发 GitHub 搜索
 // Key 与令牌都只从服务端环境变量读，不会出现在返还给浏览器的内容里。
+// 灌向量库走 tools/ingest.py 直连 Cloudflare REST，不经过这里——
+// 原先那个 /api/ingest 端点也已经删掉，少一个能被人撞的门。
 
 const DEFAULT_BASE_URL = 'https://opencode.ai/zen/go/v1';
 const DEFAULT_MODEL = 'deepseek-v4.1-flash';
 const EMBED_MODEL = '@cf/baai/bge-m3';
 const VECTOR_INDEX = 'blog-content';
+
+// 上游挂起时的兜底。没有它，一个卡住的请求会一直占着 Worker 并发，
+// 表现是「网站忽然整体变慢」，而日志里什么都看不到。
+// 不用 AbortSignal.timeout：compatibility date 由 Pages 项目设置控制，
+// 不一定落在支持它的档位上，自己搭一个更稳
+function timeoutSignal(ms) {
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), ms);
+	return { signal: controller.signal, cancel: () => clearTimeout(timer) };
+}
+
+async function fetchWithTimeout(url, init, ms) {
+	const t = timeoutSignal(ms);
+	try {
+		return await fetch(url, { ...init, signal: t.signal });
+	} finally {
+		t.cancel();
+	}
+}
+
+// 请求体上限。公开站没有登录，任何拿到链接的人都能打这个端点，
+// 不设上限等于把上游额度敞开给人刷
+const MAX_CHAT_CHARS = 200000;
+const MAX_CHAT_MESSAGES = 60;
+
+// 只覆盖「拿到响应头」这一段。流式回答的 body 不归它管，
+// 否则长回答会被拦腰砍断
+const CHAT_TIMEOUT = 60000;
+// 其余都是等一个完整 JSON 回来，给短一点
+const API_TIMEOUT = 20000;
+const SCRAPE_TIMEOUT = 15000;
 
 // Pages 项目不支持 Vectorize / Workers AI 的 binding，只能走 REST。
 // 所以需要一个长期 API Token（OAuth 那种一天就过期，不能用）
@@ -54,11 +88,6 @@ export default {
 			return handleGithubSearch(request, env);
 		}
 
-		if (url.pathname === '/api/ingest') {
-			if (request.method !== 'POST') return json({ error: { message: '只接受 POST。' } }, 405);
-			return handleIngest(request, env);
-		}
-
 		// 页面、样式、脚本、RSS 全走静态资源
 		return env.ASSETS.fetch(request);
 	},
@@ -70,9 +99,21 @@ async function handleChat(request, env) {
 		return json({ error: { message: '服务端没有配置模型 Key。' } }, 500);
 	}
 
+	// 先按字符数卡一道。Content-Length 是客户端说了算的，
+	// 分块传输时甚至没有，所以读出来量才作数
+	let raw;
+	try {
+		raw = await request.text();
+	} catch {
+		return json({ error: { message: '请求体读不出来。' } }, 400);
+	}
+	if (raw.length > MAX_CHAT_CHARS) {
+		return json({ error: { message: '请求体过大。' } }, 413);
+	}
+
 	let payload;
 	try {
-		payload = await request.json();
+		payload = JSON.parse(raw);
 	} catch {
 		return json({ error: { message: '请求体不是合法 JSON。' } }, 400);
 	}
@@ -80,12 +121,15 @@ async function handleChat(request, env) {
 	if (!payload || !Array.isArray(payload.messages)) {
 		return json({ error: { message: '请求体里缺少 messages 数组。' } }, 400);
 	}
+	if (payload.messages.length > MAX_CHAT_MESSAGES) {
+		return json({ error: { message: '对话轮数过多。' } }, 413);
+	}
 
 	const baseUrl = (env.AI_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, '');
 
 	let upstream;
 	try {
-		upstream = await fetch(`${baseUrl}/chat/completions`, {
+		upstream = await fetchWithTimeout(`${baseUrl}/chat/completions`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json; charset=utf-8',
@@ -100,16 +144,18 @@ async function handleChat(request, env) {
 				tools: Array.isArray(payload.tools) ? payload.tools : undefined,
 				stream: true,
 			}),
-		});
+		}, CHAT_TIMEOUT);
 	} catch (cause) {
-		return json({ error: { message: `连不上模型服务：${cause.message}` } }, 502);
+		// 超时走的是 abort 分支，cause.message 会是一句很费解的英文，改写成人话
+		const detail = cause?.name === 'AbortError' ? '模型服务响应超时。' : `连不上模型服务：${cause.message}`;
+		return json({ error: { message: detail } }, 502);
 	}
 
 	if (!upstream.ok) {
 		return new Response(await upstream.text(), {
 			status: upstream.status,
 			headers: { 'Content-Type': upstream.headers.get('Content-Type') || 'application/json' },
-		});
+		}, API_TIMEOUT);
 	}
 
 	// 流式透传：直接把 body 交出去，不能先读出来再包装，否则就不是流了
@@ -141,22 +187,22 @@ async function handleSearch(request, env) {
 	const topK = Math.min(Math.max(Number(body?.topK) || 4, 1), 10);
 
 	try {
-		const embedded = await fetch(cfApi(env, `/ai/run/${EMBED_MODEL}`), {
+		const embedded = await fetchWithTimeout(cfApi(env, `/ai/run/${EMBED_MODEL}`), {
 			method: 'POST',
 			headers: cfHeaders(env),
 			body: JSON.stringify({ text: [query] }),
-		});
+		}, API_TIMEOUT);
 		const embedJson = await embedded.json();
 		const vector = embedJson?.result?.data?.[0];
 		if (!vector) {
 			return json({ error: { message: `向量化没返回结果：${JSON.stringify(embedJson).slice(0, 200)}` } }, 502);
 		}
 
-		const queried = await fetch(cfApi(env, `/vectorize/v2/indexes/${VECTOR_INDEX}/query`), {
+		const queried = await fetchWithTimeout(cfApi(env, `/vectorize/v2/indexes/${VECTOR_INDEX}/query`), {
 			method: 'POST',
 			headers: cfHeaders(env),
 			body: JSON.stringify({ vector, topK, returnMetadata: 'all' }),
-		});
+		}, API_TIMEOUT);
 		const queryJson = await queried.json();
 		const matches = (queryJson?.result?.matches ?? []).map((m) => ({
 			id: m.id,
@@ -169,78 +215,6 @@ async function handleSearch(request, env) {
 		return json({ query, topK, matches });
 	} catch (cause) {
 		return json({ error: { message: `检索失败：${cause.message}` } }, 502);
-	}
-}
-
-// 一次性把文章灌进向量库。用令牌保护，否则谁都能往里塞垃圾。
-// 内容更新后重新调一次即可（用同一批 id，会覆盖）
-async function handleIngest(request, env) {
-	if (!env.CF_API_TOKEN || !env.CF_ACCOUNT_ID) {
-		return json({ error: { message: '服务端没有配置 Cloudflare 凭据。' } }, 500);
-	}
-
-	const token = env.INGEST_TOKEN;
-	if (!token || request.headers.get('x-ingest-token') !== token) {
-		return json({ error: { message: '令牌不对。' } }, 401);
-	}
-
-	let body;
-	try {
-		body = await request.json();
-	} catch {
-		return json({ error: { message: '请求体不是合法 JSON。' } }, 400);
-	}
-
-	const chunks = Array.isArray(body?.chunks) ? body.chunks : null;
-	if (!chunks || chunks.length === 0) {
-		return json({ error: { message: '缺少 chunks 数组。' } }, 400);
-	}
-	if (chunks.length > 200) {
-		return json({ error: { message: '一次最多 200 块。' } }, 400);
-	}
-
-	try {
-		// bge-m3 单次能吃的条数有限，分批
-		const vectors = [];
-		const BATCH = 10;
-		for (let i = 0; i < chunks.length; i += BATCH) {
-			const slice = chunks.slice(i, i + BATCH);
-			const res = await fetch(cfApi(env, `/ai/run/${EMBED_MODEL}`), {
-				method: 'POST',
-				headers: cfHeaders(env),
-				body: JSON.stringify({ text: slice.map((c) => c.text) }),
-			});
-			const data = (await res.json())?.result?.data ?? [];
-			slice.forEach((chunk, j) => {
-				if (!data[j]) return;
-				vectors.push({
-					id: String(chunk.id),
-					values: data[j],
-					metadata: {
-						title: String(chunk.title ?? '').slice(0, 200),
-						url: String(chunk.url ?? '').slice(0, 300),
-						text: String(chunk.text ?? '').slice(0, 2000),
-					},
-				});
-			});
-		}
-
-		// Vectorize 的 upsert 收 NDJSON，不是 JSON 数组
-		const res = await fetch(cfApi(env, `/vectorize/v2/indexes/${VECTOR_INDEX}/upsert`), {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-ndjson; charset=utf-8',
-				Authorization: `Bearer ${env.CF_API_TOKEN}`,
-			},
-			body: vectors.map((v) => JSON.stringify(v)).join('\n'),
-		});
-		if (!res.ok) {
-			return json({ error: { message: `灌入失败 ${res.status}：${(await res.text()).slice(0, 300)}` } }, 502);
-		}
-
-		return json({ ok: true, received: chunks.length, upserted: vectors.length });
-	} catch (cause) {
-		return json({ error: { message: `灌数据失败：${cause.message}` } }, 502);
 	}
 }
 
@@ -275,7 +249,7 @@ async function handleWebSearch(request, env) {
 
 async function searchViaTavily(query, limit, apiKey) {
 	try {
-		const res = await fetch('https://api.tavily.com/search', {
+		const res = await fetchWithTimeout('https://api.tavily.com/search', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
 			body: JSON.stringify({
@@ -284,7 +258,7 @@ async function searchViaTavily(query, limit, apiKey) {
 				max_results: limit,
 				search_depth: 'basic',
 			}),
-		});
+		}, API_TIMEOUT);
 		if (!res.ok) {
 			const detail = await res.text();
 			return json({ error: { message: `Tavily 返回 ${res.status}：${detail.slice(0, 200)}` } }, 502);
@@ -303,14 +277,14 @@ async function searchViaTavily(query, limit, apiKey) {
 
 async function searchViaBing(query, limit) {
 	try {
-		const res = await fetch(`https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=zh-CN`, {
+		const res = await fetchWithTimeout(`https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=zh-CN`, {
 			headers: {
 				'User-Agent':
 					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
 				Accept: 'text/html,application/xhtml+xml',
 				'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
 			},
-		});
+		}, SCRAPE_TIMEOUT);
 		if (!res.ok) {
 			return json({ error: { message: `搜索源返回 ${res.status}` } }, 502);
 		}
@@ -395,9 +369,10 @@ async function handleGithubSearch(request, env) {
 	if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
 
 	try {
-		const res = await fetch(
+		const res = await fetchWithTimeout(
 			`https://api.github.com/search/${kind}?q=${encodeURIComponent(query)}&per_page=${limit}`,
 			{ headers },
+			API_TIMEOUT,
 		);
 		if (!res.ok) {
 			const detail = await res.text();

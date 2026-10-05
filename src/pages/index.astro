@@ -5,12 +5,11 @@ import ProjectCard from '../components/ProjectCard.astro';
 import SeriesGroup from '../components/SeriesGroup.astro';
 import { site } from '../site.config';
 import { groupBySeries } from '../utils/series';
+import { getPublishedPosts } from '../utils/articles';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 
-const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = await getPublishedPosts();
 
 const groups = groupBySeries(posts);
 // 首页每组只展开三篇，其余走「还有 N 篇」进 /blog——首页是概览，不是目录

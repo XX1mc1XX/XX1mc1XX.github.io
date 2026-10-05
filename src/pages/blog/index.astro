@@ -1,12 +1,10 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SeriesGroup from '../../components/SeriesGroup.astro';
 import { groupBySeries } from '../../utils/series';
+import { getPublishedPosts } from '../../utils/articles';
 
-const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = await getPublishedPosts();
 
 const groups = groupBySeries(posts);
 ---

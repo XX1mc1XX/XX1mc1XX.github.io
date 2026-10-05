@@ -1,9 +1,11 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Toc from '../../components/Toc.astro';
+import { getPublishedPosts } from '../../utils/articles';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('posts', ({ data }) => !data.draft);
+	const posts = await getPublishedPosts();
 	return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
 }
 
@@ -11,73 +13,14 @@ const { post } = Astro.props;
 const { Content, headings } = await render(post);
 const { title, description, tags } = post.data;
 
-const toc = headings.filter((heading) => heading.depth <= 3);
-
-// 把扁平的大纲折成两层树：二级标题当组，三级标题收在它下面。
-// 全部平铺的话，长文的大纲会变成一长条，没法折叠也没法一眼看出层次
-type TocNode = { text: string; slug: string; children: { text: string; slug: string }[] };
-const tocTree: TocNode[] = [];
-for (const heading of toc) {
-	if (heading.depth <= 2 || tocTree.length === 0) {
-		tocTree.push({ text: heading.text, slug: heading.slug, children: [] });
-	} else {
-		tocTree[tocTree.length - 1].children.push({ text: heading.text, slug: heading.slug });
-	}
-}
-
-const all = (await getCollection('posts', ({ data }) => !data.draft)).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const all = await getPublishedPosts();
 const position = all.findIndex((item) => item.id === post.id);
 const newer = position > 0 ? all[position - 1] : undefined;
 const older = position < all.length - 1 ? all[position + 1] : undefined;
 ---
 
 <BaseLayout title={title} description={description} wide>
-	<nav slot="sidebar" class="toc">
-		<div class="toc__tools">
-			<span class="toc__tools-label">大纲</span>
-			<button
-				type="button"
-				class="toc__tool toc__tool--toggle"
-				data-toc="toggle"
-				title="全部展开 / 全部收起"
-				aria-label="全部展开或全部收起"
-			>
-				<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-					<rect x="2.6" y="2.6" width="10.8" height="10.8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.2" />
-					<path d="M5.6 8h4.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-					<path class="toc__tool-plus" d="M8 5.6v4.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-				</svg>
-			</button>
-		</div>
-		<ul class="toc__list">
-			{tocTree.map((node) => (
-				<li class="toc__group">
-					<div class="toc__row">
-						{node.children.length > 0 ? (
-							<button type="button" class="toc__caret" aria-label="展开或收起">
-								▾
-							</button>
-						) : (
-							<span class="toc__caret toc__caret--blank" />
-						)}
-						<a href={`#${node.slug}`}>{node.text}</a>
-					</div>
-					{node.children.length > 0 && (
-						<ul class="toc__children">
-							{node.children.map((child) => (
-								<li>
-									<a href={`#${child.slug}`}>{child.text}</a>
-								</li>
-							))}
-						</ul>
-					)}
-				</li>
-			))}
-		</ul>
-		<a class="toc__back" href="/blog/">← 全部文章</a>
-	</nav>
+	<Toc slot="sidebar" headings={headings} backHref="/blog/" backLabel="← 全部文章" />
 
 	<article class="prose">
 		<header>
