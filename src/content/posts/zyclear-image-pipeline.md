@@ -7,7 +7,7 @@ tags: [C++, Qt, 架构设计, 并发, 工业软件]
 
 上一篇把参数面板装了起来：37 项参数变成了能点、能改、能下发的控件树。那一篇结尾我说，参数只是配置——**相机真正持续不断往外吐的，是一秒几十帧的图像**。
 
-这一篇就写这条图像链路。主角是 `src/CameraInterface/CameraImageQueue.h`/`.cpp` 这个不到 80 行的类，和它串起来的另外三处：`src/CameraFactory/HikCamera.cpp` 里的采集回调、`src/ViewWidget/` 里的采集线程与显示、`src/Utils/ImageConver.h` 里那座 cv::Mat → QImage 的桥。
+这一篇就写这条图像链路。主角是 `src/CameraInterface/CameraImageQueue.h`/`.cpp` 这个类，和它串起来的另外三处：`src/CameraFactory/HikCamera.cpp` 里的采集回调、`src/ViewWidget/` 里的采集线程与显示、`src/Utils/ImageConver.h` 里那座 cv::Mat → QImage 的桥。
 
 一句话先立住：**从 SDK 回调线程到界面那块显示控件，中间隔着三个线程和一条有界队列。界面永远不被采集拖住。**
 

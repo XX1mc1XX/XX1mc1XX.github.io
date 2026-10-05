@@ -13,7 +13,8 @@ const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
 );
 
 const groups = groupBySeries(posts);
-const HOME_LIMIT = 6;
+// 首页每组只展开三篇，其余走「还有 N 篇」进 /blog——首页是概览，不是目录
+const HOME_LIMIT = 3;
 ---
 
 <BaseLayout>
