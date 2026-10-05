@@ -176,10 +176,13 @@ export default function AgentDrawer() {
 		writeHintFlag(HINT_FOREVER_KEY, '1');
 	}
 
-	// 点浮标 = 用户已经自己找到这个功能了，不用再提示
+	// 点浮标 = 用户自己找到这个功能了，当天不用再提示。
+	// 这里写的是「今日」不是「永久」：点浮标是想用它，不等于往后都不想被提示。
+	// 而且永久标记一旦写下就没有恢复入口——访客点一下就用不了这个提示了。
+	// 真想永久关掉，是提示里那个写着「永久不再提示」的按钮
 	function openFromFab() {
 		setShowHint(false);
-		writeHintFlag(HINT_FOREVER_KEY, '1');
+		writeHintFlag(HINT_SNOOZE_KEY, today());
 		setOpen(true);
 	}
 
