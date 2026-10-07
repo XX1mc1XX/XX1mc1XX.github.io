@@ -919,6 +919,12 @@ html.sidebar-hidden .agent-panel {
 		display: none;
 	}
 
+	/* 390px 这种窄屏上，五个 tab 加上两侧按钮正好把导航条挤出几像素，
+	   最右边的主题开关会被裁掉一条。收窄 tab 的内边距补回来 */
+	.tab {
+		padding: 0 0.9em;
+	}
+
 	.hero {
 		margin-bottom: 2.75rem;
 		padding-bottom: 2rem;
@@ -954,6 +960,14 @@ html.sidebar-hidden .agent-panel {
 	.prose table th,
 	.prose table td {
 		white-space: nowrap;
+	}
+}
+
+/* 320px 那一档（初代 SE、小屏安卓）五个 tab 实在排不下，再收一档内边距，
+   否则最右边的主题开关会被裁在视口外 */
+@media (max-width: 22rem) {
+	.tab {
+		padding: 0 0.62em;
 	}
 }
 
