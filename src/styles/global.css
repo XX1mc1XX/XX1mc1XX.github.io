@@ -79,8 +79,11 @@
 	display: none !important;
 }
 
+/* html 自己不设 overflow 的话，body 那条 overflow:hidden 会被"传播"到视口，
+   body 自身反而变成 visible——溢出内容不裁，直接画到状态栏下面去 */
 html {
 	height: 100%;
+	overflow: hidden;
 	background: var(--bg-deep);
 	scrollbar-color: var(--border-strong) transparent;
 }
@@ -267,6 +270,9 @@ hr {
 	flex: 1;
 	display: grid;
 	grid-template-columns: var(--activity-w) var(--sidebar-w) minmax(0, 1fr) var(--agent-w);
+	/* 行高必须钉死成容器高度。默认的 auto 行会被侧边栏里那份长大纲顶开——
+	   行一高，正文这一格跟着变高，底部多出来的部分就漏到状态栏下面去了 */
+	grid-template-rows: minmax(0, 1fr);
 	align-items: stretch;
 	min-height: 0;
 }

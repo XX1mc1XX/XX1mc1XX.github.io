@@ -82,6 +82,9 @@
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
+	/* 网格项默认按内容算最小高度。不压成 0 的话，长大纲会把这一格顶得比
+	   整行还高，溢出到状态栏底下——内部那份 .sidebar__body 自己会滚 */
+	min-height: 0;
 	background: var(--bg-elev);
 	border-right: 1px solid var(--border);
 }
